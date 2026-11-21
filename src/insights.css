@@ -1,0 +1,396 @@
+/* Styles de l'onglet Insights de l'admin : importé par Insights.jsx et ses fenêtres ; utilise seulement les couleurs et classes de index.css et pilotage.css. */
+
+.insights,
+.insights > *,
+.insights .pile > * {
+  min-width: 0;
+}
+
+/* ---------- Choix de la période ---------- */
+.insights-periodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pilule-periode {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--trait);
+  border-radius: 999px;
+  background: var(--carte);
+  color: var(--creme-2);
+  font-size: 14px;
+  font-weight: 700;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+
+.pilule-periode.actif {
+  border-color: var(--safran);
+  background: var(--safran-fond);
+  color: var(--safran);
+}
+
+.pilule-periode:disabled {
+  opacity: 0.6;
+}
+
+/* ---------- Vedette ---------- */
+.insights-vedette {
+  gap: 12px;
+}
+
+.insights-surtitre {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pilotage-compteur small {
+  color: var(--creme-3);
+}
+
+.insights-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.insights-actions .btn {
+  min-height: 52px;
+  font-size: 16px;
+}
+
+/* ---------- Résumé de la semaine ---------- */
+.resume-semaine {
+  gap: 16px;
+}
+
+.resume-texte {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--creme-2);
+}
+
+.resume-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resume-action {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  color: var(--creme);
+  line-height: 1.45;
+}
+
+.resume-numero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--safran);
+  color: var(--braise);
+  font-weight: 800;
+}
+
+/* ---------- Thèmes ---------- */
+.insights-themes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.carte-theme-entete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.carte-theme-titre {
+  font-size: 17px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.carte-theme-nombre {
+  flex: none;
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--safran);
+}
+
+.carte-theme-nombre small {
+  margin-left: 2px;
+  font-family: var(--police);
+  font-style: normal;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--creme-3);
+}
+
+.carte-theme-pied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.carte-theme-extrait {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--creme);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Portion et gaspillage + À revoir ---------- */
+.insights-bas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.portion-phrase {
+  margin: 0;
+}
+
+.portion-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.portion-ligne {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 12px;
+}
+
+.portion-plat {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.portion-valeur {
+  font-size: 17px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.portion-barre,
+.portion-detail {
+  grid-column: 1 / -1;
+}
+
+.revue-accord {
+  display: inline;
+}
+
+.revue-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.carte-revue {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  background: var(--carte-2);
+}
+
+.proposition {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.revue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.revue-actions .btn {
+  flex: 1 1 130px;
+  width: auto;
+  min-height: 48px;
+  padding: 0 16px;
+  justify-content: center;
+  font-size: 15px;
+  text-align: center;
+}
+
+.revue-correction {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- Avis (liste d'un thème et file de revue) ---------- */
+.avis-theme-tete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+
+.avis-etoiles {
+  font-size: 18px;
+  letter-spacing: 2px;
+  color: var(--safran);
+}
+
+.avis-etoiles-vides {
+  color: var(--creme-3);
+  opacity: 0.4;
+}
+
+.avis-theme-texte {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--creme);
+  overflow-wrap: anywhere;
+}
+
+.fenetre-insights {
+  max-height: 88vh;
+}
+
+.liste-avis-theme {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.avis-theme {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--carte);
+}
+
+/* ---------- Import CSV ---------- */
+.apercu-import {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.apercu-ligne {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--carte);
+}
+
+.apercu-texte {
+  font-size: 15px;
+  color: var(--creme);
+  overflow-wrap: anywhere;
+}
+
+.liste-rejets {
+  margin: 8px 0;
+  padding-left: 18px;
+}
+
+/* ---------- PC ---------- */
+@media (min-width: 900px) {
+  .insights-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .insights-actions .btn {
+    flex: 1 1 200px;
+    width: auto;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .insights-actions .btn:first-child {
+    flex-basis: 100%;
+  }
+
+  .insights-themes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .resume-texte {
+    font-size: 18px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .insights-themes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+
+  .insights-bas {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .insights-themes {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.revue-plus {
+  justify-content: center;
+  min-height: 48px;
+  font-size: 15px;
+  text-align: center;
+}

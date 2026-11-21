@@ -1,0 +1,93 @@
+/* Mise en page de l'espace admin (importé par Admin.jsx, après les autres CSS) : une seule fois le logo, rien ne dépasse, sur téléphone comme sur PC. */
+
+/* Téléphone : une colonne avec marges, l'en-tête (logo + prénom) reste visible */
+.page-admin {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 var(--marge) calc(var(--hauteur-onglets) + 48px);
+}
+
+.page-admin > * + * {
+  margin-top: 16px;
+}
+
+.page-admin .admin-contenu,
+.page-admin .admin-contenu > *,
+.page-admin .pile > * {
+  min-width: 0;
+}
+
+/* PC : barre latérale collée à gauche, contenu à droite ; le logo n'apparaît que dans la barre latérale */
+@media (min-width: 900px) {
+  .page-admin,
+  .page-large {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .page-admin > .entete,
+  .page-large > .entete {
+    display: none;
+  }
+
+  .page-admin > .admin {
+    margin-top: 0;
+  }
+
+  .page-admin .admin {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 0;
+    align-items: start;
+  }
+
+  .page-admin .barre-laterale {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    height: 100vh;
+    padding: 28px 24px;
+    background: var(--carte);
+  }
+
+  .page-admin .admin-contenu {
+    padding: 36px clamp(24px, 3vw, 48px) 48px;
+  }
+
+  .page-admin .admin .onglets {
+    display: none;
+  }
+}
+
+/* Menus à 900 px : les badges d'une carte-jour passent à la ligne au lieu de dépasser */
+.carte-jour .allergenes {
+  min-width: 0;
+}
+
+.carte-jour .allergenes .badge,
+.carte-jour .allergenes .allergene {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+/* Barre d'onglets du bas à 5 entrées (Pilotage, Commandes, Menus, File, Stocks) : libellés plus petits pour tenir à 360 px */
+.page-admin .onglet {
+  min-width: 0;
+}
+
+.page-admin .onglet-libelle {
+  font-size: 11px;
+}
+
+/* 6 onglets sur un téléphone de 360 px : libellés un peu plus petits pour ne pas se toucher */
+@media (max-width: 420px) {
+  .page-admin .onglet-libelle {
+    font-size: 10px;
+    letter-spacing: -0.01em;
+  }
+}

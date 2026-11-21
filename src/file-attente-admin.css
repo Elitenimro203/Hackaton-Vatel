@@ -1,0 +1,229 @@
+/* Styles de l'onglet admin « File d'attente » (charte 11.3) : importé par ecrans/admin/FileAttente.jsx, avec pilotage.css et file-attente.css. */
+
+.point-gris {
+  background: var(--creme-3);
+}
+
+.creneau-badge-normal {
+  background: var(--carte-2);
+  color: var(--creme-2);
+}
+
+/* « 17,9 min → 3,6 min » en Fraunces ; le premier chiffre est gris et barré */
+.attente-comparaison {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: clamp(30px, 9vw, 44px);
+  line-height: 1.1;
+}
+
+.attente-avant {
+  color: var(--creme-3);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.attente-fleche {
+  color: var(--creme-2);
+}
+
+.attente-apres {
+  color: var(--creme);
+}
+
+.conseil-guichets {
+  font-size: 18px;
+  line-height: 1.4;
+  color: var(--creme-2);
+}
+
+.conseil-guichets strong {
+  color: var(--safran);
+}
+
+/* Curseur piment */
+.curseur {
+  width: 100%;
+  min-height: 44px;
+  accent-color: var(--piment);
+  cursor: pointer;
+}
+
+.reglages-simulation {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Interrupteur « Ticket prépayé » */
+.interrupteur {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--creme);
+  font-family: var(--police);
+  font-size: 16px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.interrupteur-bouton {
+  position: relative;
+  flex: none;
+  width: 52px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--carte-2);
+  transition: background 0.2s;
+}
+
+.interrupteur-bouton::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--creme);
+  transition: transform 0.25s var(--rebond);
+}
+
+.interrupteur.actif .interrupteur-bouton {
+  background: var(--feuille);
+}
+
+.interrupteur.actif .interrupteur-bouton::after {
+  transform: translateX(22px);
+}
+
+/* Sélecteur de guichets en pilules */
+.pilules-guichets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pilule-guichet {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: var(--carte-2);
+  color: var(--creme-2);
+  font-family: var(--police);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pilule-guichet.actif {
+  border-color: var(--safran);
+  background: var(--safran-fond);
+  color: var(--safran);
+}
+
+/* Graphique SVG */
+.courbe-file {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.courbe-grille {
+  stroke: var(--trait);
+  stroke-width: 1;
+}
+
+.courbe-texte {
+  fill: var(--creme-3);
+  font-family: var(--police);
+  font-size: 20px;
+}
+
+.courbe-heure {
+  text-anchor: middle;
+}
+
+.courbe-avant,
+.courbe-apres {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.courbe-avant {
+  stroke: var(--creme-3);
+  stroke-width: 3;
+  stroke-dasharray: 8 7;
+}
+
+.courbe-apres {
+  stroke: var(--safran);
+  stroke-width: 4;
+}
+
+.degrade-haut {
+  stop-color: var(--safran);
+  stop-opacity: 0.35;
+}
+
+.degrade-bas {
+  stop-color: var(--safran);
+  stop-opacity: 0;
+}
+
+/* « Aujourd'hui, créneau par créneau » : créneau, barre, nombre, puis attente et badge */
+.creneaux-du-jour {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.creneau-ligne {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 12px;
+}
+
+.creneau-ligne-detail {
+  grid-column: 2 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (min-width: 900px) {
+  /* Le SVG grandit avec la carte : on réduit les textes pour qu'ils restent à 12-16 px */
+  .courbe-texte {
+    font-size: 11px;
+  }
+
+  .reglages-simulation {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .attente-comparaison {
+    font-size: clamp(44px, 5vw, 72px);
+  }
+}

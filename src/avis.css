@@ -1,0 +1,61 @@
+/* Carte « Note ce repas » de Mes repas : importée par NoterRepas.jsx, utilise seulement les couleurs et classes de index.css. */
+.avis-carte {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding: 16px;
+}
+
+.avis-entete {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.avis-photo .photo {
+  aspect-ratio: 1;
+  border-radius: 16px;
+}
+
+.avis-titre {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.avis-titre .nom-plat {
+  overflow-wrap: anywhere;
+}
+
+/* Les 5 étoiles se partagent la largeur sur petit écran (jamais de débordement à 360 px) */
+.avis-etoiles {
+  gap: 4px;
+}
+
+.avis-etoiles .etoile {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 64px;
+  height: 56px;
+  font-size: 36px;
+}
+
+.avis-mot {
+  min-height: 96px;
+}
+
+.avis-compteur {
+  align-self: flex-end;
+}
+
+.liste-avis {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

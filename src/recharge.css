@@ -1,0 +1,273 @@
+/* Styles de la recharge du solde (Mobile Money simulé, succès vert, crédit admin) : importé par ces écrans, utilise les couleurs de index.css. */
+
+/* ---------- Bouton « Recharger » safran dans la carte du solde (maquette 11) ---------- */
+.btn-recharger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--safran);
+  color: var(--braise);
+  font-family: var(--police);
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.25s var(--rebond), filter 0.2s;
+}
+
+.btn-recharger:hover {
+  filter: brightness(1.08);
+}
+
+.btn-recharger:active {
+  transform: scale(0.96);
+}
+
+.btn-recharger:focus-visible {
+  outline: 3px solid var(--creme);
+  outline-offset: 3px;
+}
+
+.carte-solde .mention {
+  display: block;
+  margin-top: 6px;
+}
+
+.lien-retour {
+  align-self: flex-start;
+  padding: 0 4px;
+}
+
+/* ---------- Carte de la personne rechargée (maquette 12b) ---------- */
+.carte-beneficiaire {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px;
+  border-radius: var(--rayon-grand);
+  background: var(--carte-2);
+}
+
+.nom-solde {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: clamp(30px, 9vw, 40px);
+  line-height: 1.1;
+}
+
+.solde-bas-texte {
+  color: var(--safran);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.slogan {
+  margin-top: 8px;
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: clamp(26px, 7.5vw, 32px);
+  line-height: 1.1;
+}
+
+/* ---------- Tuiles d'opérateur et de montant (3 par ligne) ---------- */
+.groupe-choix {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.libelle-groupe {
+  margin-bottom: 12px;
+  padding: 0;
+  color: var(--creme-2);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tuiles-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tuile-paiement,
+.tuile-montant {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 8px 6px;
+  border: 2px solid transparent;
+  border-radius: 18px;
+  background: var(--carte);
+  color: var(--creme);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, color 0.2s, transform 0.25s var(--rebond);
+}
+
+.tuile-paiement {
+  min-height: 64px;
+}
+
+.tuile-montant {
+  min-height: 52px;
+  white-space: nowrap;
+}
+
+.tuile-paiement input,
+.tuile-montant input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tuile-paiement:hover,
+.tuile-montant:hover {
+  background: var(--carte-2);
+}
+
+.tuile-paiement:active,
+.tuile-montant:active {
+  transform: scale(0.96);
+}
+
+.tuile-paiement:has(input:focus-visible),
+.tuile-montant:has(input:focus-visible) {
+  outline: 3px solid var(--safran);
+  outline-offset: 3px;
+}
+
+/* Opérateur choisi : contour et texte safran */
+.tuile-paiement:has(input:checked) {
+  border-color: var(--safran);
+  background: var(--carte-2);
+  color: var(--safran);
+}
+
+/* Montant choisi : pilule safran pleine */
+.tuile-montant:has(input:checked) {
+  background: var(--safran);
+  color: var(--braise);
+}
+
+.tuile-paiement:has(input:disabled),
+.tuile-montant:has(input:disabled) {
+  cursor: wait;
+}
+
+/* ---------- Attente de 2 secondes ---------- */
+.attente-paiement {
+  align-items: center;
+  text-align: center;
+}
+
+.anneau-grand {
+  width: 56px;
+  height: 56px;
+  border-width: 5px;
+}
+
+/* ---------- Écran de succès vert ---------- */
+.recharge-reussie {
+  padding: 36px 20px 24px;
+  border: 1px solid var(--feuille-fond);
+  border-radius: var(--rayon-grand);
+  background: linear-gradient(180deg, var(--feuille-fond), var(--braise) 75%);
+  animation: apparaitre 0.4s ease both;
+}
+
+.rond-succes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--feuille);
+  color: var(--braise);
+  box-shadow: 0 0 0 12px var(--feuille-fond);
+  animation: apparaitre 0.45s var(--rebond) both;
+}
+
+.rond-succes .coche {
+  width: 48px;
+  height: 48px;
+}
+
+.bloc-succes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.montant-succes {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: clamp(44px, 14vw, 60px);
+  line-height: 1;
+  color: var(--feuille);
+  white-space: nowrap;
+}
+
+/* ---------- Parent : carte d'un enfant au solde bas ---------- */
+.carte-enfant-solde-bas {
+  overflow: hidden;
+  padding-top: 0;
+  border: 1px solid var(--safran);
+}
+
+.bandeau-carte {
+  flex: none;
+  margin: 0 -18px;
+  padding: 10px 18px;
+}
+
+/* ---------- Admin : crédit manuel ---------- */
+.ligne-choisie .mouvement-motif {
+  color: var(--safran);
+}
+
+.liste-personnes {
+  padding: 0;
+}
+
+.texte-coupe {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sous-titre-soldes {
+  margin-top: 8px;
+}
+
+@media (min-width: 900px) {
+  .grille-soldes {
+    align-items: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recharge-reussie,
+  .rond-succes {
+    animation: none;
+  }
+}

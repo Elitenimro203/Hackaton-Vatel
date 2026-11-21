@@ -1,0 +1,157 @@
+/* Styles de la gestion des allergies (profil alimentaire, fenêtre d'alerte, espace parent, carte admin) : importé par ces écrans, utilise les couleurs de index.css. */
+
+/* ---------- Profil alimentaire : grandes tuiles (maquette 09) ---------- */
+.choix-allergie {
+  align-items: flex-start;
+  justify-content: center;
+  gap: 10px;
+  min-height: 104px;
+  padding: 18px 16px;
+  border-color: var(--trait);
+  text-align: left;
+}
+
+.choix-allergie-nom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.choix-etat {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--creme-3);
+}
+
+.carte .choix-allergie {
+  padding: 14px 12px;
+}
+
+.carte .choix-allergie-nom {
+  font-size: 17px;
+}
+
+.choix-allergie:has(input:checked) .choix-etat {
+  color: var(--alerte);
+}
+
+/* Carte « Ton parent et la cantine seront prévenus » */
+.alerte-prevenu {
+  border-color: transparent;
+}
+
+.alerte-prevenu strong {
+  color: var(--safran);
+}
+
+.alerte-prevenu p {
+  color: var(--creme-2);
+  font-size: 14px;
+}
+
+/* Bouton Enregistrer : texte centré, sans flèche */
+.btn-enregistrer {
+  justify-content: center;
+  text-align: center;
+}
+
+.btn-enregistrer::after {
+  content: none;
+}
+
+/* Petit titre de bloc (« Ses allergies », « Tout aussi bon. Compatible. ») */
+.sous-titre {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+/* ---------- Fenêtre d'alerte avant réservation (maquette 04) ---------- */
+.btn-fermer {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 18px;
+}
+
+.carte-alternative .photo {
+  width: 104px;
+}
+
+.carte-alternative-texte {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.nom-plat-alternative {
+  font-size: 24px;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Espace parent ---------- */
+.carte-titre-enfant {
+  margin-bottom: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.badge-seul {
+  align-self: flex-start;
+}
+
+/* Contenu d'une alerte empilé (titre, message, date, bouton) */
+.pile-serree {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pile-serree .btn-petit {
+  margin-top: 4px;
+  padding: 0;
+  color: var(--creme);
+}
+
+/* ---------- Admin : allergies à surveiller (maquette 14) ---------- */
+.liste-allergies {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ligne-allergie {
+  align-items: flex-start;
+  flex-wrap: wrap;
+  border-bottom-color: var(--alerte-fond);
+}
+
+.ligne-allergie > :first-child {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  flex: 1 1 180px;
+}
+
+.ligne-allergie > :last-child {
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.allergenes-droite {
+  justify-content: flex-end;
+}
+
+/* ---------- Admin Menus : bloc du plat de remplacement ---------- */
+.panneau-alternative {
+  padding-top: 16px;
+  border-top: 1px solid var(--trait);
+}

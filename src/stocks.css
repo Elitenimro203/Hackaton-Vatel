@@ -1,0 +1,111 @@
+/* Styles de l'onglet admin « Stocks » (charte 11.1) et de la section Recette des menus : importé par ecrans/admin/Stocks.jsx. */
+
+/* Liste de courses : carte vedette avec un contour rouge brique */
+.carte-courses {
+  gap: 12px;
+  border: 1px solid var(--alerte-bord);
+  background: linear-gradient(160deg, var(--alerte-fond), var(--carte-2) 70%);
+}
+
+.carte-courses-ok {
+  border-color: var(--feuille-fond);
+  background: linear-gradient(160deg, var(--feuille-fond), var(--carte-2) 70%);
+}
+
+.titre-courses {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: clamp(26px, 7vw, 34px);
+  line-height: 1.15;
+  color: var(--creme);
+}
+
+.liste-courses,
+.liste-livraisons {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ligne-course,
+.ligne-livraison {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--trait);
+}
+
+.ligne-course > span,
+.ligne-livraison > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Grille de cartes ingrédient : 1 colonne, 2 dès 700 px, 3 sur grand écran */
+.stocks-grille {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.carte-ingredient {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  min-width: 0;
+  padding: 20px;
+}
+
+.carte-ingredient-bas {
+  border: 1px solid var(--safran-fond);
+}
+
+.carte-ingredient-rupture {
+  border: 1px solid var(--alerte-bord);
+}
+
+.ingredient-nom {
+  font-size: 18px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.carte-ingredient .chiffre-nombre {
+  font-size: clamp(40px, 12vw, 48px);
+}
+
+@media (min-width: 700px) {
+  .stocks-grille {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .stocks-grille {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+}
+
+/* Section Recette du formulaire des menus : un ingrédient, une quantité, un bouton pour retirer */
+.ligne-recette {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 120px) auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.ligne-recette .champ {
+  min-width: 0;
+}

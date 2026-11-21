@@ -1,0 +1,346 @@
+/* Styles de l'onglet Pilotage de l'admin (maquette 15) : importé par AdminPilotage.jsx, utilise seulement les couleurs de index.css. */
+
+/* ---------- En-tête ---------- */
+.premiere-lettre::first-letter {
+  text-transform: uppercase;
+}
+
+.en-direct {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* Pastille de couleur (légende, bulle, « En direct ») */
+.point {
+  display: inline-block;
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.point-safran {
+  background: var(--safran);
+}
+
+.point-feuille {
+  background: var(--feuille);
+}
+
+/* Titre de bloc en Fraunces italique (« Réservés, puis savourés. ») */
+.titre-pilotage {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: 26px;
+  line-height: 1.15;
+  color: var(--creme);
+}
+
+.pilotage,
+.pilotage > *,
+.pilotage .pile > * {
+  min-width: 0;
+}
+
+/* ---------- Chiffres clés : la vedette, puis 2 cartes chiffres ---------- */
+.pilotage-chiffres {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pilotage-vedette {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+/* Sur la maquette, le montant de la vedette est crème (le safran est réservé à « à préparer ») */
+.pilotage-vedette .chiffre-vedette {
+  font-size: clamp(40px, 13vw, 64px);
+  color: var(--creme);
+}
+
+.vedette-repas {
+  font-size: 16px;
+  color: var(--creme-2);
+}
+
+.vedette-repas strong {
+  color: var(--creme);
+}
+
+.pilotage-chiffre {
+  justify-content: center;
+  gap: 8px;
+}
+
+.pilotage-chiffre .chiffre-nombre {
+  font-size: clamp(30px, 9vw, 44px);
+}
+
+/* ---------- Graphique et prévision ---------- */
+.pilotage-milieu {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.pilotage-carte {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: 20px;
+  border-radius: var(--rayon-grand);
+}
+
+.graphique-service {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.graphique-legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pilule-legende {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--carte-2);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--creme-2);
+}
+
+.graphique-zone {
+  width: 100%;
+  height: 220px;
+  min-width: 0;
+}
+
+/* Couleurs des barres et des axes recharts (pas de couleur écrite dans le composant) */
+.graphique-zone path.barres-reserves {
+  fill: var(--safran);
+}
+
+.graphique-zone path.barres-servis {
+  fill: var(--feuille);
+}
+
+.graphique-zone .recharts-cartesian-axis-tick-value {
+  fill: var(--creme-3);
+  font-family: var(--police);
+  font-size: 12px;
+}
+
+.graphique-zone line.graphique-grille {
+  stroke: var(--trait);
+}
+
+.graphique-zone .graphique-curseur {
+  fill: var(--trait);
+}
+
+.graphique-zone .recharts-surface:focus,
+.graphique-zone .recharts-wrapper:focus {
+  outline: none;
+}
+
+.graphique-bulle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--trait);
+  border-radius: 16px;
+  background: var(--carte-2);
+  box-shadow: 0 12px 30px var(--ombre);
+  font-size: 14px;
+  color: var(--creme);
+}
+
+.graphique-bulle strong::first-letter {
+  text-transform: uppercase;
+}
+
+.graphique-bulle span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* « La semaine prochaine » : jour, barre safran, quantité conseillée */
+.prevision-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prevision-ligne {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 12px;
+}
+
+.prevision-jour {
+  font-size: 14px;
+  color: var(--creme-2);
+  text-transform: capitalize;
+}
+
+.prevision-valeur {
+  min-width: 3ch;
+  font-size: 17px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.prevision-detail {
+  grid-column: 2 / -1;
+}
+
+.barre-safran {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: var(--carte-2);
+  color: var(--safran);
+}
+
+.barre-safran::-webkit-progress-bar {
+  border-radius: 999px;
+  background: var(--carte-2);
+}
+
+.barre-safran::-webkit-progress-value {
+  border-radius: 999px;
+  background: var(--safran);
+  transition: width 0.6s ease;
+}
+
+.barre-safran::-moz-progress-bar {
+  border-radius: 999px;
+  background: var(--safran);
+}
+
+/* ---------- Les favoris de la cantine ---------- */
+.favoris-liste {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.favori {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+}
+
+.favori-photo {
+  aspect-ratio: 1;
+  border-radius: 16px;
+}
+
+.favori-texte {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.favori-texte .nom-plat {
+  font-size: 21px;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.favori-note {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--safran);
+}
+
+/* ---------- PC ---------- */
+@media (min-width: 900px) {
+  .titre-pilotage {
+    font-size: 30px;
+  }
+
+  .pilotage-carte {
+    padding: 28px;
+  }
+
+  .graphique-zone {
+    height: 260px;
+  }
+
+  .pilotage-vedette .chiffre-vedette {
+    font-size: clamp(56px, 6vw, 88px);
+  }
+
+  .pilotage-chiffre .chiffre-nombre {
+    font-size: 56px;
+  }
+}
+
+/* Grand écran : la vedette et les 2 chiffres sur une ligne, graphique + prévision côte à côte, 3 favoris */
+@media (min-width: 1200px) {
+  .titre-pilotage {
+    font-size: 34px;
+  }
+
+  .pilotage-chiffres {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .pilotage-vedette {
+    grid-column: auto;
+    padding: 32px;
+  }
+
+  .pilotage-chiffre {
+    padding: 28px;
+    border-radius: var(--rayon-grand);
+  }
+
+  .pilotage-milieu {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 24px;
+  }
+
+  .favoris-liste {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+
+  .favori {
+    grid-template-columns: 120px minmax(0, 1fr);
+  }
+}

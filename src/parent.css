@@ -1,0 +1,161 @@
+/* Styles de l'espace parent et du bandeau « Solde bas » (aussi chez l'élève) : importé par ces écrans, utilise les couleurs de index.css. */
+
+/* ---------- Bandeau safran « Solde bas » en haut de l'écran (maquette 12) ---------- */
+.bandeau-solde-bas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--safran);
+  color: var(--braise);
+  animation: apparaitre 0.4s ease both;
+}
+
+.bandeau-solde-bas-emoji {
+  font-size: 22px;
+}
+
+.bandeau-solde-bas-texte {
+  display: flex;
+  flex: 1 1 160px;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.bandeau-solde-bas-texte strong {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+/* Bouton braise sur le bandeau safran : il ne concurrence pas le bouton piment de l'écran */
+.btn-bandeau {
+  flex: 1 0 100%;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--braise);
+  color: var(--safran);
+  font-family: var(--police);
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.25s var(--rebond), filter 0.2s;
+}
+
+.btn-bandeau:hover {
+  filter: brightness(1.2);
+}
+
+.btn-bandeau:active {
+  transform: scale(0.97);
+}
+
+.btn-bandeau:focus-visible {
+  outline: 3px solid var(--creme);
+  outline-offset: 3px;
+}
+
+/* ---------- Accroche de l'espace parent (maquette 05) ---------- */
+.accroche-parent {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: clamp(34px, 10.5vw, 48px);
+  line-height: 1.05;
+}
+
+/* ---------- Carte d'un enfant : porte-monnaie en gros ---------- */
+.carte-enfant {
+  border: 1px solid var(--trait);
+}
+
+.carte-enfant-alerte {
+  border-color: var(--safran);
+}
+
+.porte-monnaie {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--carte-2), var(--carte));
+}
+
+.porte-monnaie-montant {
+  font-size: clamp(44px, 14vw, 60px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.porte-monnaie-bas .porte-monnaie-montant {
+  color: var(--safran);
+}
+
+.btn-delier {
+  align-self: center;
+}
+
+/* ---------- Ce qu'il mange ---------- */
+.repas-enfant {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vignette-plat {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--carte-2);
+}
+
+.vignette-plat img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vignette-plat-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 26px;
+}
+
+.repas-enfant-texte {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.repas-enfant-texte .nom-plat {
+  overflow-wrap: anywhere;
+}
+
+/* Sur PC, le bouton du bandeau reste à droite du texte */
+@media (min-width: 600px) {
+  .btn-bandeau {
+    flex: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bandeau-solde-bas {
+    animation: none;
+  }
+}

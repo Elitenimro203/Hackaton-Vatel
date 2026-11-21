@@ -1,0 +1,503 @@
+/* Styles de l'écran admin « Commandes du jour » (maquette 14) et du passage du code de retrait : importé par AdminCommandes.jsx, utilise les couleurs de index.css. */
+
+/* Première lettre en majuscule (« Lundi 23 novembre · Service de 12 h – 14 h ») */
+.premiere-majuscule::first-letter {
+  text-transform: uppercase;
+}
+
+/* Petit titre Fraunces d'un bloc (« Les convives arrivent bientôt ») */
+.titre-bloc {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+/* ---------- Guichet : champ « Code de retrait » et résultat ---------- */
+.guichet {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.guichet .champ-code input {
+  min-height: 84px;
+  font-size: 44px;
+  letter-spacing: 0.3em;
+}
+
+.guichet .btn {
+  justify-content: center;
+}
+
+.guichet .btn::after {
+  content: none;
+}
+
+.resultat-detail {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--creme);
+  overflow-wrap: anywhere;
+}
+
+.resultat-texte {
+  font-size: 16px;
+  color: var(--creme-2);
+}
+
+/* Rappel rouge « 🥜 Arachide : assiette adaptée » */
+.rappels-allergie {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rappel-allergie {
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: var(--alerte);
+  color: var(--creme);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+/* ---------- En tête : « 212 repas à préparer » ---------- */
+.carte-repas {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 18px;
+  padding: 22px;
+  border-radius: var(--rayon-grand);
+  background: var(--carte-2);
+}
+
+.repas-nombre {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: 72px;
+  line-height: 0.9;
+  color: var(--creme);
+}
+
+.repas-titre {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.repas-maj {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.repas-maj strong {
+  font-size: 17px;
+}
+
+.grille-chiffres-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.grille-chiffres-3 .chiffre {
+  padding: 14px 12px;
+}
+
+.grille-chiffres-3 .chiffre-nombre {
+  font-size: 32px;
+}
+
+.grille-chiffres-3 .chiffre-libelle {
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.chiffre-feuille .chiffre-nombre {
+  color: var(--feuille);
+}
+
+/* ---------- Répartition par plat ---------- */
+.repartition {
+  display: grid;
+  gap: 12px;
+}
+
+.carte-plat-jour {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+}
+
+.carte-plat-jour .photo {
+  aspect-ratio: 1;
+  border-radius: 16px;
+}
+
+.carte-plat-jour .photo::after {
+  content: none;
+}
+
+.carte-plat-texte {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.carte-plat-texte .nom-plat {
+  font-size: 20px;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.portions {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--safran);
+}
+
+/* ---------- Liste des convives et carte des allergies ---------- */
+.commandes-bas {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+
+.liste-convives {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.convives {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Téléphone : nom + statut sur une ligne, code + bouton sur la suivante */
+.convive {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--trait);
+}
+
+.convive:last-child {
+  border-bottom: 0;
+}
+
+.convive-entetes {
+  display: none;
+}
+
+.convive-nom {
+  grid-row: 1;
+  grid-column: 1;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.convive .badge {
+  grid-row: 1;
+  grid-column: 2;
+  justify-self: end;
+}
+
+.convive-plat {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  font-size: 15px;
+  color: var(--creme-2);
+}
+
+.convive-code {
+  grid-row: 3;
+  grid-column: 1;
+  font-size: 20px;
+}
+
+.convive .btn-ligne {
+  grid-row: 3;
+  grid-column: 2;
+}
+
+/* Bouton « Servi » d'une ligne : piment, puis « ✓ Servi » vert foncé une fois servi */
+.btn-ligne {
+  justify-content: center;
+  width: auto;
+  min-width: 132px;
+  min-height: 52px;
+  padding: 0 18px;
+  font-size: 18px;
+}
+
+.btn-ligne::after {
+  content: none;
+}
+
+.btn-ligne.btn-servi {
+  box-shadow: none;
+}
+
+.btn-ligne.btn-servi:disabled {
+  opacity: 1;
+  filter: none;
+}
+
+.liste-allergies-pied {
+  margin-top: 4px;
+}
+
+/* ---------- PC posé au comptoir : tout en grand, lisible de loin ---------- */
+@media (min-width: 900px) {
+  .titre-bloc {
+    font-size: 32px;
+  }
+
+  .guichet {
+    display: grid;
+    grid-template-columns: minmax(260px, 420px) minmax(0, 1fr);
+    align-items: start;
+    gap: 20px;
+    padding: 24px;
+  }
+
+  .guichet-formulaire {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .guichet .champ-code input {
+    min-height: 96px;
+    font-size: 56px;
+  }
+
+  .guichet .resultat-service {
+    min-height: 100%;
+    justify-content: center;
+  }
+
+  .resultat-service .resultat-titre {
+    font-size: 64px;
+  }
+
+  .resultat-service .resultat-emoji {
+    font-size: 64px;
+  }
+
+  .resultat-detail {
+    font-size: 30px;
+  }
+
+  .rappel-allergie {
+    font-size: 26px;
+  }
+
+  .carte-repas {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 24px 40px;
+    padding: 36px 40px;
+  }
+
+  .repas-nombre {
+    font-size: 140px;
+  }
+
+  .repas-titre {
+    font-size: 40px;
+  }
+
+  .repas-maj {
+    grid-column: auto;
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .repas-maj strong {
+    font-size: 22px;
+  }
+
+  .grille-chiffres-3 {
+    gap: 12px;
+  }
+
+  .grille-chiffres-3 .chiffre {
+    padding: 18px;
+  }
+
+  .grille-chiffres-3 .chiffre-nombre {
+    font-size: 56px;
+  }
+
+  .grille-chiffres-3 .chiffre-libelle {
+    font-size: 18px;
+  }
+
+  .repartition {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  .carte-plat-jour {
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 20px;
+    padding: 16px;
+  }
+
+  .carte-plat-texte .nom-plat {
+    font-size: 24px;
+  }
+
+  .portions {
+    font-size: 28px;
+  }
+
+  .liste-convives {
+    padding: 28px;
+  }
+
+  /* Colonnes : Élève, Plat, Retrait, Statut, bouton */
+  .convive,
+  .convive-entetes {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) 118px 92px 132px;
+    gap: 16px;
+  }
+
+  .convive-entetes {
+    display: grid;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--trait);
+    color: var(--creme-3);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .convive {
+    padding: 16px 0;
+  }
+
+  .convive > .convive-plat,
+  .convive > .badge,
+  .convive > .btn-ligne,
+  .convive > .convive-code,
+  .convive > .convive-nom {
+    grid-row: auto;
+    grid-column: auto;
+  }
+
+  .convive-nom {
+    font-size: 21px;
+  }
+
+  .convive-plat {
+    font-size: 18px;
+  }
+
+  .convive-code {
+    font-size: 22px;
+  }
+
+  .convive .badge {
+    justify-self: start;
+    font-size: 14px;
+  }
+
+  .btn-ligne {
+    width: 100%;
+    min-width: 0;
+    min-height: 60px;
+    font-size: 20px;
+  }
+}
+
+/* Grand écran : la liste à gauche, les allergies à droite (comme la maquette) */
+@media (min-width: 1280px) {
+  .commandes-bas {
+    grid-template-columns: minmax(0, 2.6fr) minmax(280px, 1fr);
+    gap: 24px;
+  }
+}
+
+/* ---------- Rien ne dépasse : toutes les cases de grille peuvent rétrécir ---------- */
+.guichet > *,
+.commandes-bas > *,
+.repartition > *,
+.carte-repas > *,
+.grille-chiffres-3 > *,
+.liste-convives > *,
+.convive > *,
+.convive-entetes > * {
+  min-width: 0;
+}
+
+.guichet-formulaire,
+.guichet .resultat-service,
+.liste-convives,
+.convives {
+  max-width: 100%;
+}
+
+.guichet .resultat-service {
+  overflow-wrap: anywhere;
+}
+
+.resultat-service .resultat-titre {
+  overflow-wrap: anywhere;
+}
+
+.btn-ligne {
+  max-width: 100%;
+}
+
+.convive-plat,
+.convive-nom {
+  overflow-wrap: anywhere;
+}
+
+/* Écran moyen (900 à 1279 px) : résultat sous le champ, plus de colonne côte à côte */
+@media (min-width: 900px) and (max-width: 1279px) {
+  .guichet {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .resultat-service .resultat-titre {
+    font-size: 52px;
+  }
+
+  .convive,
+  .convive-entetes {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) 104px 84px 116px;
+    gap: 12px;
+  }
+
+  .convive-code {
+    font-size: 18px;
+  }
+
+  .convive .badge {
+    padding: 4px 8px;
+  }
+}

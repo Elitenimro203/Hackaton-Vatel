@@ -1,0 +1,124 @@
+/* Styles du module Files d'attente côté élève (charte 11.3) : pastilles de créneau dans la fiche plat. Importé par ChoixCreneau.jsx. */
+
+.choix-creneau {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Rangée défilante, sans barre visible, qui ne fait jamais déborder la page */
+.creneaux {
+  display: flex;
+  gap: 10px;
+  max-width: 100%;
+  margin: 0 calc(-1 * var(--marge));
+  padding: 2px var(--marge) 6px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.creneaux::-webkit-scrollbar {
+  display: none;
+}
+
+.creneau {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--creme);
+  font-family: var(--police);
+  cursor: pointer;
+  scroll-snap-align: start;
+}
+
+.creneau-case {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 76px;
+  height: 64px;
+  border: 2px solid transparent;
+  border-radius: 18px;
+  background: var(--carte);
+  transition: transform 0.25s var(--rebond), border-color 0.15s;
+}
+
+.creneau:active .creneau-case {
+  transform: scale(0.94);
+}
+
+.creneau.actif .creneau-case {
+  border-color: var(--safran);
+  background: var(--safran-fond);
+}
+
+.creneau:focus-visible .creneau-case {
+  outline: 2px solid var(--creme);
+  outline-offset: 2px;
+}
+
+.creneau-heure {
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.creneau-attente {
+  font-size: 12px;
+  color: var(--creme-3);
+  white-space: nowrap;
+}
+
+/* Badge au-dessus de la pastille (vide mais à la même hauteur quand il n'y en a pas, pour garder l'alignement) */
+.creneau-badge {
+  min-height: 20px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.creneau-badge-calme {
+  background: var(--feuille-fond);
+  color: var(--feuille);
+}
+
+.creneau-badge-charge {
+  background: var(--piment-fond);
+  color: var(--piment-clair);
+}
+
+/* Créneau au plafond : grisé et non cliquable */
+.creneau:disabled {
+  cursor: not-allowed;
+}
+
+.creneau:disabled .creneau-case {
+  opacity: 0.45;
+}
+
+.creneau:disabled .creneau-attente {
+  color: var(--creme-2);
+  font-weight: 700;
+}
+
+.phrase-creneau {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: 17px;
+  line-height: 1.3;
+  color: var(--creme);
+}
