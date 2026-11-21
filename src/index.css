@@ -1,0 +1,2525 @@
+/* Style complet de CantiJuste : direction « Appétit », thème sombre, pensé d'abord pour un petit téléphone. */
+ 
+/* =========================================================
+   1. COULEURS ET POLICES (toutes les couleurs vivent ici)
+   ========================================================= */
+:root {
+  color-scheme: dark;
+ 
+  --braise: #1A1310;
+  --braise-voile: rgba(26, 19, 16, 0.55);
+  --braise-transparent: rgba(26, 19, 16, 0);
+  --carte: #241A15;
+  --carte-2: #33251D;
+  --creme: #FFF3E3;
+  --creme-2: #D9C7B2;
+  --creme-3: #9C8878;
+  --trait: rgba(255, 243, 227, 0.08);
+  --reflet: rgba(255, 243, 227, 0.35);
+ 
+  --piment: #E8401C;
+  --piment-clair: #FF6A3D;
+  --piment-halo: rgba(232, 64, 28, 0.45);
+  --piment-fond: rgba(232, 64, 28, 0.14);
+  --safran: #FFB321;
+  --safran-fond: rgba(255, 179, 33, 0.14);
+  --feuille: #3DBE7C;
+  --feuille-fond: rgba(61, 190, 124, 0.14);
+  --alerte: #FF3B30;
+  --alerte-fond: rgba(255, 59, 48, 0.10);
+  --alerte-bord: rgba(255, 59, 48, 0.45);
+ 
+  --ticket: #FFF3E3;
+  --ticket-texte: #1A1310;
+  --ticket-trait: rgba(26, 19, 16, 0.22);
+  --ombre: rgba(0, 0, 0, 0.45);
+ 
+  --police: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --police-plat: 'Fraunces', Georgia, serif;
+ 
+  --rayon: 22px;
+  --rayon-grand: 28px;
+  --rayon-fenetre: 34px;
+  --marge: 16px;
+  --hauteur-onglets: 72px;
+  --rebond: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+ 
+/* =========================================================
+   2. BASE
+   ========================================================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+ 
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+ 
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100svh;
+  background: var(--braise);
+  color: var(--creme);
+  font-family: var(--police);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+ 
+img {
+  display: block;
+  max-width: 100%;
+}
+ 
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+  overflow-wrap: break-word;
+}
+ 
+h1 {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: clamp(32px, 9.5vw, 40px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+ 
+h2 {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+ 
+h3 {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+ 
+a {
+  color: var(--safran);
+  font-weight: 700;
+  text-decoration: none;
+}
+ 
+a:hover {
+  text-decoration: underline;
+}
+ 
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+ 
+button {
+  cursor: pointer;
+}
+ 
+button:disabled {
+  cursor: not-allowed;
+}
+ 
+:focus-visible {
+  outline: 3px solid var(--safran);
+  outline-offset: 3px;
+}
+ 
+::selection {
+  background: var(--safran);
+  color: var(--braise);
+}
+ 
+/* Textes utilitaires */
+.nom-plat {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: 22px;
+  line-height: 1.12;
+}
+ 
+.citation {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: 17px;
+  line-height: 1.35;
+  color: var(--creme-2);
+}
+ 
+.surtitre {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--safran);
+}
+ 
+.aide {
+  font-size: 15px;
+  color: var(--creme-2);
+}
+ 
+.mention {
+  font-size: 14px;
+  color: var(--creme-3);
+}
+ 
+.prix {
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--creme);
+  white-space: nowrap;
+}
+ 
+.texte-safran { color: var(--safran); }
+.texte-feuille { color: var(--feuille); }
+.texte-alerte { color: var(--alerte); }
+.texte-discret { color: var(--creme-3); }
+.centre { text-align: center; }
+ 
+.masque-visuel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+ 
+/* Petites mises en page */
+.pile {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+ 
+.rangee {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+ 
+.espace-entre {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+ 
+.titre-section {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 28px 0 14px;
+}
+ 
+.titre-section .mention {
+  white-space: nowrap;
+}
+ 
+/* =========================================================
+   3. MISE EN PAGE
+   ========================================================= */
+.page {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 var(--marge) calc(var(--hauteur-onglets) + 48px);
+}
+ 
+.page > * + * {
+  margin-top: 16px;
+}
+ 
+.page > .titre-section {
+  margin-top: 28px;
+}
+ 
+.page-large {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--marge) calc(var(--hauteur-onglets) + 48px);
+}
+ 
+.grille {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+ 
+@media (min-width: 900px) {
+  .page-large {
+    padding-bottom: 48px;
+  }
+ 
+  .grille {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+ 
+  .grille-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+ 
+  .grille .large-2 {
+    grid-column: span 2;
+  }
+ 
+  .grille .large-tout {
+    grid-column: 1 / -1;
+  }
+}
+ 
+/* =========================================================
+   4. EN-TÊTE, LOGO, SOLDE, VERRE
+   ========================================================= */
+.entete {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 0 8px;
+}
+ 
+.logo {
+  min-width: 0;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--creme);
+}
+ 
+.logo em {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-variation-settings: 'SOFT' 100;
+  color: var(--safran);
+}
+ 
+.logo .surtitre {
+  margin-top: 6px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+ 
+.verre {
+  background: var(--braise-voile);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--trait);
+  color: var(--creme);
+}
+ 
+.pastille-solde {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--braise-voile);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--trait);
+  color: var(--creme);
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+ 
+.pastille-solde:hover {
+  background: var(--carte-2);
+  text-decoration: none;
+}
+ 
+.btn-retour {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--trait);
+  background: var(--braise-voile);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  color: var(--creme);
+  font-size: 22px;
+  font-weight: 700;
+}
+ 
+.btn-retour:hover {
+  background: var(--carte-2);
+}
+ 
+/* =========================================================
+   5. BARRE D'ONGLETS (en bas sur téléphone)
+   ========================================================= */
+.onglets {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: space-around;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  background: var(--braise);
+  border-top: 1px solid var(--trait);
+}
+ 
+.onglet {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  min-height: 56px;
+  padding: 4px;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  color: var(--creme-3);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s, background 0.2s;
+}
+ 
+.onglet:hover {
+  color: var(--creme);
+  text-decoration: none;
+}
+ 
+.onglet-icone {
+  font-size: 24px;
+  line-height: 1;
+  filter: grayscale(0.6);
+  transition: transform 0.25s var(--rebond), filter 0.2s;
+}
+ 
+.onglet.actif,
+.onglet[aria-current='page'] {
+  color: var(--safran);
+  font-weight: 700;
+}
+ 
+.onglet.actif .onglet-icone,
+.onglet[aria-current='page'] .onglet-icone {
+  filter: none;
+  transform: translateY(-2px) scale(1.08);
+}
+ 
+/* =========================================================
+   6. BOUTONS
+   ========================================================= */
+.btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: var(--rayon);
+  background: linear-gradient(90deg, var(--piment), var(--piment-clair));
+  box-shadow: 0 14px 30px -10px var(--piment-halo);
+  color: var(--creme);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: left;
+  text-decoration: none;
+  transition: transform 0.25s var(--rebond), filter 0.2s, box-shadow 0.2s, background 0.3s;
+}
+ 
+/* Reflet qui traverse le bouton toutes les 3 s */
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  z-index: -1;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, var(--reflet), transparent);
+  transform: skewX(-20deg);
+  animation: reflet 3s ease-in-out infinite;
+}
+ 
+/* Flèche à droite */
+.btn::after {
+  content: '→';
+  flex-shrink: 0;
+  font-size: 22px;
+  line-height: 1;
+  transition: transform 0.2s;
+}
+ 
+.btn:hover {
+  filter: brightness(1.08);
+  text-decoration: none;
+}
+ 
+.btn:hover::after {
+  transform: translateX(4px);
+}
+ 
+.btn:active {
+  transform: scale(0.96);
+}
+ 
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: 0.5;
+  filter: saturate(0.6);
+  box-shadow: none;
+  transform: none;
+}
+ 
+.btn:disabled::before,
+.btn[aria-disabled='true']::before {
+  animation: none;
+  display: none;
+}
+ 
+/* Prix dans le bouton : « Je réserve [1 000 F] » */
+.btn-prix {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: var(--braise-voile);
+  font-weight: 800;
+  white-space: nowrap;
+}
+ 
+.btn:has(.btn-prix)::after {
+  content: none;
+}
+ 
+/* Bouton validé : passe au vert avec une coche */
+.btn-valide {
+  background: var(--feuille);
+  box-shadow: none;
+  color: var(--braise);
+}
+ 
+.btn-valide::before,
+.btn-valide::after {
+  content: none;
+}
+ 
+.btn-secondaire,
+.btn-discret,
+.btn-danger {
+  justify-content: center;
+  text-align: center;
+  box-shadow: none;
+}
+ 
+.btn-secondaire::before,
+.btn-secondaire::after,
+.btn-discret::before,
+.btn-discret::after,
+.btn-danger::before,
+.btn-danger::after {
+  content: none;
+}
+ 
+.btn-secondaire {
+  background: var(--carte-2);
+  color: var(--creme);
+}
+ 
+.btn-secondaire:hover {
+  filter: none;
+  background: var(--carte);
+  outline: 1px solid var(--trait);
+}
+ 
+.btn-discret {
+  min-height: 48px;
+  background: none;
+  color: var(--creme-2);
+  font-weight: 600;
+}
+ 
+.btn-discret:hover {
+  filter: none;
+  color: var(--creme);
+  text-decoration: underline;
+}
+ 
+.btn-danger {
+  min-height: 48px;
+  background: none;
+  color: var(--alerte);
+  font-weight: 700;
+}
+ 
+.btn-danger:hover {
+  filter: none;
+  background: var(--alerte-fond);
+}
+ 
+.btn-petit {
+  display: inline-flex;
+  width: auto;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 14px;
+}
+ 
+.btn-petit::after {
+  font-size: 16px;
+}
+ 
+/* Bouton rond à icône (cœur, retour…) */
+.btn-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  background: var(--carte-2);
+  color: var(--creme);
+  font-size: 22px;
+  transition: transform 0.25s var(--rebond), background 0.2s;
+}
+ 
+.btn-icone:hover {
+  background: var(--carte);
+}
+ 
+.btn-icone:active {
+  transform: scale(0.92);
+}
+ 
+.btn-secondaire:disabled,
+.btn-discret:disabled,
+.btn-danger:disabled,
+.btn-icone:disabled {
+  opacity: 0.45;
+}
+ 
+/* Bouton « Servi » de l'admin, vert une fois servi */
+.btn-servi {
+  background: var(--feuille-fond);
+  color: var(--feuille);
+}
+ 
+@media (min-width: 900px) {
+  .page-large .btn:not(.btn-plein) {
+    width: auto;
+    min-width: 220px;
+  }
+ 
+  .page-large .btn-petit:not(.btn-plein) {
+    min-width: 0;
+  }
+}
+ 
+/* =========================================================
+   7. CHAMPS ET CHOIX EN TUILES
+   ========================================================= */
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+ 
+.champ label,
+.champ .champ-libelle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--creme);
+}
+ 
+.champ input,
+.champ select,
+.champ textarea {
+  width: 100%;
+  min-height: 56px;
+  padding: 14px 16px;
+  border: 1px solid var(--trait);
+  border-radius: 16px;
+  background: var(--carte);
+  color: var(--creme);
+  font-size: 16px;
+  transition: border-color 0.2s, background 0.2s;
+}
+ 
+.champ textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+ 
+.champ select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--creme-2) 50%), linear-gradient(135deg, var(--creme-2) 50%, transparent 50%);
+  background-position: calc(100% - 22px) 50%, calc(100% - 16px) 50%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 44px;
+}
+ 
+.champ input::placeholder,
+.champ textarea::placeholder {
+  color: var(--creme-3);
+}
+ 
+.champ input:hover,
+.champ select:hover,
+.champ textarea:hover {
+  background: var(--carte-2);
+}
+ 
+.champ input:focus,
+.champ select:focus,
+.champ textarea:focus {
+  outline: none;
+  border-color: var(--safran);
+}
+ 
+.champ input:focus-visible,
+.champ select:focus-visible,
+.champ textarea:focus-visible {
+  outline: 3px solid var(--safran-fond);
+  outline-offset: 0;
+}
+ 
+.champ input:disabled,
+.champ select:disabled,
+.champ textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+ 
+.champ-erreur input,
+.champ-erreur select,
+.champ-erreur textarea {
+  border-color: var(--alerte);
+}
+ 
+.champ-message {
+  font-size: 14px;
+  color: var(--creme-3);
+}
+ 
+.champ-erreur .champ-message {
+  color: var(--alerte);
+}
+ 
+/* Grand champ « Code de retrait » de l'admin */
+.champ-code input {
+  min-height: 72px;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-transform: uppercase;
+}
+ 
+/* Cases à cocher en grandes tuiles */
+.choix-grille {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+ 
+.choix {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 92px;
+  padding: 14px 10px;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  background: var(--carte);
+  color: var(--creme);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.25s var(--rebond);
+}
+ 
+.choix input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+ 
+.choix-emoji {
+  font-size: 30px;
+  line-height: 1;
+}
+ 
+.choix:hover {
+  background: var(--carte-2);
+}
+ 
+.choix:active {
+  transform: scale(0.96);
+}
+ 
+.choix:has(input:focus-visible) {
+  outline: 3px solid var(--safran);
+  outline-offset: 3px;
+}
+ 
+/* Allergie cochée : contour rouge */
+.choix:has(input:checked),
+.choix.actif {
+  border-color: var(--alerte);
+  background: var(--alerte-fond);
+}
+ 
+/* Choix neutre (rôle, opérateur…) : contour safran */
+.choix-safran:has(input:checked),
+.choix-safran.actif {
+  border-color: var(--safran);
+  background: var(--safran-fond);
+}
+ 
+.choix:has(input:disabled) {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+ 
+/* =========================================================
+   8. CARTES ET LISTES
+   ========================================================= */
+.carte {
+  padding: 18px;
+  border-radius: var(--rayon);
+  background: var(--carte);
+  transition: background 0.2s;
+}
+ 
+.carte-titre {
+  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: 700;
+}
+ 
+.carte-ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--trait);
+}
+ 
+.carte-ligne:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+ 
+.carte-ligne:first-child {
+  padding-top: 0;
+}
+ 
+.carte-ligne > :first-child {
+  min-width: 0;
+}
+ 
+.carte-ligne > :last-child {
+  flex-shrink: 0;
+}
+ 
+.liste {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+ 
+/* =========================================================
+   9. BADGES, PASTILLES, ALLERGÈNES
+   ========================================================= */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--carte-2);
+  color: var(--creme-2);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+ 
+.badge-succes { background: var(--feuille-fond); color: var(--feuille); }
+.badge-attention { background: var(--safran-fond); color: var(--safran); }
+.badge-erreur { background: var(--alerte-fond); color: var(--alerte); }
+.badge-info { background: var(--carte-2); color: var(--creme); border: 1px solid var(--trait); }
+.badge-neutre { background: var(--carte-2); color: var(--creme-3); }
+ 
+.pastille {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--safran);
+  color: var(--braise);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+ 
+.pastille-verre {
+  background: var(--braise-voile);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  color: var(--creme);
+}
+ 
+.pastille-ok {
+  background: var(--feuille);
+  color: var(--braise);
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+ 
+.pastille-danger {
+  background: var(--alerte);
+  color: var(--creme);
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+ 
+.allergenes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+ 
+.allergene {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--carte-2);
+  color: var(--creme);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+ 
+.allergene-danger {
+  background: var(--alerte);
+  color: var(--creme);
+  font-weight: 700;
+}
+ 
+.mention-danger {
+  color: var(--alerte);
+  font-size: 14px;
+  font-weight: 700;
+}
+ 
+/* =========================================================
+   10. PHOTOS DE PLATS
+   ========================================================= */
+.photo {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--rayon);
+  background: var(--carte-2);
+}
+ 
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.25) contrast(1.04);
+}
+ 
+.photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, var(--braise-transparent) 45%, var(--braise-voile) 80%, var(--braise) 100%);
+  pointer-events: none;
+}
+ 
+.photo-plein {
+  border-radius: 0;
+}
+ 
+.photo-vivante img {
+  animation: zoom-lent 14s ease-in-out infinite alternate;
+}
+ 
+/* Éléments posés sur une photo */
+.coin-haut,
+.coin-bas,
+.coin-droite {
+  position: absolute;
+  z-index: 2;
+}
+ 
+.coin-haut { top: 12px; left: 12px; }
+.coin-bas { bottom: 12px; left: 12px; }
+.coin-droite { top: 12px; right: 12px; }
+ 
+/* =========================================================
+   11. PLAT VEDETTE (photo plein cadre de l'accueil et de la fiche)
+   ========================================================= */
+.plat-vedette {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 55vh;
+  min-height: 55svh;
+  margin-left: calc(-1 * var(--marge));
+  margin-right: calc(-1 * var(--marge));
+  padding: 24px var(--marge);
+}
+ 
+.plat-vedette-photo {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.25) contrast(1.05);
+  animation: zoom-lent 14s ease-in-out infinite alternate;
+}
+ 
+.plat-vedette::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, var(--braise-voile) 0%, var(--braise-transparent) 22%, var(--braise-transparent) 42%, var(--braise-voile) 68%, var(--braise) 100%);
+}
+ 
+.plat-vedette-haut {
+  position: absolute;
+  top: 16px;
+  left: var(--marge);
+  right: var(--marge);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+ 
+.plat-vedette-contenu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+ 
+.nom-vedette {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: clamp(36px, 11vw, 44px);
+  line-height: 1.04;
+  letter-spacing: -0.01em;
+  color: var(--creme);
+  text-shadow: 0 2px 18px var(--ombre);
+}
+ 
+.phrase-gourmande {
+  font-size: 16px;
+  color: var(--creme-2);
+}
+ 
+.plat-vedette .btn {
+  margin-top: 8px;
+}
+ 
+/* Mots qui montent un par un */
+.mots > span {
+  display: inline-block;
+  animation: monter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+ 
+.mots > span:nth-child(1) { animation-delay: 0.10s; }
+.mots > span:nth-child(2) { animation-delay: 0.22s; }
+.mots > span:nth-child(3) { animation-delay: 0.34s; }
+.mots > span:nth-child(4) { animation-delay: 0.46s; }
+.mots > span:nth-child(5) { animation-delay: 0.58s; }
+.mots > span:nth-child(6) { animation-delay: 0.70s; }
+ 
+/* =========================================================
+   12. CARROUSEL ET CARTES MENU
+   ========================================================= */
+.carrousel {
+  display: flex;
+  gap: 14px;
+  margin-left: calc(-1 * var(--marge));
+  margin-right: calc(-1 * var(--marge));
+  padding: 4px var(--marge) 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 var(--marge);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+ 
+.carrousel::-webkit-scrollbar {
+  display: none;
+}
+ 
+.carrousel > * {
+  flex: 0 0 78%;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+ 
+.carte-menu {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: var(--rayon);
+  background: var(--carte);
+  color: var(--creme);
+  text-align: left;
+  text-decoration: none;
+  transition: transform 0.25s var(--rebond), background 0.2s;
+}
+ 
+.carte-menu:hover {
+  background: var(--carte-2);
+  text-decoration: none;
+}
+ 
+.carte-menu:active {
+  transform: scale(0.98);
+}
+ 
+.carte-menu .photo {
+  border-radius: 0;
+  aspect-ratio: 16 / 10;
+}
+ 
+.carte-menu-corps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px 18px;
+}
+ 
+.carte-menu-pied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+ 
+.carte-deconseillee {
+  border-color: var(--alerte);
+}
+ 
+/* Cartes qui arrivent en cascade */
+.cascade > * {
+  animation: entrer 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+ 
+.cascade > *:nth-child(1) { animation-delay: 0ms; }
+.cascade > *:nth-child(2) { animation-delay: 80ms; }
+.cascade > *:nth-child(3) { animation-delay: 160ms; }
+.cascade > *:nth-child(4) { animation-delay: 240ms; }
+.cascade > *:nth-child(5) { animation-delay: 320ms; }
+.cascade > *:nth-child(6) { animation-delay: 400ms; }
+.cascade > *:nth-child(7) { animation-delay: 480ms; }
+.cascade > *:nth-child(n + 8) { animation-delay: 560ms; }
+ 
+/* =========================================================
+   13. SÉLECTEUR DE JOURS (Lun–Ven)
+   ========================================================= */
+.jours {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+ 
+.jour {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 72px;
+  padding: 8px 2px 14px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--carte);
+  color: var(--creme);
+  transition: background 0.2s, transform 0.25s var(--rebond);
+}
+ 
+.jour-nom {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--creme-3);
+}
+ 
+.jour-numero {
+  font-size: 20px;
+  font-weight: 800;
+}
+ 
+.jour::after {
+  content: '';
+  position: absolute;
+  bottom: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: transparent;
+}
+ 
+.jour-ok::after { background: var(--feuille); }
+.jour-risque::after { background: var(--alerte); }
+ 
+.jour:hover {
+  background: var(--carte-2);
+}
+ 
+.jour:active {
+  transform: scale(0.94);
+}
+ 
+.jour.actif,
+.jour[aria-pressed='true'] {
+  background: var(--safran);
+  color: var(--braise);
+}
+ 
+.jour.actif .jour-nom,
+.jour[aria-pressed='true'] .jour-nom {
+  color: var(--braise);
+}
+ 
+.jour:disabled {
+  opacity: 0.4;
+}
+ 
+/* =========================================================
+   14. VÉRIFICATION D'ALLERGIE
+   ========================================================= */
+.verif {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  background: var(--carte);
+}
+ 
+.verif-icone {
+  flex-shrink: 0;
+  font-size: 28px;
+  line-height: 1;
+}
+ 
+.verif-titre {
+  font-size: 17px;
+  font-weight: 700;
+}
+ 
+.verif-texte {
+  font-size: 14px;
+  color: var(--creme-2);
+}
+ 
+.anneau {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--carte-2);
+  border-top-color: var(--safran);
+  border-radius: 50%;
+  animation: tourner 0.9s linear infinite;
+}
+ 
+.verif-ok {
+  border-color: transparent;
+  background: var(--feuille-fond);
+  animation: apparaitre 0.4s ease both;
+}
+ 
+.verif-ok .verif-titre {
+  color: var(--feuille);
+}
+ 
+.verif-danger {
+  border-color: var(--alerte-bord);
+  background: var(--alerte-fond);
+  animation: secouer 0.5s ease both;
+}
+ 
+.verif-danger .verif-titre {
+  color: var(--alerte);
+}
+ 
+/* =========================================================
+   15. FENÊTRE QUI MONTE DU BAS (alerte allergie)
+   ========================================================= */
+.voile {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--braise-voile);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  animation: fondu 0.25s ease both;
+}
+ 
+.fenetre-bas {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: 92vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 28px 20px calc(24px + env(safe-area-inset-bottom));
+  border-radius: var(--rayon-fenetre) var(--rayon-fenetre) 0 0;
+  background: var(--braise);
+  border-top: 1px solid var(--trait);
+  animation: monter-du-bas 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+ 
+.fenetre-bas::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 44px;
+  height: 5px;
+  margin-left: -22px;
+  border-radius: 999px;
+  background: var(--carte-2);
+}
+ 
+.fenetre-bas h2 {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: 30px;
+  line-height: 1.1;
+}
+ 
+/* Fenêtre centrée (confirmation, suppression) */
+.fenetre-centre {
+  align-self: center;
+  width: calc(100% - 32px);
+  border-radius: var(--rayon-grand);
+  border: 1px solid var(--trait);
+  padding-bottom: 24px;
+}
+ 
+.fenetre-centre::before {
+  content: none;
+}
+ 
+/* Carte d'alternative proposée */
+.carte-alternative {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid var(--feuille);
+  border-radius: var(--rayon);
+  background: var(--feuille-fond);
+}
+ 
+.carte-alternative .photo {
+  flex-shrink: 0;
+  width: 84px;
+  aspect-ratio: 1;
+  border-radius: 16px;
+}
+ 
+.carte-alternative .photo::after {
+  content: none;
+}
+ 
+/* =========================================================
+   16. SOLDE
+   ========================================================= */
+.carte-solde {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 22px;
+  border-radius: var(--rayon);
+  background: var(--carte);
+}
+ 
+.carte-solde .surtitre {
+  margin-bottom: 4px;
+}
+ 
+.montant {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: clamp(40px, 12vw, 52px);
+  line-height: 1;
+  white-space: nowrap;
+}
+ 
+.carte-solde-bas {
+  padding-top: 0;
+  border: 1px solid var(--safran);
+}
+ 
+.bandeau {
+  flex: 1 0 100%;
+  margin: 0 -22px 4px;
+  padding: 10px 22px;
+  background: var(--safran);
+  color: var(--braise);
+  font-size: 14px;
+  font-weight: 800;
+}
+ 
+/* =========================================================
+   17. TICKET DE RETRAIT
+   ========================================================= */
+.ticket {
+  position: relative;
+  margin: 12px 0;
+  padding: 30px 22px;
+  border-radius: var(--rayon);
+  background: var(--ticket);
+  color: var(--ticket-texte);
+  text-align: center;
+  animation: entrer 0.5s var(--rebond) both;
+}
+ 
+/* Bords dentelés en haut et en bas */
+.ticket::before,
+.ticket::after {
+  content: '';
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  height: 10px;
+  background-size: 20px 10px;
+  background-repeat: repeat-x;
+}
+ 
+.ticket::before {
+  top: 0;
+  background-image: radial-gradient(circle at 50% 0, var(--braise) 6px, transparent 6.5px);
+}
+ 
+.ticket::after {
+  bottom: 0;
+  background-image: radial-gradient(circle at 50% 100%, var(--braise) 6px, transparent 6.5px);
+}
+ 
+.ticket .surtitre {
+  color: var(--piment);
+}
+ 
+.ticket-code {
+  margin: 8px 0 4px;
+  font-size: clamp(36px, 11vw, 48px);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+ 
+.ticket-separation {
+  position: relative;
+  margin: 18px -22px;
+  border-top: 2px dashed var(--ticket-trait);
+}
+ 
+.ticket-separation::before,
+.ticket-separation::after {
+  content: '';
+  position: absolute;
+  top: -12px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--braise);
+}
+ 
+.ticket-separation::before { left: -11px; }
+.ticket-separation::after { right: -11px; }
+ 
+.ticket-plat {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: 24px;
+  line-height: 1.15;
+}
+ 
+.ticket-heure {
+  margin-top: 6px;
+  font-size: 15px;
+  font-weight: 700;
+}
+ 
+/* Coche qui se dessine (à mettre dans un <svg class="coche">) */
+.coche {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+ 
+.coche path {
+  stroke-dasharray: 30;
+  stroke-dashoffset: 30;
+  animation: dessiner 0.5s 0.15s ease-out forwards;
+}
+ 
+/* =========================================================
+   18. CARTES VEDETTE ET « POUR TOI » (chiffre en safran, mini-barres)
+   ========================================================= */
+.carte-vedette,
+.carte-pourtoi {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  border-radius: var(--rayon-grand);
+  background: var(--carte-2);
+}
+ 
+.carte-pourtoi {
+  border: 1px solid var(--safran-fond);
+  background: linear-gradient(160deg, var(--safran-fond), var(--carte) 70%);
+}
+ 
+.chiffre-vedette {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: clamp(56px, 18vw, 72px);
+  line-height: 1;
+  color: var(--safran);
+  white-space: nowrap;
+}
+ 
+.chiffre-vedette small {
+  font-size: 0.45em;
+  margin-left: 0.08em;
+}
+ 
+.evolution {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--feuille);
+}
+ 
+.evolution-hausse {
+  color: var(--piment-clair);
+}
+ 
+.mini-barres {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 72px;
+  margin-top: 8px;
+}
+ 
+.mini-barre {
+  flex: 1;
+  min-height: 6px;
+  border-radius: 6px 6px 3px 3px;
+  background: var(--carte);
+  transform-origin: bottom;
+  animation: pousser 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+ 
+.mini-barre-active {
+  background: var(--safran);
+}
+ 
+/* Hauteurs des mini-barres, de 10 % à 100 % */
+.haut-1 { height: 10%; }
+.haut-2 { height: 20%; }
+.haut-3 { height: 30%; }
+.haut-4 { height: 40%; }
+.haut-5 { height: 50%; }
+.haut-6 { height: 60%; }
+.haut-7 { height: 70%; }
+.haut-8 { height: 80%; }
+.haut-9 { height: 90%; }
+.haut-10 { height: 100%; }
+ 
+@media (min-width: 900px) {
+  .chiffre-vedette {
+    font-size: 96px;
+  }
+}
+ 
+/* =========================================================
+   19. JAUGES ET BARRES (à poser sur un <progress>)
+   ========================================================= */
+.jauge,
+.barre-piment {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: var(--carte-2);
+  color: var(--feuille);
+}
+ 
+.jauge::-webkit-progress-bar,
+.barre-piment::-webkit-progress-bar {
+  border-radius: 999px;
+  background: var(--carte-2);
+}
+ 
+.jauge::-webkit-progress-value {
+  border-radius: 999px;
+  background: var(--feuille);
+  transition: width 0.6s ease;
+}
+ 
+.jauge::-moz-progress-bar {
+  border-radius: 999px;
+  background: var(--feuille);
+}
+ 
+.jauge-bas::-webkit-progress-value { background: var(--safran); }
+.jauge-bas::-moz-progress-bar { background: var(--safran); }
+.jauge-rupture::-webkit-progress-value { background: var(--alerte); }
+.jauge-rupture::-moz-progress-bar { background: var(--alerte); }
+ 
+.barre-piment::-webkit-progress-value {
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--piment), var(--piment-clair));
+  transition: width 0.6s ease;
+}
+ 
+.barre-piment::-moz-progress-bar {
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--piment), var(--piment-clair));
+}
+ 
+/* Ligne de classement : libellé, barre, valeur */
+.ligne-barre {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 12px;
+  align-items: center;
+}
+ 
+.ligne-barre progress {
+  grid-column: 1 / -1;
+}
+ 
+/* =========================================================
+   20. ÉTOILES DE NOTATION
+   ========================================================= */
+.etoiles {
+  display: flex;
+  gap: 4px;
+}
+ 
+.etoile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: var(--carte-2);
+  font-size: 32px;
+  line-height: 1;
+  transition: transform 0.25s var(--rebond), color 0.15s;
+}
+ 
+.etoile:hover {
+  transform: scale(1.15);
+  color: var(--safran);
+}
+ 
+.etoile:active {
+  transform: scale(0.9);
+}
+ 
+.etoile-active {
+  color: var(--safran);
+}
+ 
+.etoile:disabled {
+  transform: none;
+  cursor: default;
+}
+ 
+/* =========================================================
+   21. CHIFFRES CLÉS
+   ========================================================= */
+.grille-chiffres {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+ 
+.chiffre {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 18px;
+  border-radius: var(--rayon);
+  background: var(--carte);
+}
+ 
+.chiffre-nombre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  font-size: clamp(26px, 7.5vw, 44px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+ 
+.chiffre-unite {
+  margin-left: 0.12em;
+  font-size: 0.45em;
+  letter-spacing: 0;
+  color: var(--safran);
+}
+ 
+.chiffre-libelle {
+  font-size: 15px;
+  color: var(--creme-2);
+}
+ 
+.chiffre-safran .chiffre-nombre {
+  color: var(--safran);
+}
+ 
+@media (min-width: 900px) {
+  .grille-chiffres {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+ 
+  .chiffre-nombre {
+    font-size: 56px;
+  }
+}
+ 
+/* =========================================================
+   22. ALERTES
+   ========================================================= */
+.alerte {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--trait);
+  border-radius: 18px;
+  background: var(--carte);
+  color: var(--creme);
+  font-size: 15px;
+}
+ 
+.alerte-succes {
+  border-color: transparent;
+  background: var(--feuille-fond);
+}
+ 
+.alerte-attention {
+  border-color: var(--safran-fond);
+  background: var(--safran-fond);
+}
+ 
+.alerte-erreur {
+  border-color: var(--alerte-bord);
+  background: var(--alerte-fond);
+  animation: secouer 0.5s ease both;
+}
+ 
+.alerte-info {
+  background: var(--carte-2);
+}
+ 
+.alerte strong {
+  display: block;
+}
+ 
+.alerte-succes strong { color: var(--feuille); }
+.alerte-attention strong { color: var(--safran); }
+.alerte-erreur strong { color: var(--alerte); }
+ 
+/* Grande carte d'alerte admin (« Allergies à surveiller ») */
+.carte-alerte {
+  padding: 22px;
+  border: 1px solid var(--alerte-bord);
+  border-radius: var(--rayon);
+  background: var(--alerte-fond);
+}
+ 
+.carte-alerte h2 {
+  margin-bottom: 8px;
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: 26px;
+}
+ 
+/* =========================================================
+   23. TOAST
+   ========================================================= */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--hauteur-onglets) + 20px + env(safe-area-inset-bottom));
+  z-index: 100;
+  width: calc(100% - 32px);
+  max-width: 448px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: var(--carte-2);
+  color: var(--creme);
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 16px 40px -12px var(--ombre);
+  transform: translateX(-50%);
+  animation: toast-entree 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+ 
+.toast-succes {
+  background: var(--feuille);
+  color: var(--braise);
+}
+ 
+.toast-erreur {
+  background: var(--alerte);
+  color: var(--creme);
+}
+ 
+/* =========================================================
+   24. ÉTAT VIDE ET CHARGEMENT
+   ========================================================= */
+.vide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 20px;
+  border-radius: var(--rayon);
+  background: var(--carte);
+  text-align: center;
+}
+ 
+.vide-emoji {
+  font-size: 56px;
+  line-height: 1;
+  animation: flotter 3s ease-in-out infinite;
+}
+ 
+.vide-titre {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: 26px;
+  line-height: 1.15;
+}
+ 
+.vide-texte {
+  max-width: 320px;
+  font-size: 15px;
+  color: var(--creme-2);
+}
+
+.vide .btn {
+  max-width: 320px;
+  margin-top: 8px;
+}
+
+.chargement {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.squelette {
+  height: 96px;
+  border-radius: var(--rayon);
+  background: linear-gradient(90deg, var(--carte-2) 0%, var(--carte) 50%, var(--carte-2) 100%);
+  background-size: 200% 100%;
+  animation: miroiter 1.3s ease-in-out infinite;
+}
+
+.squelette-photo {
+  height: 200px;
+}
+
+.squelette-ligne {
+  height: 16px;
+  border-radius: 8px;
+}
+
+/* =========================================================
+   25. RÉSULTAT DU SERVICE (code de retrait, côté admin)
+   ========================================================= */
+.resultat-service {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 20px;
+  border: 2px solid var(--trait);
+  border-radius: var(--rayon-grand);
+  background: var(--carte);
+  text-align: center;
+  animation: entrer 0.4s var(--rebond) both;
+}
+
+.resultat-emoji {
+  font-size: 56px;
+  line-height: 1;
+}
+
+.resultat-titre {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: 40px;
+  line-height: 1.05;
+}
+
+.resultat-servi {
+  border-color: var(--feuille);
+  background: var(--feuille-fond);
+}
+
+.resultat-servi .resultat-titre { color: var(--feuille); }
+
+.resultat-deja-servi {
+  border-color: var(--safran);
+  background: var(--safran-fond);
+}
+
+.resultat-deja-servi .resultat-titre { color: var(--safran); }
+
+.resultat-inconnu {
+  border-color: var(--alerte);
+  background: var(--alerte-fond);
+  animation: secouer 0.5s ease both;
+}
+
+.resultat-inconnu .resultat-titre { color: var(--alerte); }
+
+/* =========================================================
+   26. ACCUEIL AVANT CONNEXION
+   ========================================================= */
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 14px;
+  min-height: 62vh;
+  min-height: 62svh;
+  margin-left: calc(-1 * var(--marge));
+  margin-right: calc(-1 * var(--marge));
+  padding: 24px var(--marge) 28px;
+}
+
+.hero-photo {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.25) contrast(1.05);
+  animation: zoom-lent 14s ease-in-out infinite alternate;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, var(--braise-voile) 0%, var(--braise-transparent) 30%, var(--braise-voile) 62%, var(--braise) 100%);
+}
+
+.hero .logo {
+  position: absolute;
+  top: 20px;
+  left: var(--marge);
+}
+
+.hero-accroche {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: clamp(32px, 10vw, 42px);
+  line-height: 1.06;
+  text-shadow: 0 2px 18px var(--ombre);
+}
+
+.hero-sous-titre {
+  font-size: 16px;
+  color: var(--creme-2);
+}
+
+.atouts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.atout {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border-radius: var(--rayon);
+  background: var(--carte);
+}
+
+.atout-emoji {
+  flex-shrink: 0;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.atout-titre {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.atout-texte {
+  font-size: 14px;
+  color: var(--creme-2);
+}
+
+@media (min-width: 600px) {
+  .atouts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .atout {
+    flex-direction: column;
+  }
+}
+
+/* =========================================================
+   27. TABLEAUX (défilent sur le côté sur téléphone)
+   ========================================================= */
+.tableau-defile {
+  overflow-x: auto;
+  border-radius: var(--rayon);
+  background: var(--carte);
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.tableau-defile table {
+  min-width: 560px;
+}
+
+th {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--trait);
+  color: var(--creme-3);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--trait);
+  vertical-align: middle;
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}
+
+tbody tr {
+  transition: background 0.15s;
+}
+
+tbody tr:hover {
+  background: var(--carte-2);
+}
+
+.code-retrait {
+  color: var(--safran);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   28. ADMIN SUR PC (barre latérale + grille de cartes)
+   ========================================================= */
+.admin {
+  display: block;
+}
+
+.barre-laterale {
+  display: none;
+}
+
+.admin-contenu {
+  min-width: 0;
+  padding-top: 8px;
+}
+
+.admin-entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.admin-titre {
+  font-size: clamp(32px, 9.5vw, 36px);
+}
+
+@media (min-width: 900px) {
+  .admin {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+  }
+
+  .barre-laterale {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    height: 100vh;
+    padding: 28px 20px;
+    background: var(--carte);
+  }
+
+  .admin-contenu {
+    padding: 40px 0;
+  }
+
+  .admin-titre {
+    font-size: 56px;
+  }
+
+  .admin .onglets {
+    display: none;
+  }
+}
+
+.menu-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.lien-lateral {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  color: var(--creme-2);
+  font-size: 16px;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.lien-lateral:hover {
+  background: var(--carte-2);
+  color: var(--creme);
+  text-decoration: none;
+}
+
+.lien-lateral.actif,
+.lien-lateral[aria-current='page'] {
+  background: var(--carte-2);
+  color: var(--safran);
+  font-weight: 700;
+}
+
+.barre-laterale-pied {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--creme-3);
+}
+
+/* =========================================================
+   29. ANIMATIONS
+   ========================================================= */
+@keyframes zoom-lent {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+
+@keyframes monter {
+  from { opacity: 0; transform: translateY(0.6em); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes entrer {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes reflet {
+  0%, 65% { left: -60%; }
+  100% { left: 130%; }
+}
+
+@keyframes secouer {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(3px); }
+}
+
+@keyframes dessiner {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes tourner {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fondu {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes apparaitre {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes monter-du-bas {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes toast-entree {
+  from { opacity: 0; transform: translate(-50%, 16px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes miroiter {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@keyframes pousser {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes flotter {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* Le téléphone demande moins d'animations : on coupe tout */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .btn::before {
+    display: none;
+  }
+
+  .photo-vivante img,
+  .plat-vedette-photo,
+  .hero-photo {
+    animation: none !important;
+  }
+}
+
+/* =========================================================
+   AIDE-MÉMOIRE DES CLASSES
+   ---------------------------------------------------------
+   Textes et mise en page
+   .page            colonne de 480 px centrée (marges 16 px, place pour les onglets)
+   .page-large      conteneur de 1200 px pour l'admin sur PC
+   .grille          grille de cartes : 1 colonne, 2 à partir de 900 px
+   .grille-3        avec .grille : 3 colonnes à partir de 900 px
+   .large-2         case de grille sur 2 colonnes (PC)
+   .large-tout      case de grille sur toute la largeur (PC)
+   .pile            empile les enfants avec 16 px d'écart
+   .rangee          aligne les enfants en ligne (ex. bouton + bouton cœur)
+   .espace-entre    ligne avec un élément à gauche, un à droite
+   .titre-section   titre de section h2 + mention à droite (« Glisse → »)
+   .nom-plat        nom de plat en Fraunces italique
+   .citation        extrait d'avis en Fraunces italique
+   .surtitre        majuscules 12 px safran (« LUN · LE CROQUANT »)
+   .aide            phrase d'aide en crème secondaire
+   .mention         petit texte discret (dates, notes)
+   .prix            prix en Manrope 800
+   .texte-safran / .texte-feuille / .texte-alerte / .texte-discret   couleurs de texte
+   .centre          texte centré
+   .masque-visuel   texte lu par les lecteurs d'écran seulement
+   En-tête et navigation
+   .entete          barre du haut : logo à gauche, solde à droite
+   .logo            « CantiJuste » (mettre <em> pour la partie safran, .surtitre dessous)
+   .pastille-solde  pilule de solde en verre (« 4 500 F ↗ »)
+   .verre           fond fumé flouté pour un élément posé sur une photo
+   .btn-retour      bouton rond « ‹ » en verre
+   .onglets         barre d'onglets collée en bas
+   .onglet          un onglet (ajouter .actif ou aria-current="page")
+   .onglet-icone    emoji de l'onglet
+   Boutons
+   .btn             bouton principal piment, flèche → à droite, reflet et rebond
+   .btn-prix        pilule de prix dans un .btn (retire la flèche)
+   .btn-valide      bouton passé au vert après succès
+   .btn-secondaire  bouton sur fond carte relevée
+   .btn-discret     bouton texte seul
+   .btn-danger      bouton texte rouge (actions dangereuses)
+   .btn-petit       petit bouton pilule
+   .btn-icone       bouton carré à emoji (cœur…)
+   .btn-servi       bouton « Servi » vert de l'admin
+   .btn-plein       garde un .btn en pleine largeur sur PC
+   Champs
+   .champ           bloc label + input/select/textarea
+   .champ-libelle   libellé quand ce n'est pas un <label>
+   .champ-message   petit texte sous le champ
+   .champ-erreur    champ en erreur (contour rouge)
+   .champ-code      grand champ « Code de retrait »
+   .choix-grille    grille de 2 tuiles
+   .choix           tuile cochable (<label> avec <input> caché), cochée = contour rouge
+   .choix-safran    tuile cochée en contour safran (rôle, opérateur)
+   .choix-emoji     emoji de la tuile
+   Cartes et listes
+   .carte           carte sombre arrondie 22 px
+   .carte-titre     titre de carte
+   .carte-ligne     ligne : texte à gauche, action à droite
+   .liste           liste de cartes sans puces
+   Badges et pastilles
+   .badge           badge de statut (+ .badge-succes / -attention / -erreur / -info / -neutre)
+   .pastille        pilule safran en majuscules (« LE FEU DU JOUR »)
+   .pastille-verre  pilule en verre (« MARDI » sur une photo)
+   .pastille-ok     pilule verte « ✓ Compatible »
+   .pastille-danger pilule rouge « 🥜 Arachide »
+   .allergenes      rangée d'allergènes
+   .allergene       pilule d'allergène neutre
+   .allergene-danger pilule d'allergène rouge pleine
+   .mention-danger  texte rouge « ⚠ Pas pour toi »
+   Photos et plat vedette
+   .photo           cadre photo arrondi (mettre un <img> dedans), saturé, dégradé braise en bas
+   .photo-plein     photo sans arrondi
+   .photo-vivante   zoom lent sur la photo
+   .coin-haut / .coin-bas / .coin-droite   place un élément sur la photo
+   .plat-vedette    grand bloc photo plein cadre (55 % de l'écran)
+   .plat-vedette-photo   <img> de fond du plat vedette (zoom lent)
+   .plat-vedette-haut    rangée posée en haut de la photo (retour, sur-titre)
+   .plat-vedette-contenu pastille, nom, phrase et bouton en bas de la photo
+   .nom-vedette     nom du plat en Fraunces 44 px
+   .mots            chaque <span> enfant monte mot par mot
+   .phrase-gourmande phrase sous le nom du plat
+   Carrousel et menus
+   .carrousel       défilement horizontal avec accroche, cartes de 78 %
+   .carte-menu      carte du carrousel (photo en haut)
+   .carte-menu-corps texte de la carte menu
+   .carte-menu-pied prix + pastille
+   .carte-deconseillee contour rouge 2 px
+   .cascade         les enfants arrivent en cascade (80 ms)
+   .jours           sélecteur Lun–Ven
+   .jour            tuile de jour (+ .actif, .jour-ok point vert, .jour-risque point rouge)
+   .jour-nom / .jour-numero   textes de la tuile
+   Allergies
+   .verif           carte de vérification (avec .anneau qui tourne)
+   .verif-ok        verte « Compatible avec ton profil »
+   .verif-danger    rouge qui tremble
+   .verif-icone / .verif-titre / .verif-texte   contenu de la vérification
+   .anneau          anneau de chargement qui tourne
+   .voile           fond flouté derrière une fenêtre
+   .fenetre-bas     fenêtre qui monte du bas (coins 34 px)
+   .fenetre-centre  avec .fenetre-bas : fenêtre centrée (confirmation)
+   .carte-alternative carte verte du plat proposé à la place
+   Solde et ticket
+   .carte-solde     carte du solde
+   .montant         montant en Fraunces italique
+   .carte-solde-bas variante solde bas (avec .bandeau safran en premier enfant)
+   .bandeau         bandeau safran « Solde bas : rechargez avant demain »
+   .ticket          ticket crème à bords dentelés
+   .ticket-code     code « CJ · 0812 » en gros
+   .ticket-separation pointillés avec encoches
+   .ticket-plat / .ticket-heure   plat et heure du ticket
+   .coche           <svg class="coche" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> qui se dessine
+   Tableau de bord
+   .carte-vedette   grande carte au chiffre safran (« GASPILLAGE ÉVITÉ »)
+   .carte-pourtoi   carte « Pour toi » sur fond safran léger
+   .chiffre-vedette grand chiffre Fraunces safran (<small> pour l'unité)
+   .evolution       ligne d'évolution verte (+ .evolution-hausse en piment)
+   .mini-barres     rangée de mini-barres
+   .mini-barre      une mini-barre (+ .haut-1 à .haut-10, + .mini-barre-active safran)
+   .jauge           <progress> de stock vert (+ .jauge-bas safran, .jauge-rupture rouge)
+   .barre-piment    <progress> en dégradé piment (classement des plats)
+   .ligne-barre     libellé + valeur, puis barre dessous
+   .etoiles         rangée d'étoiles
+   .etoile          bouton étoile 48 px (+ .etoile-active safran)
+   .grille-chiffres grille de chiffres clés
+   .chiffre         carte de chiffre clé
+   .chiffre-nombre / .chiffre-unite / .chiffre-libelle   nombre, unité safran, libellé
+   .chiffre-safran  nombre en safran
+   Retours
+   .alerte          message (+ .alerte-succes / -attention / -erreur qui tremble / -info)
+   .carte-alerte    grande carte rouge (« Allergies à surveiller »)
+   .toast           message flottant en bas (+ .toast-succes / .toast-erreur)
+   .vide            état vide centré
+   .vide-emoji / .vide-titre / .vide-texte   contenu de l'état vide
+   .chargement      pile de blocs de chargement
+   .squelette       bloc animé (+ .squelette-photo, .squelette-ligne)
+   .resultat-service grand résultat du code de retrait
+   .resultat-servi / .resultat-deja-servi / .resultat-inconnu   vert, safran, rouge
+   .resultat-emoji / .resultat-titre   contenu du résultat
+   Accueil avant connexion
+   .hero            grande photo d'accueil
+   .hero-photo      <img> de fond du hero
+   .hero-accroche / .hero-sous-titre   accroche Fraunces et sous-titre
+   .atouts          3 atouts (1 colonne, 3 à partir de 600 px)
+   .atout / .atout-emoji / .atout-titre / .atout-texte   un atout
+   Tableaux et admin
+   .tableau-defile  enveloppe d'un <table> qui défile sur le côté
+   .code-retrait    code de retrait en safran dans un tableau
+   .admin           gabarit admin : barre latérale + contenu (PC)
+   .barre-laterale  barre latérale (cachée sur téléphone)
+   .menu-lateral    liste des liens de la barre latérale
+   .lien-lateral    un lien (+ .actif : fond relevé, texte safran)
+   .barre-laterale-pied  pied de la barre latérale
+   .admin-contenu   zone de contenu
+   .admin-entete    sur-titre à gauche, date à droite
+   .admin-titre     grand titre Fraunces de page admin
+   ========================================================= */
+ 
