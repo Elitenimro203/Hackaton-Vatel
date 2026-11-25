@@ -2,12 +2,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { chargerAllergiesDuJour, chargerProchainJourDeService } from '../lib/allergies'
 import { chargerCommandesDuJour, repartirParPlat, servirRepas } from '../lib/service'
-import { dateDuJour, formaterDate, formaterDateAvecAnnee, formaterHeure, HORAIRE_SERVICE } from '../lib/formatage'
-import { useTempsReel } from '../useTempsReel'
+import { dateDuJour, formaterDate, formaterHeure, HORAIRE_SERVICE } from '../lib/formatage'
+import { useTempsReel } from '../lib/useTempsReel'
 import GuichetRetrait from '../composants/GuichetRetrait'
 import RepartitionPlats from '../composants/RepartitionPlats'
 import ListeConvives from '../composants/ListeConvives'
 import CarteAllergiesDuJour from '../composants/CarteAllergiesDuJour'
+import Icone from '../composants/Icone'
 import '../commandes.css'
 
 export default function AdminCommandes({ afficherToast, onVoirMenus }) {
@@ -71,10 +72,6 @@ export default function AdminCommandes({ afficherToast, onVoirMenus }) {
 
   return (
     <section className="pile">
-      <div className="admin-entete">
-        <span className="surtitre">Cantine Vatel · Vallon</span>
-        <span className="mention">{formaterDateAvecAnnee(aujourdhui)}</span>
-      </div>
       <div>
         <h1 className="admin-titre">Le service se prépare.</h1>
         <p className="aide premiere-majuscule">
@@ -84,7 +81,7 @@ export default function AdminCommandes({ afficherToast, onVoirMenus }) {
 
       {!chargement && !erreur && !estAujourdhui && (
         <div className="alerte alerte-info">
-          <span aria-hidden="true">📅</span>
+          <Icone nom="calendrier" />
           <div>
             <strong>Pas de service aujourd’hui</strong>
             <p>Voici les commandes du {formaterDate(jour)}. Les tickets se servent le jour même.</p>
@@ -109,7 +106,7 @@ export default function AdminCommandes({ afficherToast, onVoirMenus }) {
 
       {!chargement && erreur && (
         <div className="alerte alerte-erreur" role="alert">
-          <span aria-hidden="true">⚠️</span>
+          <Icone nom="alerte" />
           <div>
             <strong>Impossible de charger les commandes</strong>
             <p>{erreur}</p>

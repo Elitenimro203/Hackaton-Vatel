@@ -1,14 +1,15 @@
 // Grand résultat du code de retrait au comptoir : vert « Servi », safran « Déjà servi », rouge « Code inconnu » ou « Pas pour aujourd'hui », avec le rappel des allergies.
 import { trouverAllergene } from '../lib/allergenes'
 import { formaterCodeRetrait, formaterDate } from '../lib/formatage'
+import Icone from './Icone'
 
-// Valeur renvoyée par marquer_servie() → emoji, titre et couleur
+// Valeur renvoyée par marquer_servie() → icône, titre et couleur
 const AFFICHAGES = {
-  servi: { emoji: '✅', titre: 'Servi', classe: 'resultat-service resultat-servi' },
-  deja_servi: { emoji: '🔁', titre: 'Déjà servi', classe: 'resultat-service resultat-deja-servi' },
-  pas_aujourdhui: { emoji: '📅', titre: 'Pas pour aujourd’hui', classe: 'resultat-service resultat-inconnu' },
-  inconnu: { emoji: '❌', titre: 'Code inconnu', classe: 'resultat-service resultat-inconnu' },
-  refuse: { emoji: '🔒', titre: 'Accès refusé', classe: 'resultat-service resultat-inconnu' },
+  servi: { icone: 'coche-ronde', titre: 'Servi', classe: 'resultat-service resultat-servi' },
+  deja_servi: { icone: 'remplacement', titre: 'Déjà servi', classe: 'resultat-service resultat-deja-servi' },
+  pas_aujourdhui: { icone: 'calendrier-barre', titre: 'Pas pour aujourd’hui', classe: 'resultat-service resultat-inconnu' },
+  inconnu: { icone: 'croix-ronde', titre: 'Code inconnu', classe: 'resultat-service resultat-inconnu' },
+  refuse: { icone: 'cadenas', titre: 'Accès refusé', classe: 'resultat-service resultat-inconnu' },
 }
 
 function texteExplication(resultat) {
@@ -25,7 +26,7 @@ export default function ResultatService({ resultat }) {
   if (!resultat) {
     return (
       <div className="resultat-service" role="status">
-        <span className="resultat-emoji" aria-hidden="true">🎟️</span>
+        <Icone nom="ticket" className="resultat-icone" />
         <span className="resultat-titre">En attente</span>
         <p className="resultat-texte">Le résultat du ticket s’affiche ici, en grand.</p>
       </div>
@@ -38,7 +39,7 @@ export default function ResultatService({ resultat }) {
 
   return (
     <div className={affichage.classe} role="status" aria-live="assertive">
-      <span className="resultat-emoji" aria-hidden="true">{affichage.emoji}</span>
+      <Icone nom={affichage.icone} className="resultat-icone" />
       <span className="resultat-titre">{affichage.titre}</span>
       {resultat.prenom && (
         <strong className="resultat-detail">
@@ -53,7 +54,7 @@ export default function ResultatService({ resultat }) {
             const allergene = trouverAllergene(valeur)
             return (
               <li key={valeur} className="rappel-allergie">
-                {allergene.emoji} {allergene.libelle} : assiette adaptée
+                <Icone nom={allergene.icone} /> {allergene.libelle} : assiette adaptée
               </li>
             )
           })}

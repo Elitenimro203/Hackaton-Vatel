@@ -1,6 +1,7 @@
 // Fenêtre « Importer un CSV » : lecture du fichier dans le navigateur, aperçu des 5 premières lignes, puis importer_avis.
 import { useState } from 'react'
 import { importerAvisLignes, preparerImportAvis } from '../lib/statsInsights'
+import Icone from './Icone'
 import '../insights.css'
 import '../allergies.css'
 
@@ -62,7 +63,7 @@ export default function FenetreImportCsv({ afficherToast, onImporte, onFermer })
         <div className="espace-entre">
           <span className="surtitre">Importer des avis</span>
           <button type="button" className="btn-icone btn-fermer" onClick={onFermer} aria-label="Fermer" disabled={envoiEnCours}>
-            ✕
+            <Icone nom="fermer" />
           </button>
         </div>
         <h2 id="titre-import">Importer un CSV</h2>
@@ -101,7 +102,7 @@ export default function FenetreImportCsv({ afficherToast, onImporte, onFermer })
 
         {rejetes.length > 0 && (
           <div className="alerte alerte-attention" role="status">
-            <span aria-hidden="true">⚠️</span>
+            <Icone nom="alerte" />
             <div>
               <strong>{rejetes.length} ligne{rejetes.length > 1 ? 's' : ''} rejetée{rejetes.length > 1 ? 's' : ''}</strong>
               <ul className="liste-rejets">

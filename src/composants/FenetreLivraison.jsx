@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { enregistrerLivraison } from '../lib/stocks'
 import { formaterNombreStock, formaterQuantite } from '../lib/formatage'
+import Icone from './Icone'
 import '../allergies.css'
 
 export default function FenetreLivraison({ ingredient, afficherToast, onEnregistre, onFermer }) {
@@ -38,7 +39,7 @@ export default function FenetreLivraison({ ingredient, afficherToast, onEnregist
         <div className="espace-entre">
           <span className="surtitre">Nouvelle livraison</span>
           <button type="button" className="btn-icone btn-fermer" onClick={onFermer} aria-label="Fermer" disabled={envoiEnCours}>
-            ✕
+            <Icone nom="fermer" />
           </button>
         </div>
         <h2 id="titre-livraison">{ingredient.nom}</h2>

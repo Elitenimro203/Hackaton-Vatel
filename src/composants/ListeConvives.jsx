@@ -1,6 +1,7 @@
 // Liste « Les convives arrivent bientôt » : élève, plat, code de retrait, statut et bouton « Servi » par ligne.
 import { formaterCodeRetrait } from '../lib/formatage'
 import Vide from './Vide'
+import Icone from './Icone'
 
 // Statut technique → mot français et couleur de la pastille
 const STATUTS = {
@@ -24,7 +25,7 @@ export default function ListeConvives({ commandes, peutServir, codeEnCours, onSe
 
       {commandes.length === 0 ? (
         <Vide
-          emoji="🍽️"
+          icone="a-table"
           titre="Aucune réservation pour ce service"
           texte="Les élèves réservent jusqu’à la veille 18 h. Vérifie que le menu est en ligne."
           libelleBouton="Voir les menus"
@@ -53,12 +54,13 @@ export default function ListeConvives({ commandes, peutServir, codeEnCours, onSe
                   {peutServir && (
                     <button
                       type="button"
-                      className={estServie ? 'btn btn-ligne btn-servi' : 'btn btn-ligne'}
+                      className={estServie ? 'btn btn-ligne btn-servi' : 'btn btn-secondaire btn-ligne'}
                       disabled={estServie || Boolean(codeEnCours)}
                       onClick={() => onServir(commande.code_retrait)}
                       aria-label={estServie ? `${commande.nom} déjà servi` : `Servir ${commande.nom}`}
                     >
-                      {estServie ? '✓ Servi' : envoiEnCours ? '…' : 'Servi'}
+                      {estServie && <Icone nom="coche" />}
+                      {estServie ? 'Servi' : envoiEnCours ? '…' : 'Servi'}
                     </button>
                   )}
                 </li>

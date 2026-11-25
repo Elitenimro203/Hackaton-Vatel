@@ -5,6 +5,7 @@ import { chargerMesMouvements } from '../lib/mouvements'
 import { formaterMontant } from '../lib/formatage'
 import ListeMouvements from '../composants/ListeMouvements'
 import Vide from '../composants/Vide'
+import Icone from '../composants/Icone'
 import '../recharge.css'
 
 const DELAI_RECHERCHE = 300
@@ -98,7 +99,7 @@ export default function AdminSoldes({ afficherToast }) {
         )}
 
         {texteRecherche.length >= 2 && !rechercheEnCours && personnes.length === 0 && (
-          <Vide emoji="🔎" titre="Aucune personne trouvée" texte="Vérifiez l’orthographe ou essayez l’e-mail." />
+          <Vide icone="loupe" titre="Aucune personne trouvée" texte="Vérifiez l’orthographe ou essayez l’e-mail." />
         )}
 
         {!rechercheEnCours && personnes.length > 0 && (
@@ -113,7 +114,7 @@ export default function AdminSoldes({ afficherToast }) {
                   </p>
                 </div>
                 <button type="button" className="btn btn-secondaire btn-petit" onClick={() => choisir(candidat)}>
-                  {personne?.id === candidat.id ? '✓ Choisi' : 'Choisir'}
+                  {personne?.id === candidat.id ? 'Choisi' : 'Choisir'}
                 </button>
               </li>
             ))}
@@ -123,7 +124,7 @@ export default function AdminSoldes({ afficherToast }) {
 
       <div className="pile">
         {!personne && (
-          <Vide emoji="💰" titre="Aucune personne choisie" texte="Cherchez un nom à gauche, puis saisissez le montant à créditer." />
+          <Vide icone="portefeuille" titre="Aucune personne choisie" texte="Cherchez un nom à gauche, puis saisissez le montant à créditer." />
         )}
 
         {personne && (
@@ -189,7 +190,7 @@ export default function AdminSoldes({ afficherToast }) {
 
             {confirmation && (
               <div className="alerte alerte-succes" role="status">
-                <span aria-hidden="true">✅</span>
+                <Icone nom="coche-ronde" />
                 <div>
                   <strong>
                     {formaterMontant(confirmation.montant, 'FCFA')} crédités à {confirmation.nom}
@@ -205,7 +206,7 @@ export default function AdminSoldes({ afficherToast }) {
           <>
             <h3 className="sous-titre-soldes">Derniers mouvements</h3>
             {mouvements.length === 0 ? (
-              <Vide emoji="🧾" titre="Aucun mouvement" texte="Ce compte n’a encore ni recharge ni repas." />
+              <Vide icone="recu" titre="Aucun mouvement" texte="Ce compte n’a encore ni recharge ni repas." />
             ) : (
               <ListeMouvements mouvements={mouvements} unite="FCFA" />
             )}

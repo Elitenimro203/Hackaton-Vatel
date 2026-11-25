@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { chargerEnfants, prenomDe } from '../lib/enfants'
 import { soldeEstBas } from '../lib/recharges'
 import { formaterMontant } from '../lib/formatage'
-import { useTempsReel } from '../useTempsReel'
+import { useTempsReel } from '../lib/useTempsReel'
 import BarreOnglets from '../composants/BarreOnglets'
 import BandeauSoldeBas from '../composants/BandeauSoldeBas'
 import CarteProfil from '../composants/CarteProfil'
@@ -12,10 +12,10 @@ import RechargeParent from './RechargeParent'
 import CeQuilMange from './CeQuilMange'
 
 const ONGLETS = [
-  { id: 'enfants', icone: '👨‍👩‍👧', libelle: 'Mes enfants' },
-  { id: 'recharger', icone: '💳', libelle: 'Recharger' },
-  { id: 'repas', icone: '🍽️', libelle: 'Ce qu’il mange' },
-  { id: 'profil', icone: '👤', libelle: 'Profil' },
+  { id: 'enfants', icone: 'enfants', libelle: 'Mes enfants' },
+  { id: 'recharger', icone: 'carte-bancaire', libelle: 'Recharger' },
+  { id: 'repas', icone: 'a-table', libelle: 'Ce qu’il mange' },
+  { id: 'profil', icone: 'profil', libelle: 'Profil' },
 ]
 
 export default function Parent({ profil, afficherToast }) {

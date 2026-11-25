@@ -1,10 +1,12 @@
-// Panneau d'ajout ou de modification du menu d'un jour (date, entrée, dessert, plat, prix, photo, allergènes, plat de remplacement, recette).
+// Panneau d'ajout ou de modification du menu d'un jour (date, plat, prix, photo, allergènes, contenu pour les régimes, remplacement, recette) et ses actions.
 import { useEffect, useState } from 'react'
 import { ALLERGENES } from '../lib/allergenes'
+import { CONTENUS } from '../lib/regimes'
 import { formaterDate } from '../lib/formatage'
 import { enregistrerMenu, preparerMenu, PRIX_ELEVE_PAR_DEFAUT, PRIX_EMPLOYE_PAR_DEFAUT } from '../lib/menus'
 import { chargerIngredients, chargerRecette, enregistrerRecette, preparerRecette } from '../lib/stocks'
 import SectionRecette from './SectionRecette'
+import Icone from './Icone'
 import '../allergies.css'
 
 function champsDepuisMenu(menu, jour) {
@@ -20,11 +22,31 @@ function champsDepuisMenu(menu, jour) {
     platAlternatif: menu?.plat_alternatif || '',
     photoAlternative: menu?.photo_alternative || '',
     allergenesAlternatif: menu?.allergenes_alternatif || [],
+    contenu: menu?.contenu || [],
+    contenuAlternatif: menu?.contenu_alternatif || [],
   }
 }
 
+// Cases « Ce plat contient » (viande, porc, viande non halal) qui servent à vérifier les régimes
+function CasesContenu({ id, titre, valeurs, onBasculer }) {
+  return (
+    <div className="champ">
+      <span className="champ-libelle" id={id}>{titre}</span>
+      <div className="choix-grille choix-grille-3" role="group" aria-labelledby={id}>
+        {CONTENUS.map((contenu) => (
+          <label key={contenu.valeur} className="choix choix-safran">
+            <input type="checkbox" checked={valeurs.includes(contenu.valeur)} onChange={() => onBasculer(contenu.valeur)} />
+            <Icone nom={contenu.icone} className="choix-icone" />
+            {contenu.libelle}
+          </label>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // menu : le menu du jour à modifier, ou null pour en créer un à la date « jour »
-export default function FormulaireMenu({ menu, jour, onEnregistre, onSupprimer, afficherToast }) {
+export default function FormulaireMenu({ menu, jour, onEnregistre, onSupprimer, onRetirer, onRemettre, onDupliquer, afficherToast }) {
   const [champs, setChamps] = useState(() => champsDepuisMenu(menu, jour))
   const [erreur, setErreur] = useState(null)
   const [envoiEnCours, setEnvoiEnCours] = useState(false)
@@ -32,6 +54,7 @@ export default function FormulaireMenu({ menu, jour, onEnregistre, onSupprimer, 
   const [recette, setRecette] = useState([])
   const [recetteChargee, setRecetteChargee] = useState(false)
   const estModification = Boolean(menu)
+  const estRetire = Boolean(menu?.retire)
 
   // La liste des ingrédients et la recette actuelle du menu ; sans le module Stocks, la section n'apparaît pas
   const idMenu = menu?.id
@@ -50,8 +73,8 @@ export default function FormulaireMenu({ menu, jour, onEnregistre, onSupprimer, 
     setChamps((anciens) => ({ ...anciens, [nom]: valeur }))
   }
 
-  // nomListe : 'allergenes' (plat du jour) ou 'allergenesAlternatif' (plat de remplacement)
-  function basculerAllergene(nomListe, valeur) {
+  // nomListe : 'allergenes', 'allergenesAlternatif', 'contenu' ou 'contenuAlternatif'
+  function basculerValeur(nomListe, valeur) {
     setChamps((anciens) => ({
       ...anciens,
       [nomListe]: anciens[nomListe].includes(valeur)
@@ -95,11 +118,14 @@ export default function FormulaireMenu({ menu, jour, onEnregistre, onSupprimer, 
     <form id="panneau-menu" className="carte pile panneau-edition" onSubmit={envoyer} noValidate>
       <div className="pile">
         <h2 className="panneau-titre">{formaterDate(champs.jour || jour)}</h2>
-        <div>
+        <div className="rangee">
           <span className={estModification ? 'badge badge-attention' : 'badge badge-succes'}>
-            {estModification ? '✏️ Modification' : '＋ Nouveau menu'}
+            <Icone nom={estModification ? 'crayon' : 'plus'} />
+            {estModification ? 'Modification' : 'Nouveau menu'}
           </span>
+          {estRetire && <span className="badge badge-neutre"><Icone nom="retirer" />Retiré du menu</span>}
         </div>
+        {estRetire && <p className="aide">Les élèves ne voient plus ce plat. Remettez-le au menu pour le proposer à nouveau.</p>}
       </div>
 
       <div className="champ">
@@ -173,7 +199,7 @@ export default function FormulaireMenu({ menu, jour, onEnregistre, onSupprimer, 
 
       <div className="champ-photo">
         <div className="vignette">
-          {champs.photoUrl.trim() ? <img src={champs.photoUrl.trim()} alt="Aperçu du plat" /> : <span aria-hidden="true">📷</span>}
+          {champs.photoUrl.trim() ? <img src={champs.photoUrl.trim()} alt="Aperçu du plat" /> : <Icone nom="appareil-photo" />}
         </div>
         <div className="champ">
           <label htmlFor="menu-photo">Photo (adresse)</label>
@@ -196,19 +222,26 @@ export default function FormulaireMenu({ menu, jour, onEnregistre, onSupprimer, 
               <input
                 type="checkbox"
                 checked={champs.allergenes.includes(allergene.valeur)}
-                onChange={() => basculerAllergene('allergenes', allergene.valeur)}
+                onChange={() => basculerValeur('allergenes', allergene.valeur)}
               />
-              <span className="choix-emoji" aria-hidden="true">{allergene.emoji}</span>
+              <Icone nom={allergene.icone} className="choix-icone" />
               {allergene.libelle}
             </label>
           ))}
         </div>
       </div>
 
+      <CasesContenu
+        id="titre-contenu-menu"
+        titre="Ce plat contient (pour les régimes)"
+        valeurs={champs.contenu}
+        onBasculer={(valeur) => basculerValeur('contenu', valeur)}
+      />
+
       <div className="pile panneau-alternative">
         <div>
           <h3 className="sous-titre">Plat de remplacement</h3>
-          <p className="aide">Proposé aux élèves allergiques au plat du jour, au même prix.</p>
+          <p className="aide">Proposé aux élèves allergiques ou dont le régime ne va pas au plat du jour, au même prix.</p>
         </div>
 
         <div className="champ">
@@ -227,7 +260,7 @@ export default function FormulaireMenu({ menu, jour, onEnregistre, onSupprimer, 
             {champs.photoAlternative.trim() ? (
               <img src={champs.photoAlternative.trim()} alt="Aperçu du plat de remplacement" />
             ) : (
-              <span aria-hidden="true">📷</span>
+              <Icone nom="appareil-photo" />
             )}
           </div>
           <div className="champ">
@@ -251,14 +284,21 @@ export default function FormulaireMenu({ menu, jour, onEnregistre, onSupprimer, 
                 <input
                   type="checkbox"
                   checked={champs.allergenesAlternatif.includes(allergene.valeur)}
-                  onChange={() => basculerAllergene('allergenesAlternatif', allergene.valeur)}
+                  onChange={() => basculerValeur('allergenesAlternatif', allergene.valeur)}
                 />
-                <span className="choix-emoji" aria-hidden="true">{allergene.emoji}</span>
+                <Icone nom={allergene.icone} className="choix-icone" />
                 {allergene.libelle}
               </label>
             ))}
           </div>
         </div>
+
+        <CasesContenu
+          id="titre-contenu-alternatif"
+          titre="Le plat de remplacement contient"
+          valeurs={champs.contenuAlternatif}
+          onBasculer={(valeur) => basculerValeur('contenuAlternatif', valeur)}
+        />
       </div>
 
       {recetteChargee && ingredients.length > 0 && (
@@ -282,6 +322,23 @@ export default function FormulaireMenu({ menu, jour, onEnregistre, onSupprimer, 
           {envoiEnCours ? 'Enregistrement…' : estModification ? 'Enregistrer' : 'Publier ce menu'}
         </button>
       </div>
+
+      {estModification && (
+        <div className="actions-menu">
+          <button type="button" className="btn btn-secondaire btn-plein" onClick={() => onDupliquer(menu)} disabled={envoiEnCours}>
+            <span className="avec-icone"><Icone nom="copier" />Dupliquer</span>
+          </button>
+          {estRetire ? (
+            <button type="button" className="btn btn-secondaire btn-plein" onClick={() => onRemettre(menu)} disabled={envoiEnCours}>
+              <span className="avec-icone"><Icone nom="remettre" />Remettre au menu</span>
+            </button>
+          ) : (
+            <button type="button" className="btn btn-discret btn-plein" onClick={() => onRetirer(menu)} disabled={envoiEnCours}>
+              <span className="avec-icone"><Icone nom="retirer" />Retirer du menu</span>
+            </button>
+          )}
+        </div>
+      )}
     </form>
   )
 }

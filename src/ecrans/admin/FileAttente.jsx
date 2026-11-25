@@ -13,9 +13,10 @@ import {
   simulerKolmogorov,
 } from '../../lib/fileAttente'
 import { dateDuJour, formaterAttente, formaterCreneau, formaterDate, formaterMinutes } from '../../lib/formatage'
-import { useTempsReel } from '../../useTempsReel'
+import { useTempsReel } from '../../lib/useTempsReel'
 import CourbeFile from '../../composants/CourbeFile'
 import Vide from '../../composants/Vide'
+import Icone from '../../composants/Icone'
 import '../../pilotage.css'
 import '../../file-attente.css'
 import '../../file-attente-admin.css'
@@ -24,9 +25,9 @@ const ADHESION_DEPART = 30
 const CHOIX_GUICHETS = [1, 2, 3, 4]
 
 const BADGES = {
-  calme: { texte: '🍃 Calme', classe: 'creneau-badge creneau-badge-calme' },
+  calme: { icone: 'feuille', texte: 'Calme', classe: 'creneau-badge creneau-badge-calme' },
   normal: { texte: 'Normal', classe: 'creneau-badge creneau-badge-normal' },
-  charge: { texte: '🔥 Chargé', classe: 'creneau-badge creneau-badge-charge' },
+  charge: { icone: 'flamme', texte: 'Chargé', classe: 'creneau-badge creneau-badge-charge' },
 }
 
 export default function FileAttente() {
@@ -83,9 +84,6 @@ export default function FileAttente() {
 
   return (
     <section className="pile pilotage">
-      <div className="admin-entete">
-        <span className="surtitre">Cantine Vatel · Vallon</span>
-      </div>
       <div>
         <h1 className="admin-titre">Moins de file à midi.</h1>
         <p className="aide">Calculé avec un modèle de Markov à partir des créneaux réservés.</p>
@@ -190,7 +188,7 @@ export default function FileAttente() {
 
         {!chargement && lignes.length === 0 && (
           <Vide
-            emoji="⏱️"
+            icone="chronometre"
             titre="Pas encore de créneaux"
             texte="Lancez supabase/patch_file_attente.sql pour activer les créneaux de passage."
           />
@@ -209,7 +207,10 @@ export default function FileAttente() {
                   <strong className="prevision-valeur">{creneau.reservations}</strong>
                   <span className="creneau-ligne-detail">
                     <span className="mention">{creneau.complet ? 'Complet' : formaterAttente(creneau.attente)}</span>
-                    <span className={badgeCreneau.classe}>{badgeCreneau.texte}</span>
+                    <span className={badgeCreneau.classe}>
+                      {badgeCreneau.icone && <Icone nom={badgeCreneau.icone} />}
+                      {badgeCreneau.texte}
+                    </span>
                   </span>
                 </li>
               )

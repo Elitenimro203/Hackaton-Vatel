@@ -1,9 +1,9 @@
-// Onglet Pilotage de l'admin (maquette 15) : gaspillage évité, repas à préparer, taux de gaspillage, réservés/servis sur 4 semaines, prévision et favoris, en temps réel.
+// Onglet Pilotage de l'admin (maquette 15) : gaspillage évité, repas à préparer, taux de gaspillage, réservés/servis sur 4 semaines, prévision, favoris et rapport du mois, en temps réel.
 import { useCallback, useEffect, useState } from 'react'
 import { chargerTableauDeBord } from '../lib/pilotage'
+import { exporterRapportDuMois } from '../lib/rapport'
 import {
   dateDuJour,
-  formaterDateAvecAnnee,
   formaterHeure,
   formaterMoisPrecedent,
   formaterMontant,
@@ -11,13 +11,14 @@ import {
   formaterNomJour,
   formaterPourcent,
 } from '../lib/formatage'
-import { useTempsReel } from '../useTempsReel'
+import { useTempsReel } from '../lib/useTempsReel'
 import GraphiqueService from '../composants/GraphiqueService'
 import PrevisionSemaine from '../composants/PrevisionSemaine'
 import FavorisCantine from '../composants/FavorisCantine'
 import Vide from '../composants/Vide'
 import AdminSoldes from './AdminSoldes'
 import CarteProfil from '../composants/CarteProfil'
+import Icone from '../composants/Icone'
 import '../pilotage.css'
 
 // Ligne verte (pertes en baisse) ou piment (pertes en hausse) sous le montant
@@ -37,6 +38,7 @@ export default function AdminPilotage({ profil, afficherToast, onVoirCommandes, 
   const [tableau, setTableau] = useState(null)
   const [chargement, setChargement] = useState(true)
   const [miseAJour, setMiseAJour] = useState(null)
+  const [exportEnCours, setExportEnCours] = useState(false)
 
   const charger = useCallback(async () => {
     const resultat = await chargerTableauDeBord()
@@ -58,14 +60,18 @@ export default function AdminPilotage({ profil, afficherToast, onVoirCommandes, 
     await charger()
   }
 
+  async function exporterRapport() {
+    setExportEnCours(true)
+    const resultat = await exporterRapportDuMois()
+    setExportEnCours(false)
+    if (resultat.erreur) afficherToast(resultat.erreur, 'erreur')
+    else afficherToast(`Rapport téléchargé : ${resultat.nombreJours} jours de service, à ouvrir dans Excel.`)
+  }
+
   const chiffres = tableau?.chiffres
 
   return (
     <section className="pile pilotage">
-      <div className="admin-entete">
-        <span className="surtitre">Cantine Vatel · Vallon</span>
-        <span className="mention premiere-lettre">{formaterDateAvecAnnee(aujourdhui)}</span>
-      </div>
       <div>
         <h1 className="admin-titre">Du goût. Moins de pertes.</h1>
         <p className="aide">Chaque réservation compte. Voici l’impact de la cantine ce mois-ci.</p>
@@ -87,7 +93,7 @@ export default function AdminPilotage({ profil, afficherToast, onVoirCommandes, 
       {!chargement && tableau?.erreur && (
         <div className="pile">
           <div className="alerte alerte-erreur" role="alert">
-            <span aria-hidden="true">⚠️</span>
+            <Icone nom="alerte" />
             <div>
               <strong>Impossible de charger le tableau de bord</strong>
               <p>{tableau.erreur} Vérifiez que supabase/patch_tableau_de_bord.sql a bien été lancé.</p>
@@ -141,7 +147,7 @@ export default function AdminPilotage({ profil, afficherToast, onVoirCommandes, 
                 <h2 id="titre-graphique" className="titre-pilotage">Réservés, puis savourés.</h2>
                 {tableau.historique.length === 0 ? (
                   <Vide
-                    emoji="📊"
+                    icone="pilotage"
                     titre="Pas encore d’historique"
                     texte="Le graphique se remplit après les premiers jours de service."
                     libelleBouton="Voir les commandes du jour"
@@ -162,6 +168,19 @@ export default function AdminPilotage({ profil, afficherToast, onVoirCommandes, 
           </section>
 
           <FavorisCantine favoris={tableau.favoris} onVoirMenus={onVoirMenus} />
+
+          <section className="carte pile" aria-labelledby="titre-rapport">
+            <h2 id="titre-rapport" className="titre-pilotage">Le rapport du mois.</h2>
+            <p className="aide">
+              Jour par jour : plat, réservés, servis, non venus, recettes en FCFA et note des élèves. Un fichier prêt pour Excel.
+            </p>
+            <button type="button" className="btn btn-secondaire" onClick={exporterRapport} disabled={exportEnCours}>
+              <span className="avec-icone">
+                <Icone nom="telecharger" />
+                {exportEnCours ? 'Préparation…' : 'Exporter le rapport du mois'}
+              </span>
+            </button>
+          </section>
         </>
       )}
 

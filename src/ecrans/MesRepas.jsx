@@ -1,15 +1,16 @@
 // Onglet Mes repas de l'élève : solde en temps réel avec bouton Recharger (l'alerte solde bas est en haut de l'écran, dans Eleve), tickets à venir (annulables avant la veille 18 h), repas servis à noter (étoiles + mot pour la cuisine), historique et mouvements.
 import { useCallback, useEffect, useState } from 'react'
-import { STATUTS_RESERVATION, annulerReservation, chargerHistoriqueReservations, reservationFermee } from '../lib/reservations'
+import { annulerReservation, chargerHistoriqueReservations, reservationFermee, statutAffiche } from '../lib/reservations'
 import { chargerMesMouvements } from '../lib/mouvements'
 import { chargerMesAvis } from '../lib/avis'
 import { PRIX_ELEVE_PAR_DEFAUT, PRIX_EMPLOYE_PAR_DEFAUT } from '../lib/menus'
 import { dateDuJour, formaterDate, formaterMontant } from '../lib/formatage'
-import { useTempsReel } from '../useTempsReel'
+import { useTempsReel } from '../lib/useTempsReel'
 import TicketRetrait from '../composants/TicketRetrait'
 import NoterRepas from '../composants/NoterRepas'
 import Vide from '../composants/Vide'
 import ListeMouvements from '../composants/ListeMouvements'
+import Icone from '../composants/Icone'
 import '../reservation.css'
 import '../recharge.css'
 
@@ -82,7 +83,8 @@ export default function MesRepas({ profil, afficherToast, onVoirMenu, onRecharge
           </span>
         </div>
         <button type="button" className="btn-recharger" onClick={onRecharger}>
-          📲 Recharger
+          <Icone nom="telephone" />
+          Recharger
         </button>
       </div>
 
@@ -100,7 +102,7 @@ export default function MesRepas({ profil, afficherToast, onVoirMenu, onRecharge
 
       {!chargement && erreur && (
         <div className="alerte alerte-erreur" role="alert">
-          <span aria-hidden="true">⚠️</span>
+          <Icone nom="alerte" />
           <div>
             <strong>Impossible de charger tes repas</strong>
             <p>{erreur}</p>
@@ -110,10 +112,10 @@ export default function MesRepas({ profil, afficherToast, onVoirMenu, onRecharge
 
       {!chargement && !erreur && tickets.length === 0 && (
         <Vide
-          emoji="🍽️"
+          icone="a-table"
           titre="Aucun repas réservé."
           texte="Choisis un plat dans la semaine : ton ticket apparaîtra ici."
-          libelleBouton="📅 Voir la semaine"
+          libelleBouton="Voir la semaine"
           onAction={onVoirMenu}
         />
       )}
@@ -163,7 +165,7 @@ export default function MesRepas({ profil, afficherToast, onVoirMenu, onRecharge
           </div>
           <ul className="carte liste-repas">
             {historique.map((reservation) => {
-              const statut = STATUTS_RESERVATION[reservation.statut]
+              const statut = statutAffiche(reservation)
               return (
                 <li key={reservation.id} className="carte-ligne">
                   <div>
@@ -185,10 +187,10 @@ export default function MesRepas({ profil, afficherToast, onVoirMenu, onRecharge
           </div>
           {mouvements.length === 0 ? (
             <Vide
-              emoji="🧾"
+              icone="recu"
               titre="Aucun mouvement pour l’instant"
               texte="Tes recharges et tes repas apparaîtront ici."
-              libelleBouton="📲 Recharger par Mobile Money"
+              libelleBouton="Recharger par Mobile Money"
               onAction={onRecharger}
             />
           ) : (

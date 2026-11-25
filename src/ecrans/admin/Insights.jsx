@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { analyserAvis, resumerSemaine } from '../../lib/insights'
 import { bornesPeriode, chargerFileRevue, chargerStats, chargerThemes, chiffresPourIa, PERIODES, preparerExports, resumeDeSecours } from '../../lib/statsInsights'
 import { telechargerCsv } from '../../lib/csv'
-import { dateDuJour, formaterDateAvecAnnee, formaterHeure } from '../../lib/formatage'
-import { useTempsReel } from '../../useTempsReel'
+import { formaterHeure } from '../../lib/formatage'
+import { useTempsReel } from '../../lib/useTempsReel'
 import VedetteInsights from '../../composants/VedetteInsights'
 import ResumeSemaine from '../../composants/ResumeSemaine'
 import CarteTheme from '../../composants/CarteTheme'
@@ -14,6 +14,7 @@ import PortionGaspillage from '../../composants/PortionGaspillage'
 import FileRevue from '../../composants/FileRevue'
 import FenetreImportCsv from '../../composants/FenetreImportCsv'
 import Vide from '../../composants/Vide'
+import Icone from '../../composants/Icone'
 import '../../pilotage.css'
 import '../../insights.css'
 
@@ -35,7 +36,6 @@ function garderResume(cle, valeur) {
 }
 
 export default function Insights({ afficherToast }) {
-  const aujourdhui = dateDuJour()
   const [idPeriode, setIdPeriode] = useState('7')
   const periode = PERIODES.find((option) => option.id === idPeriode)
   const { debut, fin } = bornesPeriode(periode.jours)
@@ -146,10 +146,6 @@ export default function Insights({ afficherToast }) {
 
   return (
     <section className="pile pilotage insights">
-      <div className="admin-entete">
-        <span className="surtitre">Cantine Vatel · Vallon</span>
-        <span className="mention premiere-lettre">{formaterDateAvecAnnee(aujourdhui)}</span>
-      </div>
       <div>
         <h1 className="admin-titre">Ce que disent les élèves.</h1>
         <p className="aide">
@@ -188,7 +184,7 @@ export default function Insights({ afficherToast }) {
       {!chargement && erreur && (
         <div className="pile">
           <div className="alerte alerte-erreur" role="alert">
-            <span aria-hidden="true">⚠️</span>
+            <Icone nom="alerte" />
             <div>
               <strong>Impossible de charger les insights</strong>
               <p>{erreur} Vérifiez que supabase/patch_insights.sql a bien été lancé.</p>
@@ -230,7 +226,7 @@ export default function Insights({ afficherToast }) {
             <h2 id="titre-themes" className="titre-pilotage">Les thèmes</h2>
             {themesTries.length === 0 ? (
               <Vide
-                emoji="💬"
+                icone="avis"
                 titre="Aucun avis classé sur cette période."
                 texte="Lancez « Analyser les nouveaux avis » : l’IA lit et classe chaque avis en quelques secondes."
               />

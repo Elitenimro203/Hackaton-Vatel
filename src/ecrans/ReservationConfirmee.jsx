@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { chargerMesReservations } from '../lib/reservations'
 import { formaterMontant } from '../lib/formatage'
 import TicketRetrait from '../composants/TicketRetrait'
+import Icone from '../composants/Icone'
 import '../reservation.css'
 
 const NOMBRE_GRAINS = 14
@@ -46,7 +47,7 @@ export default function ReservationConfirmee({ menu, profil, onVoirMesRepas }) {
 
       {erreur && (
         <div className="alerte alerte-erreur" role="alert">
-          <span aria-hidden="true">🧾</span>
+          <Icone nom="recu" />
           <div>
             <strong>Ticket introuvable pour l’instant</strong>
             <p>Ta réservation est faite : retrouve ton code dans Mes repas.</p>

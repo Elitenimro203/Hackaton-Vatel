@@ -1,16 +1,15 @@
-/* Menus de la semaine et admin PC : classes .barre-semaine, .carte-jour, .page-admin... (importé par AdminMenus et MenuSemaine, après index.css) */
+/* Menus de la semaine et admin PC : classes .barre-semaine, .carte-jour... (importé par AdminMenus et MenuSemaine, après index.css) */
 
 /* =========================================================
    30. MENUS DE LA SEMAINE (admin et élève)
    .barre-semaine   rangée : sélecteur de semaine à gauche, badge « 5 menus publiés » à droite
    .navigation-semaine   ‹ « 23 – 27 novembre » › (boutons carrés de 48 px)
    .navigation-semaine-titre   texte de la semaine au milieu
-   .page-admin      admin : colonne sur téléphone, pleine largeur sur PC (barre latérale collée à gauche)
    .menus-admin     grille de la semaine + panneau d'édition (à droite à partir de 1360 px)
    .semaine-grille  cartes des jours : 2 par ligne sur téléphone, 3 sur tablette, 5 en ligne dès 900 px comme sur la maquette
    .carte-jour      carte d'un jour, toutes de même hauteur (+ .actif : contour safran)
    .carte-jour-vide variante sans menu : photo en pointillés et texte discret
-   .photo-emoji     gros emoji centré dans une .photo sans image
+   .photo-icone     grosse icône centrée dans une .photo sans image
    .panneau-edition carte du formulaire, champs relevés, libellés en petites majuscules
    .panneau-titre   titre Fraunces du panneau ou d'un bloc d'info
    .champs-2        deux champs côte à côte
@@ -20,7 +19,6 @@
    .actions-formulaire   Supprimer (1/3) + Enregistrer (2/3)
    .nom-plat-grand  nom du plat en 30 px (carte élève)
    .prix-grand      prix en 24 px
-   .page-large > .entete   l'en-tête du téléphone est caché sur PC (la barre latérale le remplace)
    ========================================================= */
 .barre-semaine {
   display: flex;
@@ -121,17 +119,18 @@
   content: none;
 }
 
-.carte-jour-vide .photo-emoji {
+.carte-jour-vide .photo-icone {
   opacity: 0.5;
 }
 
-.photo-emoji {
+.photo-icone {
   position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 44px;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  color: var(--creme-3);
+  transform: translate(-50%, -50%);
 }
 
 .panneau-titre {
@@ -223,8 +222,9 @@
   color: var(--creme);
 }
 
-.choix-grille-5 .choix-emoji {
-  font-size: 22px;
+.choix-grille-5 .choix-icone {
+  width: 22px;
+  height: 22px;
 }
 
 .choix-grille-5 .choix:has(input:checked) {
@@ -313,49 +313,14 @@
   }
 }
 
-.page-admin {
-  width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 0 var(--marge) calc(var(--hauteur-onglets) + 48px);
+/* Menus à 900 px : les badges d'une carte-jour passent à la ligne au lieu de dépasser */
+.carte-jour .allergenes {
+  min-width: 0;
 }
 
-.page-admin > * + * {
-  margin-top: 16px;
-}
-
-.admin-titre {
-  font-size: clamp(34px, 4.2vw, 56px);
-}
-
-.admin-titre + .aide {
-  margin-top: 8px;
-}
-
-@media (min-width: 900px) {
-  .page-admin {
-    max-width: none;
-    padding: 0;
-  }
-
-  .page-admin > .entete {
-    display: none;
-  }
-
-  .page-admin > .admin {
-    margin-top: 0;
-  }
-
-  .page-admin .admin {
-    grid-template-columns: 240px minmax(0, 1fr);
-    gap: 0;
-  }
-
-  .page-admin .barre-laterale {
-    padding: 28px 24px;
-  }
-
-  .page-admin .admin-contenu {
-    padding: 36px clamp(24px, 3vw, 48px) 48px;
-  }
+.carte-jour .allergenes .badge,
+.carte-jour .allergenes .allergene {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }

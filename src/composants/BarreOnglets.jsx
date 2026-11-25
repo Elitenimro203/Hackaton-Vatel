@@ -1,4 +1,5 @@
 // Barre d'onglets collée en bas de l'écran : un bouton par onglet, l'actif en safran.
+import Icone from './Icone'
 export default function BarreOnglets({ onglets, ongletActif, onChoisir }) {
   return (
     <nav className="onglets" aria-label="Navigation principale">
@@ -12,7 +13,7 @@ export default function BarreOnglets({ onglets, ongletActif, onChoisir }) {
             aria-current={estActif ? 'page' : undefined}
             onClick={() => onChoisir(onglet.id)}
           >
-            <span className="onglet-icone" aria-hidden="true">{onglet.icone}</span>
+            <Icone nom={onglet.icone} className="onglet-icone" />
             <span className="onglet-libelle">{onglet.libelle}</span>
           </button>
         )

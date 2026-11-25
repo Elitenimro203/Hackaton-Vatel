@@ -1,23 +1,24 @@
 // Onglet Ce qu'il mange du parent : repas réservés, servis et annulés de l'enfant choisi, du plus récent au plus ancien.
 import { useCallback, useEffect, useState } from 'react'
 import { chargerEnfants, prenomDe } from '../lib/enfants'
-import { STATUTS_RESERVATION, chargerRepasEnfant } from '../lib/reservations'
-import { formaterDate } from '../lib/formatage'
-import { useTempsReel } from '../useTempsReel'
+import { chargerRepasEnfant, statutAffiche } from '../lib/reservations'
+import { dateDuJour, formaterDate } from '../lib/formatage'
+import { useTempsReel } from '../lib/useTempsReel'
 import Vide from '../composants/Vide'
+import Icone from '../composants/Icone'
 import '../reservation.css'
 import '../recharge.css'
 import '../parent.css'
 
 function LigneRepas({ repas }) {
-  const statut = STATUTS_RESERVATION[repas.statut]
+  const statut = statutAffiche(repas)
   return (
     <li className="carte repas-enfant">
       <div className="vignette-plat">
         {repas.menus.photo_url ? (
           <img src={repas.menus.photo_url} alt={repas.menus.plat} loading="lazy" />
         ) : (
-          <span className="vignette-plat-emoji" aria-hidden="true">🍽️</span>
+          <Icone nom="a-table" className="vignette-plat-icone" />
         )}
       </div>
       <div className="repas-enfant-texte">
@@ -71,7 +72,7 @@ export default function CeQuilMange({ onVoirEnfants }) {
   useTempsReel(idEnfant ? 'reservations' : null, chargerLesRepas, idEnfant ? `eleve_id=eq.${idEnfant}` : null)
 
   const nombreServis = repas.filter((ligne) => ligne.statut === 'servie').length
-  const nombreReserves = repas.filter((ligne) => ligne.statut === 'reservee').length
+  const nombreReserves = repas.filter((ligne) => ligne.statut === 'reservee' && ligne.menus.jour >= dateDuJour()).length
   const chargement = chargementEnfants || (enfant && chargementRepas)
 
   return (
@@ -110,7 +111,7 @@ export default function CeQuilMange({ onVoirEnfants }) {
 
       {!chargement && erreur && (
         <div className="alerte alerte-erreur" role="alert">
-          <span aria-hidden="true">⚠️</span>
+          <Icone nom="alerte" />
           <div>
             <strong>Impossible de charger les repas</strong>
             <p>{erreur}</p>
@@ -120,17 +121,17 @@ export default function CeQuilMange({ onVoirEnfants }) {
 
       {!chargement && !erreur && !enfant && (
         <Vide
-          emoji="👨‍👩‍👧"
+          icone="enfants"
           titre="Aucun enfant lié pour l’instant"
           texte="Liez le compte élève de votre enfant pour suivre ce qu’il mange."
-          libelleBouton="👨‍👩‍👧 Lier mon enfant"
+          libelleBouton="Lier mon enfant"
           onAction={onVoirEnfants}
         />
       )}
 
       {!chargement && !erreur && enfant && repas.length === 0 && (
         <Vide
-          emoji="🍽️"
+          icone="a-table"
           titre="Aucun repas pour l’instant"
           texte={`Dès que ${prenomDe(enfant)} réservera un plat, il apparaîtra ici avec sa date.`}
         />
@@ -139,8 +140,8 @@ export default function CeQuilMange({ onVoirEnfants }) {
       {!chargement && !erreur && enfant && repas.length > 0 && (
         <>
           <div className="espace-entre">
-            <span className="badge badge-succes">🍽️ {nombreServis} servi{nombreServis > 1 ? 's' : ''}</span>
-            <span className="badge badge-attention">🎟️ {nombreReserves} à venir</span>
+            <span className="badge badge-succes"><Icone nom="a-table" />{nombreServis} servi{nombreServis > 1 ? 's' : ''}</span>
+            <span className="badge badge-attention"><Icone nom="ticket" />{nombreReserves} à venir</span>
           </div>
           <ul className="liste">
             {repas.map((ligne) => (

@@ -1,20 +1,21 @@
 // Page d'accueil avant connexion : photo, accroche, 3 atouts, connexion et comptes de démo en un clic.
 import { useState } from 'react'
 import { COMPTES_DEMO, MOT_DE_PASSE_DEMO, seConnecter } from '../lib/authentification'
- 
+import Icone from '../composants/Icone'
+
 const ATOUTS = [
-  { emoji: '🌱', titre: 'Moins de gaspillage', texte: 'Chaque portion réservée est une portion mangée.' },
-  { emoji: '🛡️', titre: 'Allergies protégées', texte: 'Chaque plat est vérifié avec ton profil.' },
-  { emoji: '📱', titre: 'Zéro ticket papier', texte: 'Un code à 4 chiffres suffit au comptoir.' },
+  { icone: 'pousse', titre: 'Moins de gaspillage', texte: 'Chaque portion réservée est une portion mangée.' },
+  { icone: 'bouclier', titre: 'Allergies protégées', texte: 'Chaque plat est vérifié avec ton profil.' },
+  { icone: 'telephone', titre: 'Zéro ticket papier', texte: 'Un code à 4 chiffres suffit au comptoir.' },
 ]
- 
+
 export default function Accueil({ onCreerCompte, afficherToast }) {
   const [email, setEmail] = useState('')
   const [motDePasse, setMotDePasse] = useState('')
   const [erreur, setErreur] = useState(null)
   const [envoiEnCours, setEnvoiEnCours] = useState(false)
   const [roleDemoEnCours, setRoleDemoEnCours] = useState(null)
- 
+
   async function connecter(evenement) {
     evenement.preventDefault()
     setErreur(null)
@@ -23,7 +24,7 @@ export default function Accueil({ onCreerCompte, afficherToast }) {
     setEnvoiEnCours(false)
     if (message) setErreur(message)
   }
- 
+
   async function connecterDemo(compte) {
     setErreur(null)
     setRoleDemoEnCours(compte.role)
@@ -33,9 +34,9 @@ export default function Accueil({ onCreerCompte, afficherToast }) {
       afficherToast(`Compte ${compte.libelle} indisponible : ${message}`, 'erreur')
     }
   }
- 
+
   const occupe = envoiEnCours || roleDemoEnCours !== null
- 
+
   return (
     <main className="page">
       <section className="hero">
@@ -47,11 +48,13 @@ export default function Accueil({ onCreerCompte, afficherToast }) {
         <h1 className="hero-accroche">Le bon repas, pour la bonne personne, en bonne quantité.</h1>
         <p className="hero-sous-titre">Réserve ton plat la veille : la cuisine prépare juste ce qu’il faut.</p>
       </section>
- 
+
       <ul className="atouts liste">
         {ATOUTS.map((atout) => (
           <li key={atout.titre} className="atout">
-            <span className="atout-emoji" aria-hidden="true">{atout.emoji}</span>
+            <span className="atout-icone">
+              <Icone nom={atout.icone} />
+            </span>
             <div>
               <p className="atout-titre">{atout.titre}</p>
               <p className="atout-texte">{atout.texte}</p>
@@ -59,13 +62,13 @@ export default function Accueil({ onCreerCompte, afficherToast }) {
           </li>
         ))}
       </ul>
- 
+
       <form className="carte pile" onSubmit={connecter} noValidate>
         <div>
           <h2 className="titre-accueil">Content de te revoir</h2>
           <p className="aide">Cantine Vatel · Vallon</p>
         </div>
- 
+
         <div className="champ">
           <label htmlFor="email-connexion">Ton adresse e-mail</label>
           <input
@@ -79,7 +82,7 @@ export default function Accueil({ onCreerCompte, afficherToast }) {
             required
           />
         </div>
- 
+
         <div className="champ">
           <label htmlFor="mdp-connexion">Ton mot de passe</label>
           <input
@@ -91,14 +94,14 @@ export default function Accueil({ onCreerCompte, afficherToast }) {
             required
           />
         </div>
- 
+
         {erreur && (
           <div className="alerte alerte-erreur" role="alert">
             <strong>Connexion impossible</strong>
             <p>{erreur}</p>
           </div>
         )}
- 
+
         <button type="submit" className="btn" disabled={occupe || !email || !motDePasse}>
           {envoiEnCours ? 'Connexion…' : 'Se connecter'}
         </button>
@@ -106,7 +109,7 @@ export default function Accueil({ onCreerCompte, afficherToast }) {
           Créer un compte
         </button>
       </form>
- 
+
       <section className="carte pile">
         <div>
           <span className="surtitre">Essayer en un clic</span>
@@ -128,9 +131,8 @@ export default function Accueil({ onCreerCompte, afficherToast }) {
           ))}
         </div>
       </section>
- 
+
       <footer className="pied-page">CantiJuste · Hackathon Vatel 2026</footer>
     </main>
   )
 }
- 

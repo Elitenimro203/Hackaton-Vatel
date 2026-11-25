@@ -1,13 +1,20 @@
 // Appels Supabase des réservations de l'élève : lecture (RLS), réservation par reserver() (plat du jour ou de remplacement, créneau de passage) et annulation.
 import { supabase } from './supabaseClient'
 import { traduireErreur } from './authentification'
-import { ajouterJours } from './formatage'
+import { ajouterJours, dateDuJour } from './formatage'
 
 // Statut technique d'une réservation → mot français et couleur du badge
 export const STATUTS_RESERVATION = {
   reservee: { libelle: 'Réservé', classe: 'badge badge-attention' },
   servie: { libelle: 'Servi', classe: 'badge badge-succes' },
   annulee: { libelle: 'Annulé', classe: 'badge badge-neutre' },
+  non_retire: { libelle: 'Pas retiré', classe: 'badge badge-neutre' },
+}
+
+// Badge d'une réservation : un repas réservé dont le jour est passé n'a pas été retiré au comptoir
+export function statutAffiche(reservation) {
+  const jourPasse = reservation.menus?.jour < dateDuJour()
+  return STATUTS_RESERVATION[reservation.statut === 'reservee' && jourPasse ? 'non_retire' : reservation.statut]
 }
 
 // Réservations actives (réservées ou servies) de l'élève pour ces menus
@@ -41,6 +48,13 @@ export async function chargerHistoriqueReservations(idEleve) {
     .order('cree_le', { ascending: false })
     .limit(30)
   return { reservations: (data || []).map(platReserve), erreur: error ? traduireErreur(error) : null }
+}
+
+// Le repas réservé aujourd'hui (pour la carte cantine) : { plat, code, creneau } ou null
+export async function chargerTicketDuJour(idEleve) {
+  const { reservations } = await chargerHistoriqueReservations(idEleve)
+  const ticket = reservations.find((reservation) => reservation.statut === 'reservee' && reservation.menus.jour === dateDuJour())
+  return ticket ? { plat: ticket.menus.plat, code: ticket.code_retrait, creneau: ticket.creneau } : null
 }
 
 // Repas d'un enfant lié (la RLS ne montre que ses enfants au parent), du jour le plus récent au plus ancien

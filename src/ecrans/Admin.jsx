@@ -1,6 +1,7 @@
-// Espace admin : onglets Pilotage (tableau de bord et crédit des comptes), Commandes du jour (comptoir), Menus, File d'attente, Stocks, Insights (barre latérale sur PC, onglets en bas sur téléphone).
+// Espace admin : onglets Pilotage (tableau de bord et crédit des comptes), Service (commandes du jour au comptoir), Menus, File d'attente, Stocks, Insights (barre latérale sur PC, onglets en bas sur téléphone).
 import { useState } from 'react'
 import { seDeconnecter } from '../lib/authentification'
+import { dateDuJour, formaterDateAvecAnnee } from '../lib/formatage'
 import BarreOnglets from '../composants/BarreOnglets'
 import AdminMenus from './AdminMenus'
 import AdminCommandes from './AdminCommandes'
@@ -8,15 +9,15 @@ import AdminPilotage from './AdminPilotage'
 import FileAttente from './admin/FileAttente'
 import Stocks from './admin/Stocks'
 import Insights from './admin/Insights'
-import '../admin.css'
+import Icone from '../composants/Icone'
 
 const ONGLETS = [
-  { id: 'pilotage', icone: '📊', libelle: 'Pilotage' },
-  { id: 'commandes', icone: '🍳', libelle: 'Commandes' },
-  { id: 'menus', icone: '📅', libelle: 'Menus' },
-  { id: 'file', icone: '⏱️', libelle: 'File' },
-  { id: 'stocks', icone: '📦', libelle: 'Stocks' },
-  { id: 'insights', icone: '💬', libelle: 'Insights' },
+  { id: 'pilotage', icone: 'pilotage', libelle: 'Pilotage' },
+  { id: 'commandes', icone: 'service', libelle: 'Service' },
+  { id: 'menus', icone: 'calendrier', libelle: 'Menus' },
+  { id: 'file', icone: 'chronometre', libelle: 'File' },
+  { id: 'stocks', icone: 'stocks', libelle: 'Stocks' },
+  { id: 'insights', icone: 'avis', libelle: 'Insights' },
 ]
 
 export default function Admin({ profil, afficherToast }) {
@@ -53,7 +54,8 @@ export default function Admin({ profil, afficherToast }) {
               aria-current={onglet.id === ongletActif ? 'page' : undefined}
               onClick={() => choisirOnglet(onglet.id)}
             >
-              <span aria-hidden="true">{onglet.icone}</span> {onglet.libelle}
+              <Icone nom={onglet.icone} className="lien-lateral-icone" />
+              {onglet.libelle}
             </button>
           ))}
         </nav>
@@ -68,6 +70,11 @@ export default function Admin({ profil, afficherToast }) {
       </aside>
 
       <div className="admin-contenu">
+        <div className="admin-entete">
+          <span className="surtitre">Cantine Vatel · Vallon</span>
+          <span className="mention">{formaterDateAvecAnnee(dateDuJour())}</span>
+        </div>
+
         {ongletActif === 'pilotage' && (
           <AdminPilotage
             profil={profil}

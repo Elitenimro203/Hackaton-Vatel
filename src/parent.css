@@ -13,8 +13,10 @@
   animation: apparaitre 0.4s ease both;
 }
 
-.bandeau-solde-bas-emoji {
-  font-size: 22px;
+.bandeau-solde-bas-icone {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
 }
 
 .bandeau-solde-bas-texte {
@@ -60,44 +62,13 @@
   outline-offset: 3px;
 }
 
-/* ---------- Accroche de l'espace parent (maquette 05) ---------- */
-.accroche-parent {
-  font-family: var(--police-plat);
-  font-style: italic;
-  font-weight: 800;
-  font-variation-settings: 'SOFT' 100;
-  font-size: clamp(34px, 10.5vw, 48px);
-  line-height: 1.05;
-}
-
-/* ---------- Carte d'un enfant : porte-monnaie en gros ---------- */
+/* ---------- Carte d'un enfant (sa carte cantine est dans index.css, section 34) ---------- */
 .carte-enfant {
   border: 1px solid var(--trait);
 }
 
 .carte-enfant-alerte {
   border-color: var(--safran);
-}
-
-.porte-monnaie {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 20px;
-  border-radius: 18px;
-  background: linear-gradient(135deg, var(--carte-2), var(--carte));
-}
-
-.porte-monnaie-montant {
-  font-size: clamp(44px, 14vw, 60px);
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  white-space: nowrap;
-}
-
-.porte-monnaie-bas .porte-monnaie-montant {
-  color: var(--safran);
 }
 
 .btn-delier {
@@ -127,12 +98,12 @@
   object-fit: cover;
 }
 
-.vignette-plat-emoji {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.vignette-plat-icone {
+  display: block;
+  width: 26px;
   height: 100%;
-  font-size: 26px;
+  margin: 0 auto;
+  color: var(--creme-3);
 }
 
 .repas-enfant-texte {

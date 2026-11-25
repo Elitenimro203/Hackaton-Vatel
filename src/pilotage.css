@@ -344,3 +344,21 @@
     grid-template-columns: 120px minmax(0, 1fr);
   }
 }
+
+/* ---------- Chiffres fluides : la taille suit la largeur de la carte, rien n'est coupé ---------- */
+.pilotage-vedette,
+.pilotage-chiffre {
+  container-type: inline-size;
+}
+
+.pilotage-vedette .chiffre-vedette {
+  font-size: clamp(36px, 15cqi, 88px);
+}
+
+.pilotage-chiffre .chiffre-nombre {
+  font-size: clamp(26px, 19cqi, 56px);
+}
+
+.pilotage-vedette .attente-comparaison {
+  font-size: clamp(28px, 9cqi, 52px);
+}

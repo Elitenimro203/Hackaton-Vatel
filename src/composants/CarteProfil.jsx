@@ -1,6 +1,7 @@
 // Carte du compte connecté (nom, e-mail, rôle) avec le bouton de déconnexion.
 import { useState } from 'react'
 import { seDeconnecter } from '../lib/authentification'
+import Icone from './Icone'
 
 const LIBELLES_PROFIL = {
   eleve: 'Élève',
@@ -30,7 +31,10 @@ export default function CarteProfil({ profil, afficherToast }) {
       </div>
       <p className="mention">{profil.email}</p>
       <button type="button" className="btn btn-danger" onClick={deconnecter} disabled={envoiEnCours}>
-        {envoiEnCours ? 'Déconnexion…' : '🚪 Se déconnecter'}
+        <span className="avec-icone">
+          <Icone nom="deconnexion" />
+          {envoiEnCours ? 'Déconnexion…' : 'Se déconnecter'}
+        </span>
       </button>
     </section>
   )

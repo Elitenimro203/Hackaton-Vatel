@@ -1,20 +1,27 @@
-// Carte rouge « Allergies à surveiller » des Commandes du jour : élèves allergiques du service et plats à risque.
+// Carte rouge « À surveiller » des Commandes du jour : convives avec allergies, régime ou autre allergie, et plats à risque.
 import { trouverAllergene } from '../lib/allergenes'
+import { trouverRegime } from '../lib/regimes'
 import { formaterCodeRetrait, formaterDate } from '../lib/formatage'
+import Icone from './Icone'
 import '../allergies.css'
 
-export default function CarteAllergiesDuJour({ lignes, jour, estAujourdhui }) {
-  const nombreARisque = lignes.filter((ligne) => ligne.risques.length > 0).length
+function estARisque(ligne) {
+  return ligne.risques.length > 0 || Boolean(ligne.conflit_regime)
+}
 
+function phraseResume(lignes) {
+  if (lignes.length === 0) return 'Aucun convive avec allergie ou régime n’a réservé pour ce service.'
+  const nombreARisque = lignes.filter(estARisque).length
+  const pluriel = lignes.length > 1 ? 's' : ''
+  return `${lignes.length} convive${pluriel} à surveiller, dont ${nombreARisque} avec un plat à risque.`
+}
+
+export default function CarteAllergiesDuJour({ lignes, jour, estAujourdhui }) {
   return (
     <section className="carte-alerte pile">
       <div>
-        <h2>⚠ Allergies à surveiller {estAujourdhui ? 'aujourd’hui' : formaterDate(jour)}</h2>
-        <p className="aide">
-          {lignes.length === 0
-            ? 'Aucun élève allergique n’a réservé pour ce service.'
-            : `${lignes.length} élève${lignes.length > 1 ? 's' : ''} allergique${lignes.length > 1 ? 's' : ''}, dont ${nombreARisque} avec un plat à risque.`}
-        </p>
+        <h2><Icone nom="alerte" /> À surveiller {estAujourdhui ? 'aujourd’hui' : formaterDate(jour)}</h2>
+        <p className="aide">{phraseResume(lignes)}</p>
       </div>
 
       {lignes.length > 0 && (
@@ -28,16 +35,27 @@ export default function CarteAllergiesDuJour({ lignes, jour, estAujourdhui }) {
                   {ligne.alternative ? ' (remplacement)' : ''} · {formaterCodeRetrait(ligne.code_retrait)}
                 </p>
                 {ligne.risques.length > 0 && (
-                  <span className="badge badge-erreur">⚠ Plat à risque, réservé quand même</span>
+                  <span className="badge badge-erreur"><Icone nom="alerte" />Plat à risque, réservé quand même</span>
+                )}
+                {ligne.risques.length === 0 && ligne.conflit_regime && (
+                  <span className="badge badge-erreur"><Icone nom="alerte" />{ligne.conflit_regime}</span>
+                )}
+                {ligne.autre_allergie && (
+                  <p className="mention texte-alerte">Autre allergie : {ligne.autre_allergie}</p>
                 )}
               </div>
               <div className="allergenes allergenes-droite">
+                {ligne.regime !== 'aucun' && (
+                  <span className={ligne.conflit_regime ? 'pastille pastille-danger' : 'allergene'}>
+                    <Icone nom={trouverRegime(ligne.regime).icone} />{trouverRegime(ligne.regime).libelle}
+                  </span>
+                )}
                 {ligne.allergies.map((valeur) => {
                   const allergene = trouverAllergene(valeur)
-                  const estARisque = ligne.risques.includes(valeur)
+                  const allergeneARisque = ligne.risques.includes(valeur)
                   return (
-                    <span key={valeur} className={estARisque ? 'pastille pastille-danger' : 'allergene'}>
-                      {allergene.emoji} {allergene.libelle}
+                    <span key={valeur} className={allergeneARisque ? 'pastille pastille-danger' : 'allergene'}>
+                      <Icone nom={allergene.icone} />{allergene.libelle}
                     </span>
                   )
                 })}
@@ -47,7 +65,7 @@ export default function CarteAllergiesDuJour({ lignes, jour, estAujourdhui }) {
         </ul>
       )}
 
-      <p className="mention liste-allergies-pied">Vérifie le code et les allergies avant de servir.</p>
+      <p className="mention liste-allergies-pied">Vérifie le code, les allergies et le régime avant de servir.</p>
     </section>
   )
 }
