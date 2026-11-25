@@ -1,10 +1,12 @@
-// Onglet Comptoir du rôle cantine : on tape le code, la carte de remise montre le convive et ses allergies, on remet, « Bon appétit ».
-import { useCallback, useEffect, useState } from 'react'
+// Onglet Comptoir du rôle cantine : on scanne le QR du ticket (ou on tape le code), la carte de remise montre le convive et ses allergies, on remet, « Bon appétit ».
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { lireTicket } from '../lib/comptoir'
+import { scanDisponible } from '../lib/qr'
 import { chargerCommandesDuJour, servirRepas } from '../lib/service'
 import { dateDuJour, formaterCodeRetrait, formaterDate, formaterHeure, HORAIRE_SERVICE } from '../lib/formatage'
 import { useTempsReel } from '../lib/useTempsReel'
 import ClavierCode from '../composants/ClavierCode'
+import ScannerQr from '../composants/ScannerQr'
 import CarteRemise from '../composants/CarteRemise'
 import RemiseConfirmee from '../composants/RemiseConfirmee'
 import Icone from '../composants/Icone'
@@ -26,6 +28,8 @@ export default function Comptoir({ afficherToast }) {
   const [servi, setServi] = useState(null)
   const [enCours, setEnCours] = useState(false)
   const [compteurs, setCompteurs] = useState({ servis: 0, total: 0 })
+  const derniereLecture = useRef({ code: null, moment: 0 })
+  const [mode, setMode] = useState(() => (scanDisponible() ? 'scanner' : 'clavier'))
 
   const chargerCompteurs = useCallback(async () => {
     const { commandes } = await chargerCommandesDuJour(dateDuJour())
@@ -38,7 +42,7 @@ export default function Comptoir({ afficherToast }) {
 
   useTempsReel('reservations', chargerCompteurs)
 
-  async function lire(codeComplet) {
+  const lire = useCallback(async (codeComplet) => {
     setRefus(null)
     setEnCours(true)
     const resultat = await lireTicket(codeComplet)
@@ -54,7 +58,16 @@ export default function Comptoir({ afficherToast }) {
       setRefus(messageRefus(resultat.ticket))
       setCode('')
     }
-  }
+  }, [afficherToast])
+
+  // Caméra refusée ou absente : on bascule sur le clavier
+  const scanImpossible = useCallback(
+    (message) => {
+      setMode('clavier')
+      afficherToast(message, 'erreur')
+    },
+    [afficherToast],
+  )
 
   async function remettre() {
     setEnCours(true)
@@ -92,8 +105,25 @@ export default function Comptoir({ afficherToast }) {
       </div>
       <div>
         <h1 className="admin-titre">Ton code, s’il te plaît</h1>
-        <p className="aide">Tape les 4 chiffres du ticket : la carte du convive s’ouvre toute seule.</p>
+        <p className="aide">
+          {mode === 'scanner'
+            ? 'Scanne le QR du ticket : la carte du convive s’ouvre toute seule.'
+            : 'Tape les 4 chiffres du ticket : la carte du convive s’ouvre toute seule.'}
+        </p>
       </div>
+
+      {scanDisponible() && (
+        <div className="segment" role="group" aria-label="Façon de lire le ticket">
+          <button type="button" className={mode === 'scanner' ? 'segment-option actif' : 'segment-option'} aria-pressed={mode === 'scanner'} onClick={() => setMode('scanner')}>
+            <Icone nom="qr" />
+            Scanner
+          </button>
+          <button type="button" className={mode === 'clavier' ? 'segment-option actif' : 'segment-option'} aria-pressed={mode === 'clavier'} onClick={() => setMode('clavier')}>
+            <Icone nom="clavier" />
+            Taper le code
+          </button>
+        </div>
+      )}
 
       {refus && (
         <div className="alerte alerte-erreur" role="alert">
@@ -105,7 +135,11 @@ export default function Comptoir({ afficherToast }) {
         </div>
       )}
 
-      <ClavierCode code={code} onChange={setCode} onComplet={lire} desactive={enCours} erreur={Boolean(refus)} />
+      {mode === 'scanner' ? (
+        <ScannerQr actif={!enCours} derniereLecture={derniereLecture} onCode={lire} onImpossible={scanImpossible} />
+      ) : (
+        <ClavierCode code={code} onChange={setCode} onComplet={lire} desactive={enCours} erreur={Boolean(refus)} />
+      )}
 
       <div className="grille-chiffres">
         <div className="chiffre">

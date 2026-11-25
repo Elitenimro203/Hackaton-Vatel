@@ -4630,3 +4630,173 @@ tbody tr:hover {
 .remise-risques {
   z-index: 1;
 }
+
+/* =========================================================
+   43. QR CODE (ticket de l'élève, scanner du comptoir)
+   .qr-cadre          fond blanc arrondi autour du QR (sur le ticket crème)
+   .qr                le QR en SVG (modules couleur braise)
+   .ticket-secours    phrase sous le QR : le code à 4 chiffres reste le secours
+   .segment           choix « Scanner | Taper le code » (2 boutons)
+   .segment-option    un bouton du choix (+ .actif)
+   .scanner           cadre de la caméra (+ .scanner-reconnu : voile vert)
+   .scanner-video     image de la caméra
+   .scanner-consigne  « Vise le QR du ticket » en haut du cadre
+   .viseur            4 coins safran (verts quand c'est reconnu) et ligne qui balaie
+   .scanner-badge     « CJ · 0812 » reconnu, en bas du cadre
+   ========================================================= */
+.qr-cadre {
+  width: min(196px, 62%);
+  margin: 4px auto 0;
+  padding: 10px;
+  border-radius: 18px;
+  background: var(--creme);
+  box-shadow: 0 0 0 1px var(--ticket-trait);
+  animation: apparaitre 0.4s ease both;
+}
+
+.qr {
+  display: block;
+  width: 100%;
+  height: auto;
+  fill: var(--ticket-texte);
+}
+
+.ticket-secours {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.segment {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 18px;
+  background: var(--carte);
+}
+
+.segment-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: var(--creme-3);
+  font-family: var(--police);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.segment-option.actif {
+  background: var(--carte-2);
+  color: var(--creme);
+}
+
+.segment-option:focus-visible {
+  outline: 2px solid var(--safran);
+  outline-offset: 2px;
+}
+
+.scanner {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--rayon-grand);
+  background: var(--carte);
+}
+
+.scanner-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scanner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--feuille-fond);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.scanner-reconnu::after {
+  opacity: 1;
+}
+
+.scanner-consigne {
+  position: absolute;
+  top: 14px;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  color: var(--creme);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 2px 8px var(--ombre);
+}
+
+.viseur {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  width: 62%;
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+}
+
+.viseur i {
+  position: absolute;
+  width: 20%;
+  height: 20%;
+  border: 4px solid var(--safran);
+  transition: border-color 0.3s;
+}
+
+.viseur i:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; border-radius: 14px 0 0 0; }
+.viseur i:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; border-radius: 0 14px 0 0; }
+.viseur i:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; border-radius: 0 0 0 14px; }
+.viseur i:nth-child(4) { right: 0; bottom: 0; border-left: 0; border-top: 0; border-radius: 0 0 14px 0; }
+
+.scanner-reconnu .viseur i {
+  border-color: var(--feuille);
+}
+
+.viseur-ligne {
+  position: absolute;
+  right: 8%;
+  left: 8%;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--safran);
+  box-shadow: 0 0 18px var(--safran);
+  animation: balayer 2s ease-in-out infinite alternate;
+}
+
+@keyframes balayer {
+  from { top: 8%; }
+  to { top: 92%; }
+}
+
+.scanner-badge {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  z-index: 1;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
