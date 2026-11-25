@@ -11,7 +11,7 @@ const ATOUTS = [
   { icone: 'ticket', texte: 'Code à 4 chiffres' },
 ]
 
-const ICONES_DEMO = { eleve: 'profil', parent: 'enfants', admin: 'pilotage' }
+const ICONES_DEMO = { eleve: 'profil', parent: 'enfants', cantine: 'service', admin: 'pilotage' }
 
 export default function Accueil({ onCreerCompte, afficherToast }) {
   const [vue, setVue] = useState('connexion')

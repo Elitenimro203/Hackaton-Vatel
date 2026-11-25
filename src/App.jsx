@@ -11,8 +11,9 @@ import NouveauMotDePasse from './ecrans/NouveauMotDePasse'
 import Eleve from './ecrans/Eleve'
 import Parent from './ecrans/Parent'
 import Admin from './ecrans/Admin'
+import Cantine from './ecrans/Cantine'
 
-const ECRANS_PAR_ROLE = { eleve: Eleve, parent: Parent, admin: Admin }
+const ECRANS_PAR_ROLE = { eleve: Eleve, parent: Parent, admin: Admin, cantine: Cantine }
 
 function EcranChargement() {
   return (

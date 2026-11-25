@@ -12,7 +12,8 @@ const STATUTS = {
 
 const NOMBRE_VISIBLE = 6
 
-export default function ListeConvives({ commandes, peutServir, codeEnCours, onServir, onVoirMenus }) {
+// titre et aide remplacent les textes par défaut ; sans onVoirMenus, l'état vide n'a pas de bouton (rôle cantine)
+export default function ListeConvives({ commandes, peutServir, codeEnCours, onServir, onVoirMenus, titre, aide }) {
   const [toutVoir, setToutVoir] = useState(false)
   const restant = commandes.filter((commande) => commande.statut === 'reservee').length
   // Les assiettes encore à servir passent devant celles déjà parties
@@ -23,11 +24,12 @@ export default function ListeConvives({ commandes, peutServir, codeEnCours, onSe
   return (
     <section className="carte liste-convives">
       <div>
-        <h2 className="titre-bloc">Les convives arrivent bientôt</h2>
+        <h2 className="titre-bloc">{titre || 'Les convives arrivent bientôt'}</h2>
         <p className="aide">
-          {peutServir
-            ? `${restant} assiette${restant > 1 ? 's' : ''} encore à servir. Touche « Servi » quand l’assiette part.`
-            : 'Le bouton « Servi » apparaît le jour du service.'}
+          {aide ||
+            (peutServir
+              ? `${restant} assiette${restant > 1 ? 's' : ''} encore à servir. Touche « Servi » quand l’assiette part.`
+              : 'Le bouton « Servi » apparaît le jour du service.')}
         </p>
       </div>
 
@@ -36,7 +38,7 @@ export default function ListeConvives({ commandes, peutServir, codeEnCours, onSe
           icone="a-table"
           titre="Aucune réservation pour ce service"
           texte="Les élèves réservent jusqu’à la veille 18 h. Vérifie que le menu est en ligne."
-          libelleBouton="Voir les menus"
+          libelleBouton={onVoirMenus ? 'Voir les menus' : undefined}
           onAction={onVoirMenus}
         />
       ) : (

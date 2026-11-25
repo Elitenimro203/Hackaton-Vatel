@@ -7,6 +7,7 @@ export const MOT_DE_PASSE_DEMO = 'Demo2026!'
 export const COMPTES_DEMO = [
   { role: 'eleve', libelle: 'Élève', email: 'eleve.demo@cantijuste.ci' },
   { role: 'parent', libelle: 'Parent', email: 'parent.demo@cantijuste.ci' },
+  { role: 'cantine', libelle: 'Comptoir', email: 'cantine.demo@cantijuste.ci' },
   { role: 'admin', libelle: 'Admin', email: 'admin.demo@cantijuste.ci' },
 ]
 

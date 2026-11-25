@@ -17,9 +17,9 @@ export function initiales(nom) {
   return mots.slice(0, 2).map((mot) => mot.charAt(0).toUpperCase()).join('') || '?'
 }
 
-const LIBELLES_PROFIL = { eleve: 'Élève', employe: 'Employé', parent: 'Parent', admin: 'Admin' }
+const LIBELLES_PROFIL = { eleve: 'Élève', employe: 'Employé', parent: 'Parent', admin: 'Admin', cantine: 'Cantine' }
 
-// Libellé du profil affiché sous le nom : Élève, Employé, Parent ou Admin
+// Libellé du profil affiché sous le nom : Élève, Employé, Parent, Cantine ou Admin
 export function libelleDuProfil(profil) {
   return LIBELLES_PROFIL[profil.role === 'eleve' ? profil.type_usager : profil.role] || ''
 }

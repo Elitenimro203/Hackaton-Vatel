@@ -348,3 +348,7 @@ grant  execute on function public.commandes_du_jour(date)       to authenticated
 grant  execute on function public.allergies_du_jour(date)       to authenticated;
 grant  execute on function public.lire_ticket(text)             to authenticated;
 grant  execute on function public.signaler_absence(bigint)      to authenticated;
+
+-- 6. DÉMO : le compte du comptoir. Crée-le d'abord dans l'appli (Créer mon compte : Mariam Traoré,
+-- cantine.demo@cantijuste.ci, mot de passe Demo2026!), puis relance ce script : il lui donne le rôle cantine.
+update public.profiles set role = 'cantine' where email = 'cantine.demo@cantijuste.ci';

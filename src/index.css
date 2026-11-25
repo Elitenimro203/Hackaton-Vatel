@@ -4427,3 +4427,206 @@ tbody tr:hover {
   outline: 2px solid var(--safran);
   outline-offset: 2px;
 }
+
+.demo-rapide .demo-grille {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* =========================================================
+   42. COMPTOIR (rôle cantine : clavier du code, carte de remise, « Bon appétit »)
+   .cases-code         4 cases du code « CJ · 0 8 1 _ » (+ .cases-code-erreur : secousse rouge)
+   .case-code          une case (+ .actif : bord safran, c'est la prochaine)
+   .pave-chiffres      pavé de 12 touches (3 colonnes)
+   .touche             une touche du pavé (+ .touche-texte : Effacer, retour arrière)
+   .remise-convive     initiales + nom + profil en tête de la carte de remise
+   .remise-avatar      pastille ronde des initiales
+   .remise-risques     badges d'allergènes posés sur la photo
+   .remise-confirmee   écran « Bon appétit » centré
+   .remise-coche       grand rond vert avec la coche qui se dessine
+   .remise-resume      liste « Plat remis · Repas remis aujourd'hui »
+   ========================================================= */
+.cases-code {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  border-radius: var(--rayon-grand);
+  background: var(--carte);
+}
+
+.cases-code-erreur {
+  animation: secouer 0.5s ease both;
+}
+
+.cases-code-prefixe {
+  flex: none;
+  color: var(--creme-3);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.case-code {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-width: 0;
+  height: 64px;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  background: var(--carte-2);
+  font-size: 32px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.case-code.actif {
+  border-color: var(--safran);
+}
+
+.cases-code-erreur .case-code {
+  border-color: var(--alerte-bord);
+}
+
+.pave-chiffres {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.touche {
+  display: grid;
+  place-items: center;
+  min-height: 60px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--carte);
+  color: var(--creme);
+  font-family: var(--police);
+  font-size: 26px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s var(--rebond), background 0.2s;
+}
+
+.touche:active {
+  transform: scale(0.94);
+  background: var(--carte-2);
+}
+
+.touche:focus-visible {
+  outline: 2px solid var(--safran);
+  outline-offset: 2px;
+}
+
+.touche:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.touche-texte {
+  background: none;
+  color: var(--creme-2);
+  font-size: 16px;
+}
+
+.touche-texte .icone {
+  width: 26px;
+  height: 26px;
+}
+
+.remise-convive {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.remise-convive > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.remise-avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--carte-2);
+  color: var(--safran);
+  font-weight: 800;
+}
+
+.remise-nom {
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.remise-risques {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+}
+
+.remise-plat {
+  font-size: clamp(26px, 8vw, 34px);
+  line-height: 1.1;
+}
+
+.remise-paye {
+  padding-top: 12px;
+  border-top: 1px solid var(--trait);
+}
+
+.remise-confirmee {
+  align-items: center;
+  padding-top: 24px;
+  text-align: center;
+}
+
+.remise-coche {
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  background: var(--feuille);
+  box-shadow: 0 0 0 16px var(--feuille-fond);
+  color: var(--braise);
+  animation: apparaitre 0.4s var(--rebond) both;
+}
+
+.remise-coche .coche {
+  width: 56px;
+  height: 56px;
+}
+
+.remise-resume {
+  align-self: stretch;
+  margin: 0;
+  text-align: left;
+}
+
+.remise-resume > div {
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.remise-resume > div + div {
+  border-top: 1px solid var(--trait);
+}
+
+.remise-resume dd {
+  margin: 0;
+  text-align: right;
+}
+
+.remise-confirmee .btn {
+  align-self: stretch;
+}
+
+.remise-risques {
+  z-index: 1;
+}

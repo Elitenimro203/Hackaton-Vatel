@@ -176,6 +176,7 @@ export default function AdminCommandes({ afficherToast, onVoirMenus }) {
             <ListeConvives
               commandes={commandes}
               peutServir={estAujourdhui}
+              titre={phase === 'apres' ? 'Les convives du jour' : undefined}
               codeEnCours={codeEnCours}
               onServir={(code) => servir(code, true)}
               onVoirMenus={onVoirMenus}
