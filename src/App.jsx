@@ -1,12 +1,13 @@
 // Racine de l'appli : écoute la session, charge le profil et affiche l'écran du rôle connecté.
 import { useCallback, useEffect, useState } from 'react'
-import { chargerProfil, ecouterSession, seDeconnecter } from './lib/authentification'
+import { chargerProfil, ecouterRecuperation, ecouterSession, ouvertDepuisLienRecuperation, seDeconnecter } from './lib/authentification'
 import { useTempsReel } from './lib/useTempsReel'
 import { useToast } from './composants/useToast'
 import EnTete from './composants/EnTete'
 import BandeauHorsLigne from './composants/BandeauHorsLigne'
 import Accueil from './ecrans/Accueil'
 import Inscription from './ecrans/Inscription'
+import NouveauMotDePasse from './ecrans/NouveauMotDePasse'
 import Eleve from './ecrans/Eleve'
 import Parent from './ecrans/Parent'
 import Admin from './ecrans/Admin'
@@ -31,10 +32,12 @@ export default function App() {
   const [profil, setProfil] = useState(null)
   const [erreurProfil, setErreurProfil] = useState(null)
   const [afficherInscription, setAfficherInscription] = useState(false)
+  const [recuperationMotDePasse, setRecuperationMotDePasse] = useState(ouvertDepuisLienRecuperation)
 
   const idUtilisateur = session?.user?.id ?? null
 
   useEffect(() => ecouterSession(setSession), [])
+  useEffect(() => ecouterRecuperation(() => setRecuperationMotDePasse(true)), [])
 
   const rechargerProfil = useCallback(async () => {
     if (!idUtilisateur) return
@@ -63,6 +66,16 @@ export default function App() {
         ) : (
           <Accueil onCreerCompte={() => setAfficherInscription(true)} afficherToast={afficherToast} />
         )}
+        {toast}
+      </>
+    )
+  }
+
+  // Arrivé par le lien « mot de passe oublié » : on choisit d'abord un nouveau mot de passe
+  if (recuperationMotDePasse) {
+    return (
+      <>
+        <NouveauMotDePasse afficherToast={afficherToast} onTermine={() => setRecuperationMotDePasse(false)} />
         {toast}
       </>
     )

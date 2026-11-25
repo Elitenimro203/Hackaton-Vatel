@@ -4147,3 +4147,241 @@ tbody tr:hover {
   color: var(--creme-3);
 }
 
+
+/* =========================================================
+   40. CONNEXION RELOOKÉE (carte posée sur la photo, mot de passe oublié)
+   .hero-connexion       photo d'accueil plus courte, la carte de connexion la chevauche
+   .carte-connexion      carte de connexion relevée, visible sans faire défiler
+   .carte-connexion-seule  même carte sans photo au-dessus (nouveau mot de passe)
+   .champ-icone          enveloppe d'un champ avec icône à gauche (mail, cadenas)
+   .avec-oeil            champ avec le bouton œil à droite
+   .btn-oeil             bouton œil (afficher / masquer le mot de passe)
+   .lien-oubli           lien safran « Mot de passe oublié ? », aligné à droite
+   .lien-retour          petit retour « ‹ Connexion » en haut d'une carte
+   .separateur-ou        ligne fine avec un texte au milieu
+   .envoi-reussi-icone   bulle safran avec une icône (e-mail envoyé, clé)
+   .texte-creme          texte en crème vive dans une phrase d'aide
+   .pile-serree          empile les enfants avec 8 px d'écart
+   .demo-rapide          bloc des comptes de démo sous la carte
+   .atouts-ligne         3 atouts courts côte à côte
+   .atout-mini           un atout : icône safran + texte court
+   ========================================================= */
+.hero-connexion {
+  min-height: 46vh;
+  min-height: 46svh;
+  padding-bottom: 76px;
+}
+
+.hero-connexion .hero-accroche {
+  max-width: 13em;
+  font-size: clamp(28px, 8.6vw, 38px);
+  animation: monter 0.7s ease-out both;
+}
+
+.page > .carte-connexion {
+  position: relative;
+  z-index: 1;
+  margin-top: -56px;
+}
+
+.carte-connexion {
+  padding: 24px 20px;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-grand);
+  background: var(--carte);
+  box-shadow: 0 24px 60px var(--ombre);
+  animation: entrer 0.5s ease-out 0.1s both;
+}
+
+.page > .carte-connexion-seule {
+  margin-top: 24px;
+}
+
+.champ-icone {
+  position: relative;
+}
+
+.champ-icone > .icone {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  width: 20px;
+  height: 20px;
+  color: var(--creme-3);
+  transform: translateY(-50%);
+  pointer-events: none;
+  transition: color 0.2s;
+}
+
+.champ-icone:focus-within > .icone {
+  color: var(--safran);
+}
+
+.champ .champ-icone input {
+  padding-left: 48px;
+}
+
+.champ .champ-icone input.avec-oeil {
+  padding-right: 56px;
+}
+
+.btn-oeil {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--creme-3);
+  transform: translateY(-50%);
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+
+.btn-oeil:hover,
+.btn-oeil[aria-pressed='true'] {
+  color: var(--creme);
+  background: var(--carte-2);
+}
+
+.btn-oeil:focus-visible,
+.lien-oubli:focus-visible,
+.lien-retour:focus-visible {
+  outline: 2px solid var(--safran);
+  outline-offset: 2px;
+}
+
+.btn-oeil .icone {
+  width: 20px;
+  height: 20px;
+}
+
+.lien-oubli {
+  align-self: flex-end;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--safran);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.lien-oubli:disabled {
+  opacity: 0.5;
+}
+
+.lien-retour {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 0 8px 0 0;
+  border: 0;
+  background: none;
+  color: var(--creme-2);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.separateur-ou {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--creme-3);
+  font-size: 14px;
+  text-align: center;
+}
+
+.separateur-ou::before,
+.separateur-ou::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--trait);
+}
+
+.envoi-reussi-icone {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: var(--safran-fond);
+  color: var(--safran);
+  animation: apparaitre 0.4s var(--rebond) both;
+}
+
+.envoi-reussi-icone .icone {
+  width: 28px;
+  height: 28px;
+}
+
+.texte-creme {
+  color: var(--creme);
+  overflow-wrap: anywhere;
+}
+
+.pile-serree {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.demo-rapide .espace-entre {
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.demo-rapide .btn-demo {
+  gap: 6px;
+  min-width: 0;
+}
+
+.demo-rapide .btn-demo .icone {
+  flex: none;
+}
+
+.atouts-ligne {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.atout-mini {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--creme-2);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.atout-mini .icone {
+  width: 22px;
+  height: 22px;
+  color: var(--safran);
+}
+
+.demo-rapide .btn-demo {
+  width: 100%;
+}
+
+.carte-connexion .titre-accueil + .aide {
+  margin-top: 6px;
+}
+
+.page > .atouts-ligne {
+  margin-top: 24px;
+}
