@@ -1,9 +1,9 @@
 // Rappels de réservation (calculs purs) : temps restant avant la veille 18 h et jour de service raté sans réservation.
 import { ajouterJours } from './formatage'
 
-// En dessous de 6 heures avant l'heure limite, le rappel passe en « urgent »
 const ESPACE = '\u00A0'
 
+// En dessous de 6 heures avant l'heure limite, le rappel passe en « urgent »
 export const MINUTES_RAPPEL_URGENT = 6 * 60
 
 // Même règle que la base : la veille du repas à 18 h, heure d'Abidjan (UTC+0)
