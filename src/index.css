@@ -3688,3 +3688,25 @@ tbody tr:hover {
   gap: 8px;
 }
 
+/* Formulaire du profil (suite) : tuile « Autre régime » sur toute la largeur, barre Enregistrer collée en bas du panneau */
+.choix-large {
+  grid-column: 1 / -1;
+}
+
+.barre-enregistrer {
+  position: sticky;
+  bottom: calc(-24px - env(safe-area-inset-bottom));
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 -20px calc(-24px - env(safe-area-inset-bottom));
+  padding: 14px 20px calc(16px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--trait);
+  background: var(--braise);
+}
+
+.barre-enregistrer .mention {
+  margin: 0;
+}
+

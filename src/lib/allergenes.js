@@ -33,7 +33,7 @@ export function reconnaitreAllergene(texte) {
 }
 
 export function trouverAllergene(valeur) {
-  return ALLERGENES.find((allergene) => allergene.valeur === valeur) || { valeur, icone: 'alerte', libelle: valeur, article: valeur }
+  return ALLERGENES.find((allergene) => allergene.valeur === valeur) || { valeur, icone: 'alerte', libelle: valeur, article: valeur.toLowerCase() }
 }
 
 // Allergènes du plat qui sont aussi dans les allergies du profil

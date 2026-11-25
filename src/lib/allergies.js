@@ -15,6 +15,14 @@ export async function modifierProfilAlimentaire(idEleve, { allergies, regime, au
   return data === 'ok' ? null : data
 }
 
+// Les allergies écrites à la main retrouvées dans le plat (nom et ingrédients de sa recette), vérifiées par la base.
+// Renvoie { allergies, erreur } ; si la fonction n'est pas encore installée, erreur est remplie et l'écran se rabat sur le nom du plat.
+export async function chargerAllergiesLibresDuPlat(autreAllergie, idMenu) {
+  if (!autreAllergie) return { allergies: [], erreur: null }
+  const { data, error } = await supabase.rpc('allergies_libres_du_plat', { p_autre: autreAllergie, p_menu_id: idMenu, p_alternative: false })
+  return { allergies: data || [], erreur: error ? traduireErreur(error) : null }
+}
+
 // Prochain jour de service (aujourd'hui s'il y a un menu, sinon le suivant), au format 'AAAA-MM-JJ'
 export async function chargerProchainJourDeService(aujourdhui) {
   const { data, error } = await supabase

@@ -1,7 +1,7 @@
-// Formulaire du profil alimentaire, rempli par l'élève ou son parent : allergies écrites librement (étiquettes à ajouter ou retirer),
-// raccourcis pour les 5 allergènes suivis, régime proposé ou écrit à la main, puis Enregistrer.
+// Formulaire du profil alimentaire, rempli par l'élève ou son parent : les 5 allergènes suivis en tuiles à toucher,
+// toute autre allergie écrite librement (avec propositions pendant la frappe), régime en tuiles ou écrit à la main, puis Enregistrer.
 import { useState } from 'react'
-import { ALLERGENES, reconnaitreAllergene, trouverAllergene } from '../lib/allergenes'
+import { ALLERGENES, reconnaitreAllergene } from '../lib/allergenes'
 import { LONGUEUR_MAX_REGIME, REGIMES, REGIME_AUTRE, listerAutresAllergies, regimeEstPersonnel } from '../lib/regimes'
 import { modifierProfilAlimentaire } from '../lib/allergies'
 import Icone from './Icone'
@@ -10,6 +10,13 @@ import '../allergies.css'
 const LONGUEUR_MAX_ALLERGIE = 30
 const LONGUEUR_MAX_AUTRES = 200
 const NOMBRE_MAX_AUTRES = 8
+const NOMBRE_PROPOSITIONS = 4
+
+// Allergies fréquentes hors des 5 suivies, proposées pendant la frappe
+const ALLERGIES_COURANTES = [
+  'Crevettes', 'Crustacés', 'Fruits de mer', 'Sésame', 'Soja', 'Fruits à coque', 'Noix de cajou', 'Kiwi',
+  'Ananas', 'Mangue', 'Fraise', 'Tomate', 'Piment', 'Moutarde', 'Céleri', 'Avocat', 'Banane', 'Gombo',
+]
 
 function memesListes(premiere, seconde) {
   return premiere.length === seconde.length && premiere.every((valeur) => seconde.includes(valeur))
@@ -40,7 +47,10 @@ export default function ProfilAlimentaire({ eleve, afficherToast, onEnregistre, 
   const [erreurRegime, setErreurRegime] = useState(null)
   const [envoiEnCours, setEnvoiEnCours] = useState(false)
   const prenom = eleve.nom.trim().split(' ')[0] || 'votre enfant'
-  const suggestions = ALLERGENES.filter((allergene) => !connus.includes(allergene.valeur))
+  const recherche = comparable(saisie)
+  const propositions = ALLERGIES_COURANTES.filter(
+    (allergie) => !autres.some((autre) => comparable(autre) === comparable(allergie)) && (!recherche || comparable(allergie).includes(recherche)),
+  ).slice(0, NOMBRE_PROPOSITIONS)
   const modifie =
     !memesListes(connus, connusEnregistres) ||
     autres.join(', ') !== autresEnregistrees.join(', ') ||
@@ -50,9 +60,13 @@ export default function ProfilAlimentaire({ eleve, afficherToast, onEnregistre, 
     setConnus((anciens) => (anciens.includes(valeur) ? anciens : [...anciens, valeur]))
   }
 
+  function basculerConnu(valeur) {
+    setConnus((anciens) => (anciens.includes(valeur) ? anciens.filter((autre) => autre !== valeur) : [...anciens, valeur]))
+  }
+
   // Ajoute ce qui est tapé : un des 5 allergènes suivis s'il est reconnu (« cacahuètes » → Arachide), sinon une allergie libre
-  function ajouterSaisie() {
-    const brut = saisie.trim().replace(/,/g, ' ').replace(/\s+/g, ' ')
+  function ajouterSaisie(texteChoisi = saisie) {
+    const brut = texteChoisi.trim().replace(/,/g, ' ').replace(/\s+/g, ' ')
     const texte = brut.charAt(0).toUpperCase() + brut.slice(1)
     if (!texte) return
     const connu = reconnaitreAllergene(texte)
@@ -104,34 +118,68 @@ export default function ProfilAlimentaire({ eleve, afficherToast, onEnregistre, 
     if (onFermer) onFermer()
   }
 
-  const rien = connus.length === 0 && autres.length === 0
+  const texteBouton = modifie ? 'Enregistrer' : 'Rien à enregistrer'
 
   return (
     <form className="pile formulaire-profil" onSubmit={enregistrer} noValidate>
       <fieldset className="pile groupe-profil" disabled={envoiEnCours}>
         <legend className="sous-titre">{pourParent ? 'Ses allergies' : 'Tes allergies'}</legend>
+        <p className="aide">Touche ce qui {pourParent ? 'le' : 'te'} concerne. La cantine vérifie ces 5 allergènes sur chaque plat.</p>
+        <div className="choix-grille">
+          {ALLERGENES.map((allergene) => {
+            const estChoisi = connus.includes(allergene.valeur)
+            return (
+              <label key={allergene.valeur} className="choix choix-allergie">
+                <input type="checkbox" checked={estChoisi} onChange={() => basculerConnu(allergene.valeur)} />
+                <span className="choix-allergie-nom">
+                  <Icone nom={allergene.icone} /> {allergene.libelle}
+                </span>
+                <span className="choix-etat">
+                  {estChoisi && <Icone nom="coche" />}
+                  {estChoisi ? 'Allergique' : 'Non'}
+                </span>
+              </label>
+            )
+          })}
+        </div>
 
-        {rien ? (
-          <p className="aide">Aucune allergie déclarée pour l’instant.</p>
-        ) : (
-          <ul className="etiquettes" aria-label="Allergies déclarées">
-            {connus.map((valeur) => {
-              const allergene = trouverAllergene(valeur)
-              return (
-                <li key={valeur} className="etiquette">
-                  <Icone nom={allergene.icone} />
-                  {allergene.libelle}
-                  <button
-                    type="button"
-                    className="etiquette-retirer"
-                    onClick={() => setConnus((anciens) => anciens.filter((autre) => autre !== valeur))}
-                    aria-label={`Retirer ${allergene.libelle}`}
-                  >
-                    <Icone nom="fermer" />
-                  </button>
-                </li>
-              )
-            })}
+        <div className={erreurSaisie ? 'champ champ-erreur' : 'champ'}>
+          <label htmlFor={`ajout-allergie-${eleve.id}`}>Une autre allergie ?</label>
+          <div className="champ-ajout">
+            <input
+              id={`ajout-allergie-${eleve.id}`}
+              type="text"
+              maxLength={LONGUEUR_MAX_ALLERGIE}
+              placeholder="Écris-la : crevettes, kiwi…"
+              value={saisie}
+              onChange={(e) => {
+                setSaisie(e.target.value)
+                setErreurSaisie(null)
+              }}
+              onKeyDown={surToucheSaisie}
+              autoComplete="off"
+              enterKeyHint="done"
+            />
+            <button type="button" className="btn btn-secondaire btn-ajouter" onClick={() => ajouterSaisie()} disabled={!saisie.trim()}>
+              Ajouter
+            </button>
+          </div>
+          {erreurSaisie && <span className="champ-message">{erreurSaisie}</span>}
+        </div>
+
+        {propositions.length > 0 && (
+          <div className="suggestions" role="group" aria-label="Propositions">
+            {propositions.map((allergie) => (
+              <button key={allergie} type="button" className="suggestion" onClick={() => ajouterSaisie(allergie)}>
+                <Icone nom="plus" />
+                {allergie}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {autres.length > 0 && (
+          <ul className="etiquettes" aria-label="Autres allergies déclarées">
             {autres.map((allergie) => (
               <li key={allergie} className="etiquette">
                 <Icone nom="alerte" />
@@ -148,61 +196,40 @@ export default function ProfilAlimentaire({ eleve, afficherToast, onEnregistre, 
             ))}
           </ul>
         )}
-
-        <div className={erreurSaisie ? 'champ champ-erreur' : 'champ'}>
-          <label htmlFor={`ajout-allergie-${eleve.id}`}>Ajouter une allergie</label>
-          <div className="champ-ajout">
-            <input
-              id={`ajout-allergie-${eleve.id}`}
-              type="text"
-              maxLength={LONGUEUR_MAX_ALLERGIE}
-              placeholder="Crevettes, kiwi, sésame…"
-              value={saisie}
-              onChange={(e) => setSaisie(e.target.value)}
-              onKeyDown={surToucheSaisie}
-              autoComplete="off"
-            />
-            <button type="button" className="btn btn-secondaire btn-ajouter" onClick={ajouterSaisie} disabled={!saisie.trim()}>
-              Ajouter
-            </button>
-          </div>
-          <span className="champ-message">
-            {erreurSaisie || 'Écris ce que tu veux, une allergie à la fois. La cuisine la verra sur sa liste du jour.'}
-          </span>
-        </div>
-
-        {suggestions.length > 0 && (
-          <div className="suggestions" role="group" aria-label="Allergies fréquentes">
-            <span className="mention">Fréquentes :</span>
-            {suggestions.map((allergene) => (
-              <button key={allergene.valeur} type="button" className="suggestion" onClick={() => ajouterConnu(allergene.valeur)}>
-                <Icone nom="plus" />
-                {allergene.libelle}
-              </button>
-            ))}
-          </div>
-        )}
       </fieldset>
 
       <fieldset className="pile groupe-profil" disabled={envoiEnCours}>
         <legend className="sous-titre">{pourParent ? 'Son régime' : 'Ton régime'}</legend>
-        <div className="champ">
-          <label htmlFor={`regime-${eleve.id}`}>Régime alimentaire</label>
-          <select
-            id={`regime-${eleve.id}`}
-            value={choixRegime}
-            onChange={(e) => {
-              setChoixRegime(e.target.value)
-              setErreurRegime(null)
-            }}
-          >
-            {REGIMES.map((regime) => (
-              <option key={regime.valeur} value={regime.valeur}>
-                {regime.libelle} ({regime.detail.toLowerCase()})
-              </option>
-            ))}
-            <option value={REGIME_AUTRE}>Autre, je l’écris</option>
-          </select>
+        <div className="choix-grille">
+          {REGIMES.map((regime) => (
+            <label key={regime.valeur} className="choix choix-safran">
+              <input
+                type="radio"
+                name={`regime-${eleve.id}`}
+                value={regime.valeur}
+                checked={choixRegime === regime.valeur}
+                onChange={() => {
+                  setChoixRegime(regime.valeur)
+                  setErreurRegime(null)
+                }}
+              />
+              <Icone nom={regime.icone} className="choix-icone" />
+              {regime.libelle}
+              <span className="choix-detail">{regime.detail}</span>
+            </label>
+          ))}
+          <label className="choix choix-safran choix-large">
+            <input
+              type="radio"
+              name={`regime-${eleve.id}`}
+              value={REGIME_AUTRE}
+              checked={choixRegime === REGIME_AUTRE}
+              onChange={() => setChoixRegime(REGIME_AUTRE)}
+            />
+            <Icone nom="crayon" className="choix-icone" />
+            Autre régime
+            <span className="choix-detail">{regimeLibre.trim() || 'Je l’écris moi-même'}</span>
+          </label>
         </div>
 
         {choixRegime === REGIME_AUTRE && (
@@ -214,7 +241,11 @@ export default function ProfilAlimentaire({ eleve, afficherToast, onEnregistre, 
               maxLength={LONGUEUR_MAX_REGIME}
               placeholder="Sans gluten, pas de bœuf…"
               value={regimeLibre}
-              onChange={(e) => setRegimeLibre(e.target.value)}
+              onChange={(e) => {
+                setRegimeLibre(e.target.value)
+                setErreurRegime(null)
+              }}
+              autoFocus
             />
             <span className="champ-message">
               {erreurRegime || 'La cuisine le voit, et l’appli te prévient quand un plat semble ne pas convenir.'}
@@ -223,23 +254,14 @@ export default function ProfilAlimentaire({ eleve, afficherToast, onEnregistre, 
         )}
       </fieldset>
 
-      <div className="alerte alerte-info alerte-prevenu">
-        <Icone nom="bouclier" />
-        <div>
-          <strong>{pourParent ? `${prenom} et la cantine seront prévenus` : 'Ton parent et la cantine seront prévenus'}</strong>
-          <p>{pourParent ? 'Chaque plat est vérifié avec ce profil.' : 'Chaque plat est comparé à tes allergies et à ton régime.'}</p>
-        </div>
-      </div>
-
-      <div className="pile actions-profil">
+      <div className="barre-enregistrer">
+        <p className="mention centre">
+          <Icone nom="bouclier" className="icone-feuille" />{' '}
+          {pourParent ? `${prenom} et la cantine seront prévenus.` : 'Ton parent et la cantine seront prévenus.'}
+        </p>
         <button type="submit" className="btn btn-enregistrer" disabled={!modifie || envoiEnCours}>
-          {envoiEnCours ? 'Enregistrement…' : 'Enregistrer'}
+          {envoiEnCours ? 'Enregistrement…' : texteBouton}
         </button>
-        {onFermer && (
-          <button type="button" className="btn btn-discret" onClick={onFermer} disabled={envoiEnCours}>
-            Annuler
-          </button>
-        )}
       </div>
     </form>
   )

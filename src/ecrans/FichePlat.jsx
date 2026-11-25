@@ -3,7 +3,8 @@ import { Fragment, useCallback, useEffect, useState } from 'react'
 import { prixPourProfil } from '../lib/menus'
 import { reservationFermee, reserverRepas } from '../lib/reservations'
 import { allergenesARisque, alternativeCompatible, nommerAllergenes, resumerProfil } from '../lib/allergenes'
-import { libelleRegime, raisonRegimeDuMenu, regimeEstPersonnel, soupconAutreAllergie } from '../lib/regimes'
+import { libelleRegime, listerAutresAllergies, raisonRegimeDuMenu, regimeEstPersonnel, soupconAutreAllergie } from '../lib/regimes'
+import { chargerAllergiesLibresDuPlat } from '../lib/allergies'
 import { chargerAffluence } from '../lib/affluence'
 import { creneauConseille, preparerCreneaux } from '../lib/fileAttente'
 import { formaterCreneau, formaterDate, formaterMontant, HORAIRE_SERVICE } from '../lib/formatage'
@@ -14,6 +15,8 @@ import Icone from '../composants/Icone'
 import '../reservation.css'
 
 const DUREE_VERIFICATION = 900
+
+const problemeLibre = (allergie, menu) => Boolean(soupconAutreAllergie(allergie, menu))
 
 // La formule autour du plat : « Avec ton plat : carottes râpées, papaye et bissap. »
 function decrireAccompagnements(menu) {
@@ -36,10 +39,11 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
   const [creneaux, setCreneaux] = useState([])
   const [creneauChoisi, setCreneauChoisi] = useState(null)
   const allergies = profil.allergies || []
-  const risques = allergenesARisque(menu.allergenes, allergies)
+  // Allergies écrites à la main retrouvées dans le plat (nom + ingrédients de la recette), vérifiées par la base
+  const [allergiesLibres, setAllergiesLibres] = useState([])
+  const risques = [...allergenesARisque(menu.allergenes, allergies), ...allergiesLibres]
   const regime = profil.regime || 'aucun'
   const raisonRegime = raisonRegimeDuMenu(menu, profil)
-  const soupcon = soupconAutreAllergie(profil.autre_allergie, menu)
   const avecAlternative = alternativeCompatible(menu, allergies, regime)
   const proposerRemplacement = risques.length === 0 && Boolean(raisonRegime) && avecAlternative
   const resumeProfil = resumerProfil(profil)
@@ -63,6 +67,19 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
   useEffect(() => {
     if (!fermee) chargerCreneaux()
   }, [fermee, chargerCreneaux])
+
+  useEffect(() => {
+    let actif = true
+    chargerAllergiesLibresDuPlat(profil.autre_allergie, menu.id).then((resultat) => {
+      if (!actif) return
+      // Base pas encore à jour : on se rabat sur le nom du plat
+      if (resultat.erreur) setAllergiesLibres(listerAutresAllergies(profil.autre_allergie).filter((allergie) => problemeLibre(allergie, menu)))
+      else setAllergiesLibres(resultat.allergies)
+    })
+    return () => {
+      actif = false
+    }
+  }, [profil.autre_allergie, menu])
 
   // L'anneau « Analyse de ton profil… » tourne un court instant avant le verdict
   useEffect(() => {
@@ -165,7 +182,7 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
         </div>
       )}
 
-      {!verificationEnCours && risques.length === 0 && !raisonRegime && !soupcon && (
+      {!verificationEnCours && risques.length === 0 && !raisonRegime && (
         <div className="verif verif-ok" role="status">
           <Icone nom="bouclier" className="verif-icone" />
           <div>
@@ -190,15 +207,6 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
         </div>
       )}
 
-      {!verificationEnCours && risques.length === 0 && !raisonRegime && soupcon && (
-        <div className="alerte alerte-attention" role="alert">
-          <Icone nom="alerte" />
-          <div>
-            <strong>Peut contenir : {soupcon}</strong>
-            <p>Demande à la cantine avant de réserver. Ton parent et la cuisine voient cette allergie.</p>
-          </div>
-        </div>
-      )}
 
       {!verificationEnCours && risques.length > 0 && (
         <div className="verif verif-danger" role="alert">
