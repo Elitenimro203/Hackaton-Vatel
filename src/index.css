@@ -4385,3 +4385,45 @@ tbody tr:hover {
 .page > .atouts-ligne {
   margin-top: 24px;
 }
+
+/* =========================================================
+   41. RAPPEL DE RÉSERVATION (« Plus que 2 h 15 », jour raté)
+   .rappel     alerte posée au-dessus du plat vedette (avec .alerte-attention ou .alerte-info)
+   .btn-lien   bouton texte safran souligné, dans une alerte ou une phrase
+   ========================================================= */
+.rappel {
+  animation: apparaitre 0.4s ease both;
+}
+
+.rappel p {
+  margin-top: 2px;
+  color: var(--creme-2);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.rappel .icone {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+}
+
+.btn-lien {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--safran);
+  font-family: var(--police);
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.btn-lien:focus-visible {
+  outline: 2px solid var(--safran);
+  outline-offset: 2px;
+}
