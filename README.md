@@ -38,7 +38,7 @@ Projet réalisé seul pendant le hackathon « Application de gestion de cantine 
 - Bandeau **« Solde bas »** sous 2 000 F.
 
 ### Parent (3 onglets)
-- **Mes enfants** : la carte cantine de chaque enfant, alertes allergie en temps réel, profil alimentaire modifiable, lier ou délier un compte par e-mail.
+- **Mes enfants** : la carte cantine de chaque enfant, alertes allergie en temps réel, profil alimentaire modifiable, ajouter un enfant avec le **code à 6 caractères qu'il crée dans son Profil** (24 h, un seul usage : sans le téléphone de l'enfant, personne ne peut le suivre), ou le délier.
 - **Recharger** : Mobile Money (Wave, Orange Money, MTN MoMo), montants rapides ou libres de 500 à 50 000 F.
 - **Ce qu'il mange** : les repas réservés, servis et notés par l'enfant.
 

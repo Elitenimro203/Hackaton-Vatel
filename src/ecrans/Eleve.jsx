@@ -4,6 +4,7 @@ import BarreOnglets from '../composants/BarreOnglets'
 import BandeauSoldeBas from '../composants/BandeauSoldeBas'
 import CarteCantine from '../composants/CarteCantine'
 import CarteProfilAlimentaire from '../composants/CarteProfilAlimentaire'
+import InvitationParent from '../composants/InvitationParent'
 import ATable from './ATable'
 import MenuSemaine from './MenuSemaine'
 import FichePlat from './FichePlat'
@@ -150,6 +151,7 @@ export default function Eleve({ profil, afficherToast, onProfilModifie }) {
           <CarteCantine profil={profil} />
 
           <CarteProfilAlimentaire eleve={profil} afficherToast={afficherToast} onEnregistre={onProfilModifie} />
+          <InvitationParent profil={profil} afficherToast={afficherToast} />
         </section>
       )}
 

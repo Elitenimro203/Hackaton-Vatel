@@ -1,6 +1,7 @@
 // Icône d'interface : un nom en français → une icône lucide-react ; taille et couleur viennent des classes de index.css.
 import {
   ArrowRight,
+  Share2,
   Beef,
   Bell,
   CalendarDays,
@@ -90,6 +91,7 @@ const ICONES = {
   'oeuf': Egg,
   'pilotage': ChartColumn,
   'plus': Plus,
+  'partager': Share2,
   'poisson': Fish,
   'porc': Ham,
   'portefeuille': Wallet,
