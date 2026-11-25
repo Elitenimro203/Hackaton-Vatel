@@ -2907,7 +2907,7 @@ tbody tr:hover {
    .carte-cantine-bas      solde bas : liseré et montant en safran
    .carte-cantine-motif    guillochis fin et reflet qui passe toutes les 7 s
    .carte-cantine-puce     puce dorée décorative
-   .carte-cantine-volet    code du jour et allergies, sous la carte
+   .carte-cantine-volet    code du jour et allergies : carte à part, juste sous la carte cantine
    .bandeau-hors-ligne     bandeau discret quand le téléphone n'a plus de réseau
    .icone-alerte           icône rouge (allergies)
    ========================================================= */
@@ -3085,9 +3085,9 @@ tbody tr:hover {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin: -14px 10px 0;
-  padding: 28px 16px 16px;
-  border-radius: 0 0 var(--rayon) var(--rayon);
+  margin: 10px 0 0;
+  padding: 16px;
+  border-radius: var(--rayon);
   background: var(--carte);
   color: var(--creme-2);
   font-size: 15px;
