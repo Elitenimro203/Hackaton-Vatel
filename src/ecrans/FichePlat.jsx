@@ -2,7 +2,7 @@
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { prixPourProfil } from '../lib/menus'
 import { reservationFermee, reserverRepas } from '../lib/reservations'
-import { allergenesARisque, alternativeCompatible, decrireAllergenes, nommerAllergenes } from '../lib/allergenes'
+import { allergenesARisque, alternativeCompatible, nommerAllergenes, resumerProfil } from '../lib/allergenes'
 import { libelleRegime, raisonRegimeDuMenu, soupconAutreAllergie } from '../lib/regimes'
 import { chargerAffluence } from '../lib/affluence'
 import { creneauConseille, preparerCreneaux } from '../lib/fileAttente'
@@ -15,23 +15,12 @@ import '../reservation.css'
 
 const DUREE_VERIFICATION = 900
 
-// Le texte de l'entrée et du dessert sous le nom du plat
+// La formule autour du plat : « Avec ton plat : carottes râpées, papaye et bissap. »
 function decrireAccompagnements(menu) {
-  const morceaux = []
-  if (menu.entree) morceaux.push(`En entrée, ${menu.entree.toLowerCase()}`)
-  if (menu.dessert) morceaux.push(`en dessert, ${menu.dessert.toLowerCase()}`)
+  const morceaux = [menu.entree, menu.dessert, menu.boisson].filter(Boolean).map((texte) => texte.toLowerCase())
   if (morceaux.length === 0) return 'Préparé ce matin par la cantine.'
-  const phrase = morceaux.join(' et ')
-  return `${phrase.charAt(0).toUpperCase()}${phrase.slice(1)}.`
-}
-
-// « Arachide · Végétarien · Autre : kiwi », ou null si rien n'est déclaré
-function resumerProfil(profil) {
-  const morceaux = []
-  if ((profil.allergies || []).length > 0) morceaux.push(decrireAllergenes(profil.allergies))
-  if (profil.regime && profil.regime !== 'aucun') morceaux.push(libelleRegime(profil.regime))
-  if (profil.autre_allergie) morceaux.push(`Autre : ${profil.autre_allergie}`)
-  return morceaux.length > 0 ? morceaux.join(' · ') : null
+  const fin = morceaux.pop()
+  return `Avec ton plat : ${morceaux.length > 0 ? `${morceaux.join(', ')} et ${fin}` : fin}.`
 }
 
 // Le menu tel qu'il a été réservé : avec le nom et la photo du plat de remplacement si besoin
@@ -215,7 +204,7 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
           <div>
             <p className="verif-titre">Contient {nommerAllergenes(risques)}</p>
             <p className="verif-texte">
-              {avecAlternative ? 'Un plat de remplacement t’attend.' : 'C’est noté dans ton profil. Choisis plutôt un autre jour.'}
+              {avecAlternative ? 'Un plat de remplacement t’attend.' : 'C’est noté dans ton profil. Choisis plutôt un autre plat du jour.'}
             </p>
           </div>
         </div>
@@ -251,7 +240,7 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
       </button>
       {proposerRemplacement && !fermee && !soldeInsuffisant && (
         <button type="button" className="btn btn-discret" onClick={() => reserver()} disabled={envoiEnCours || verificationEnCours}>
-          Réserver le plat du jour quand même
+          Réserver ce plat quand même
         </button>
       )}
       {!fermee && !soldeInsuffisant && (

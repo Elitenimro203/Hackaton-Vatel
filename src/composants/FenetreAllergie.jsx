@@ -44,12 +44,12 @@ export default function FenetreAllergie({ menu, profil, risques, prix, envoiEnCo
             <div className="alerte alerte-info">
               <Icone nom="a-table" />
               <div>
-                <strong>Pas de plat de remplacement ce jour-là</strong>
-                <p>Le plus sûr : choisir un autre jour dans le menu de la semaine.</p>
+                <strong>Pas de remplacement pour ce plat</strong>
+                <p>Le plus sûr : choisir un des autres plats du jour.</p>
               </div>
             </div>
             <button type="button" className="btn" onClick={onFermer} disabled={envoiEnCours}>
-              Choisir un autre jour
+              Choisir un autre plat
             </button>
           </>
         )}

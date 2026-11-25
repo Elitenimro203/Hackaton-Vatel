@@ -3,8 +3,8 @@ AIDE-MÉMOIRE CantiJuste (base Supabase, supabase/schema.sql)
 TABLES
 - profiles(id uuid = auth.users.id, email, nom, role 'eleve'|'parent'|'admin', type_usager 'eleve'|'employe', solde int, allergies text[], cree_le)
 - liens_parent(parent_id, eleve_id, cree_le)  clé (parent_id, eleve_id)
-- menus(id bigint, jour date unique, entree, plat, dessert, allergenes text[], prix int (élève), prix_employe int (défaut 1500), photo_url, plat_alternatif text ('' = aucun), photo_alternative, allergenes_alternatif text[], cree_le)
-- reservations(id bigint, eleve_id, menu_id, statut 'reservee'|'annulee'|'servie', code_retrait '0812', montant int, creneau time null, alternative bool (plat de remplacement), cree_le, servie_le)
+- menus(id bigint, jour date, entree, plat, dessert, boisson, (jour, plat) unique : plusieurs plats au choix par jour, allergenes text[], prix int (élève), prix_employe int (défaut 1500), photo_url, plat_alternatif text ('' = aucun), photo_alternative, allergenes_alternatif text[], cree_le)
+- reservations(id bigint, eleve_id, menu_id, jour date (rempli par déclencheur ; un repas actif par élève et par jour, code unique par jour), statut 'reservee'|'annulee'|'servie', code_retrait '0812', montant int, creneau time null, alternative bool (plat de remplacement), cree_le, servie_le)
 - alertes(id bigint, eleve_id, menu_id null, allergenes text[], message, lue bool, cree_le)  élève qui réserve malgré son allergie ; lecture : élève, parents liés, admin
 - mouvements(id bigint, eleve_id, montant int +/-, motif, cree_le)
 - avis(id bigint, eleve_id null, menu_id null, plat, etoiles 1-5, commentaire null, source 'appli'|'import', cree_le)  unique (eleve_id, menu_id)

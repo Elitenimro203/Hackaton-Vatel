@@ -23,8 +23,8 @@ on conflict (parent_id, eleve_id) do nothing;
 update public.profiles set allergies = '{arachide}' where email = 'eleve.demo@cantijuste.ci';
 
 -- =====================================================================
--- MENUS DE DÉMONSTRATION : semaine du lundi 23 au vendredi 27 novembre 2026
--- Les photos sont dans public/photos/. Relancer le script remet ces 5 menus à l'état d'origine.
+-- MENUS DE DÉMONSTRATION : semaine du lundi 23 au vendredi 27 novembre 2026 (le premier plat de chaque jour)
+-- Les photos sont dans public/photos/. Les autres plats au choix sont ajoutés par donnees_menus_semaine.sql.
 -- =====================================================================
 insert into public.menus (jour, entree, plat, dessert, allergenes, prix, prix_employe, photo_url, plat_alternatif, photo_alternative, allergenes_alternatif) values
   ('2026-11-23', 'Salade de tomates', 'Garba maison',           'Ananas frais', '{poisson}',  1000, 1500, '/photos/garba-maison.jpg',           'Kédjénou de poulet',     '/photos/kedjenou-poulet.jpg',        '{}'),
@@ -32,7 +32,7 @@ insert into public.menus (jour, entree, plat, dessert, allergenes, prix, prix_em
   ('2026-11-25', 'Carottes râpées',   'Attiéké poisson braisé', 'Papaye',       '{poisson}',  1000, 1500, '/photos/attieke-poisson-braise.jpg', 'Kédjénou de poulet',     '/photos/kedjenou-poulet.jpg',        '{}'),
   ('2026-11-26', 'Avocat',            'Kédjénou de poulet',     'Mangue',       '{}',         1000, 1500, '/photos/kedjenou-poulet.jpg',        'Garba maison',           '/photos/garba-maison.jpg',           '{poisson}'),
   ('2026-11-27', 'Chou',              'Garba au piment doux',   'Orange',       '{poisson}',  1000, 1500, '/photos/garba-piment-doux.jpg',      'Kédjénou de poulet',     '/photos/kedjenou-poulet.jpg',        '{}')
-on conflict (jour) do update set
+on conflict (jour, plat) do update set
   entree = excluded.entree,
   plat = excluded.plat,
   dessert = excluded.dessert,
@@ -53,9 +53,9 @@ on conflict (jour) do update set
 -- Relançable : rien n'est créé deux fois, les soldes ne sont pas débités.
 -- =====================================================================
 insert into public.menus (jour, entree, plat, dessert, allergenes, prix, prix_employe, photo_url, plat_alternatif, photo_alternative, allergenes_alternatif)
-values ((now() at time zone 'Africa/Abidjan')::date, 'Salade de tomates', 'Garba maison', 'Ananas frais', '{poisson}', 1000, 1500,
-        '/photos/garba-maison.jpg', 'Kédjénou de poulet', '/photos/kedjenou-poulet.jpg', '{}')
-on conflict (jour) do nothing;
+select (now() at time zone 'Africa/Abidjan')::date, 'Salade de tomates', 'Garba maison', 'Ananas frais', '{poisson}', 1000, 1500,
+       '/photos/garba-maison.jpg', 'Kédjénou de poulet', '/photos/kedjenou-poulet.jpg', '{}'
+where not exists (select 1 from public.menus where jour = (now() at time zone 'Africa/Abidjan')::date);
 
 -- Les convives : un compte par nom (le profil est créé tout seul par le déclencheur d'inscription)
 insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -83,7 +83,7 @@ update public.profiles set allergies = '{lait}'   where email = 'convive01@demo.
 update public.profiles set allergies = '{gluten}' where email = 'convive02@demo.cantijuste.ci';
 update public.profiles set allergies = '{oeuf}'   where email = 'convive09@demo.cantijuste.ci';
 
--- Leurs réservations du jour : codes 0813 à 0836, un sur trois prend le plat de remplacement
+-- Leurs réservations du jour : codes 0813 à 0836, répartis entre les plats du jour ; un sur trois prend le remplacement
 insert into public.reservations (eleve_id, menu_id, statut, code_retrait, montant, alternative, servie_le)
 select
   p.id, m.id,
@@ -94,14 +94,25 @@ select
   case when numero <= 6 then now() - make_interval(mins => 30 - numero) end
 from generate_series(1, 24) as numero
 join public.profiles p on p.email = 'convive' || lpad(numero::text, 2, '0') || '@demo.cantijuste.ci'
-join public.menus m on m.jour = (now() at time zone 'Africa/Abidjan')::date
+cross join lateral (
+  select id, prix from public.menus
+  where jour = (now() at time zone 'Africa/Abidjan')::date and not retire
+  order by id
+  offset numero % greatest((select count(*) from public.menus where jour = (now() at time zone 'Africa/Abidjan')::date and not retire), 1)
+  limit 1
+) m
 on conflict do nothing;
 
 -- L'élève démo (allergique à l'arachide) a aussi son repas du jour, code 0812
 insert into public.reservations (eleve_id, menu_id, statut, code_retrait, montant, alternative)
 select p.id, m.id, 'reservee', '0812', m.prix, false
 from public.profiles p
-join public.menus m on m.jour = (now() at time zone 'Africa/Abidjan')::date
+cross join lateral (
+  select id, prix from public.menus
+  where jour = (now() at time zone 'Africa/Abidjan')::date and not retire
+  order by id
+  limit 1
+) m
 where p.email = 'eleve.demo@cantijuste.ci'
 on conflict do nothing;
 

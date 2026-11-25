@@ -7,7 +7,7 @@ import { decrireAllergenes } from '../lib/allergenes'
 import { SEUIL_SOLDE_BAS, soldeEstBas } from '../lib/recharges'
 import { useTempsReel } from '../lib/useTempsReel'
 import CarteCantine from '../composants/CarteCantine'
-import ProfilAlimentaire from '../composants/ProfilAlimentaire'
+import ProfilAlimentaireReplie from '../composants/ProfilAlimentaireReplie'
 import Vide from '../composants/Vide'
 import Icone from '../composants/Icone'
 import '../allergies.css'
@@ -127,7 +127,7 @@ function CarteEnfant({ enfant, alertes, afficherToast, onRecharger, onDelier, on
         ))
       )}
 
-      <ProfilAlimentaire eleve={enfant} afficherToast={afficherToast} onEnregistre={onModifie} pourParent />
+      <ProfilAlimentaireReplie eleve={enfant} afficherToast={afficherToast} onEnregistre={onModifie} pourParent />
 
       <button type="button" className="btn btn-danger btn-petit btn-delier" onClick={() => onDelier(enfant)}>
         Délier ce compte

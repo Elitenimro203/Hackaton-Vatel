@@ -4,7 +4,7 @@ import BarreOnglets from '../composants/BarreOnglets'
 import BandeauSoldeBas from '../composants/BandeauSoldeBas'
 import CarteProfil from '../composants/CarteProfil'
 import CarteCantine from '../composants/CarteCantine'
-import ProfilAlimentaire from '../composants/ProfilAlimentaire'
+import ProfilAlimentaireReplie from '../composants/ProfilAlimentaireReplie'
 import ATable from './ATable'
 import MenuSemaine from './MenuSemaine'
 import FichePlat from './FichePlat'
@@ -150,10 +150,7 @@ export default function Eleve({ profil, afficherToast, onProfilModifie }) {
           <p className="aide">Montre-la au comptoir : la cuisine voit ton code du jour et tes allergies d’un seul coup d’œil.</p>
           <CarteCantine profil={profil} />
 
-          <span className="surtitre">Ton profil alimentaire</span>
-          <h2>Allergies et régime</h2>
-          <p className="aide">C’est toi qui remplis. On vérifie chaque plat pour toi, et tu peux changer à tout moment.</p>
-          <ProfilAlimentaire eleve={profil} afficherToast={afficherToast} onEnregistre={onProfilModifie} />
+          <ProfilAlimentaireReplie eleve={profil} afficherToast={afficherToast} onEnregistre={onProfilModifie} />
           <CarteProfil profil={profil} afficherToast={afficherToast} />
         </section>
       )}

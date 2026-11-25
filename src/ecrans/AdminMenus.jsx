@@ -1,14 +1,13 @@
-// Onglet Menus de l'admin : la semaine du lundi au vendredi, le panneau d'édition, et retirer, remettre, dupliquer un menu ou copier la semaine.
+// Onglet Menus de l'admin : la semaine du lundi au vendredi, les plats au choix du jour choisi, le panneau d'édition d'un plat, et retirer, remettre, dupliquer ou copier la semaine.
 import { useCallback, useEffect, useState } from 'react'
 import {
   chargerMenusEntre,
   dupliquerMenu,
   dupliquerSemaine,
+  platsDuJour,
   remettreAuMenu,
   retirerMenu,
   supprimerMenu,
-  PRIX_ELEVE_PAR_DEFAUT,
-  PRIX_EMPLOYE_PAR_DEFAUT,
 } from '../lib/menus'
 import {
   ajouterJours,
@@ -21,30 +20,27 @@ import {
   joursOuvresDeLaSemaine,
 } from '../lib/formatage'
 import { useTempsReel } from '../lib/useTempsReel'
-import BadgesAllergenes from '../composants/BadgesAllergenes'
 import FormulaireMenu from '../composants/FormulaireMenu'
 import Icone from '../composants/Icone'
 import '../menus.css'
 import NavigationSemaine from '../composants/NavigationSemaine'
 import PhotoPlat from '../composants/PhotoPlat'
 
-function texteMenusPublies(nombre) {
-  if (nombre === 0) return 'Aucun menu publié'
-  return nombre === 1 ? '1 menu publié' : `${nombre} menus publiés`
+function textePlats(nombre) {
+  if (nombre === 0) return 'Aucun plat'
+  return nombre === 1 ? '1 plat' : `${nombre} plats`
 }
 
-function classeCarteJour(estActif, menu) {
-  return ['carte-jour', estActif && 'actif', !menu && 'carte-jour-vide', menu?.retire && 'carte-jour-retiree']
-    .filter(Boolean)
-    .join(' ')
+function classeCarteJour(estActif, plats) {
+  return ['carte-jour', estActif && 'actif', plats.length === 0 && 'carte-jour-vide'].filter(Boolean).join(' ')
 }
 
-// « 3 menus copiés », avec les jours sautés s'il y en a
+// « 12 plats copiés », avec les plats sautés s'il y en a
 function texteCopieSemaine(copies, sautes) {
-  if (copies === 0) return 'Rien à copier : la semaine suivante a déjà ses menus.'
-  const debut = copies === 1 ? '1 menu copié' : `${copies} menus copiés`
+  if (copies === 0) return 'Rien à copier : la semaine suivante a déjà ces plats.'
+  const debut = copies === 1 ? '1 plat copié' : `${copies} plats copiés`
   if (sautes === 0) return `${debut}.`
-  return `${debut}, ${sautes} jour${sautes > 1 ? 's' : ''} déjà pris ou passé${sautes > 1 ? 's' : ''}.`
+  return `${debut}, ${sautes} déjà au menu ou sur un jour passé.`
 }
 
 // Date proposée pour dupliquer : une semaine plus tard, jamais dans le passé
@@ -57,6 +53,8 @@ export default function AdminMenus({ afficherToast }) {
   const aujourdhui = dateDuJour()
   const [lundi, setLundi] = useState(() => joursOuvresDeLaSemaine(aujourdhui)[0])
   const [jourChoisi, setJourChoisi] = useState(lundi)
+  // Plat ouvert dans le panneau : son id, 'nouveau' pour en ajouter un, null pour ne rien éditer
+  const [platEdite, setPlatEdite] = useState(null)
   const [menus, setMenus] = useState([])
   const [chargement, setChargement] = useState(true)
   const [erreur, setErreur] = useState(null)
@@ -83,7 +81,10 @@ export default function AdminMenus({ afficherToast }) {
 
   useTempsReel('menus', charger)
 
-  const menuChoisi = menus.find((menu) => menu.jour === jourChoisi) || null
+  const platsChoisis = platsDuJour(menus, jourChoisi)
+  const menuEdite = platsChoisis.find((menu) => menu.id === platEdite) || null
+  // Un jour sans plat ouvre tout de suite le formulaire d'ajout
+  const formulaireOuvert = platEdite === 'nouveau' || Boolean(menuEdite) || (!chargement && platsChoisis.length === 0)
   const menusEnLigne = menus.filter((menu) => !menu.retire)
   const lundiSuivant = ajouterJours(lundi, 7)
 
@@ -91,15 +92,23 @@ export default function AdminMenus({ afficherToast }) {
     setChargement(true)
     setLundi(nouveauLundi)
     setJourChoisi(nouveauLundi)
+    setPlatEdite(null)
   }
 
   function choisirJour(jour) {
     setJourChoisi(jour)
-    document.getElementById('panneau-menu')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setPlatEdite(null)
+    document.getElementById('panneau-jour')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  function editerPlat(idPlat) {
+    setPlatEdite(idPlat)
+    setTimeout(() => document.getElementById('panneau-menu')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
   }
 
   function apresEnregistrement(jourEnregistre) {
     if (jourEnregistre >= lundi && jourEnregistre <= vendredi) setJourChoisi(jourEnregistre)
+    setPlatEdite(null)
     charger()
   }
 
@@ -118,8 +127,8 @@ export default function AdminMenus({ afficherToast }) {
       afficherToast(erreurRetrait, 'erreur')
       return
     }
-    if (rembourses === 0) afficherToast('Menu retiré. Les élèves ne le voient plus.')
-    else afficherToast(`Menu retiré. ${rembourses} réservation${rembourses > 1 ? 's' : ''} remboursée${rembourses > 1 ? 's' : ''}.`)
+    if (rembourses === 0) afficherToast('Plat retiré. Les élèves ne le voient plus.')
+    else afficherToast(`Plat retiré. ${rembourses} réservation${rembourses > 1 ? 's' : ''} remboursée${rembourses > 1 ? 's' : ''}.`)
     charger()
   }
 
@@ -132,7 +141,7 @@ export default function AdminMenus({ afficherToast }) {
       afficherToast(erreurRemise, 'erreur')
       return
     }
-    afficherToast('Menu remis en ligne pour les élèves.')
+    afficherToast('Plat remis en ligne pour les élèves.')
     charger()
   }
 
@@ -147,7 +156,7 @@ export default function AdminMenus({ afficherToast }) {
       return
     }
     setMenuADupliquer(null)
-    afficherToast(`Menu copié au ${formaterDate(jourDuplication)}.`)
+    afficherToast(`Plat copié au ${formaterDate(jourDuplication)}.`)
     const lundiCible = joursOuvresDeLaSemaine(jourDuplication)[0]
     if (lundiCible === lundi) {
       setJourChoisi(jourDuplication)
@@ -182,7 +191,8 @@ export default function AdminMenus({ afficherToast }) {
       afficherToast(erreurSuppression, 'erreur')
       return
     }
-    afficherToast('Menu supprimé.')
+    afficherToast('Plat supprimé.')
+    setPlatEdite(null)
     charger()
   }
 
@@ -198,20 +208,17 @@ export default function AdminMenus({ afficherToast }) {
           <div className="barre-semaine">
             <NavigationSemaine lundi={lundi} onChanger={changerSemaine} />
             <span className={menusEnLigne.length > 0 ? 'badge badge-succes' : 'badge badge-neutre'}>
-              {chargement ? 'Chargement…' : texteMenusPublies(menusEnLigne.length)}
+              {chargement ? 'Chargement…' : `${textePlats(menusEnLigne.length)} en ligne`}
             </span>
           </div>
 
-          {!chargement && menusEnLigne.length > 0 && (
-            <button type="button" className="btn btn-secondaire btn-petit btn-copier-semaine" onClick={() => setCopieSemaineOuverte(true)}>
-              <span className="avec-icone"><Icone nom="copier" />Copier vers la semaine suivante</span>
-            </button>
-          )}
-
           {erreur && (
             <div className="alerte alerte-erreur" role="alert">
-              <strong>Impossible de charger les menus</strong>
-              <p>{erreur}</p>
+              <Icone nom="alerte" />
+              <div>
+                <strong>Impossible de charger les menus</strong>
+                <p>{erreur}</p>
+              </div>
             </div>
           )}
 
@@ -224,82 +231,105 @@ export default function AdminMenus({ afficherToast }) {
           ) : (
             <ul className="semaine-grille liste cascade">
               {joursSemaine.map((jour) => {
-                const menu = menus.find((unMenu) => unMenu.jour === jour)
-                const surtitre = `${formaterJourCourt(jour)} ${formaterNumeroJour(jour)}`
+                const plats = platsDuJour(menus, jour)
+                const enLigne = plats.filter((menu) => !menu.retire)
+                const premier = enLigne[0] || plats[0]
                 return (
-                  <li key={jour} className={classeCarteJour(jour === jourChoisi, menu)}>
-                    <span className="surtitre">{surtitre}</span>
-                    <PhotoPlat adresse={menu?.photo_url} nomPlat={menu?.plat} />
-                    {menu ? (
-                      <>
-                        <h2 className="nom-plat">{menu.plat}</h2>
-                        <p className="mention">
-                          {menu.entree || 'Sans entrée'}
-                          <br />
-                          {menu.dessert || 'Sans dessert'}
-                        </p>
-                        {menu.retire ? (
-                          <span className="badge badge-neutre"><Icone nom="retirer" />Retiré du menu</span>
-                        ) : (
-                          <span className="prix texte-safran">{formaterMontant(menu.prix, 'FCFA')}</span>
-                        )}
-                        <BadgesAllergenes allergenes={menu.allergenes} />
-                        <button type="button" className="btn btn-secondaire btn-petit" onClick={() => choisirJour(jour)}>
-                          Modifier
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <p className="mention">Pas de menu</p>
-                        <button type="button" className="btn btn-secondaire btn-petit" onClick={() => choisirJour(jour)}>
-                          + Ajouter
-                        </button>
-                      </>
-                    )}
+                  <li key={jour} className={classeCarteJour(jour === jourChoisi, plats)}>
+                    <button type="button" className="carte-jour-bouton" onClick={() => choisirJour(jour)} aria-pressed={jour === jourChoisi}>
+                      <span className="surtitre">{formaterJourCourt(jour)} {formaterNumeroJour(jour)}</span>
+                      <PhotoPlat adresse={premier?.photo_url} nomPlat={premier?.plat} />
+                      {premier ? (
+                        <>
+                          <span className="nom-plat">{premier.plat}</span>
+                          <span className="mention">
+                            {enLigne.length > 1 ? `+ ${enLigne.length - 1} autre${enLigne.length > 2 ? 's' : ''} au choix` : 'Plat unique'}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="mention">Pas encore de plat</span>
+                      )}
+                    </button>
                   </li>
                 )
               })}
             </ul>
           )}
 
-          <div className="carte pile">
-            <h2 className="panneau-titre">Le bon nombre, au bon moment.</h2>
-            <p className="aide">
-              Les réservations ferment la veille à 18 h.
-              <br />
-              Prix conseillés : élève {formaterMontant(PRIX_ELEVE_PAR_DEFAUT, 'FCFA')} · employé{' '}
-              {formaterMontant(PRIX_EMPLOYE_PAR_DEFAUT, 'FCFA')}.
-              <br />
-              Les allergies sont comparées au profil de chaque convive.
-            </p>
-          </div>
+          {!chargement && menusEnLigne.length > 0 && (
+            <button type="button" className="btn btn-discret btn-copier-semaine" onClick={() => setCopieSemaineOuverte(true)}>
+              <span className="avec-icone"><Icone nom="copier" />Copier cette semaine vers la suivante</span>
+            </button>
+          )}
         </div>
 
         {!chargement && (
-          <FormulaireMenu
-            key={`${jourChoisi}-${menuChoisi?.id ?? 'nouveau'}`}
-            menu={menuChoisi}
-            jour={jourChoisi}
-            onEnregistre={apresEnregistrement}
-            onSupprimer={setMenuASupprimer}
-            onRetirer={setMenuARetirer}
-            onRemettre={remettre}
-            onDupliquer={ouvrirDuplication}
-            afficherToast={afficherToast}
-          />
+          <div className="pile">
+            <section id="panneau-jour" className="carte pile">
+              <div className="espace-entre">
+                <h2 className="panneau-titre">{formaterDate(jourChoisi)}</h2>
+                <span className="badge badge-neutre">{textePlats(platsChoisis.length)}</span>
+              </div>
+              {platsChoisis.length > 0 ? (
+                <ul className="liste plats-du-jour">
+                  {platsChoisis.map((menu) => (
+                    <li key={menu.id} className={menu.id === platEdite ? 'plat-du-jour actif' : 'plat-du-jour'}>
+                      <span className="choix-plat-vignette">
+                        {menu.photo_url ? <img src={menu.photo_url} alt="" loading="lazy" /> : <Icone nom="a-table" />}
+                      </span>
+                      <span className="choix-plat-texte">
+                        <span className="nom-plat choix-plat-nom">{menu.plat}</span>
+                        {menu.retire ? (
+                          <span className="mention avec-icone"><Icone nom="retirer" />Retiré du menu</span>
+                        ) : (
+                          <span className="mention texte-safran">{formaterMontant(menu.prix, 'FCFA')}</span>
+                        )}
+                      </span>
+                      <button type="button" className="btn btn-secondaire btn-petit" onClick={() => editerPlat(menu.id)}>
+                        Modifier
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="aide">Aucun plat ce jour-là. Ajoutez le premier : les élèves pourront le réserver jusqu’à la veille 18 h.</p>
+              )}
+              {platsChoisis.length > 0 && platEdite !== 'nouveau' && (
+                <button type="button" className="btn btn-secondaire" onClick={() => editerPlat('nouveau')}>
+                  <span className="avec-icone"><Icone nom="plus" />Ajouter un plat au choix</span>
+                </button>
+              )}
+            </section>
+
+            {formulaireOuvert && (
+              <FormulaireMenu
+                key={`${jourChoisi}-${menuEdite?.id ?? 'nouveau'}`}
+                menu={menuEdite}
+                jour={jourChoisi}
+                formuleDuJour={platsChoisis[0]}
+                onEnregistre={apresEnregistrement}
+                onFermer={platsChoisis.length > 0 ? () => setPlatEdite(null) : undefined}
+                onSupprimer={setMenuASupprimer}
+                onRetirer={setMenuARetirer}
+                onRemettre={remettre}
+                onDupliquer={ouvrirDuplication}
+                afficherToast={afficherToast}
+              />
+            )}
+          </div>
         )}
       </div>
 
       {menuARetirer && (
         <div className="voile">
           <div className="fenetre-bas fenetre-centre" role="alertdialog" aria-modal="true" aria-labelledby="titre-retrait-menu">
-            <h2 id="titre-retrait-menu">Retirer ce menu ?</h2>
+            <h2 id="titre-retrait-menu">Retirer ce plat ?</h2>
             <p className="aide">
               {menuARetirer.plat}, {formaterDate(menuARetirer.jour)}. Les élèves ne le verront plus. Les réservations pas encore
               servies sont annulées et remboursées ; l’historique est gardé.
             </p>
             <button type="button" className="btn btn-secondaire" onClick={() => setMenuARetirer(null)} disabled={actionEnCours}>
-              Garder le menu
+              Garder le plat
             </button>
             <button type="button" className="btn btn-danger" onClick={confirmerRetrait} disabled={actionEnCours}>
               <span className="avec-icone">
@@ -320,7 +350,7 @@ export default function AdminMenus({ afficherToast }) {
             aria-labelledby="titre-duplication-menu"
             onSubmit={confirmerDuplication}
           >
-            <h2 id="titre-duplication-menu">Dupliquer ce menu</h2>
+            <h2 id="titre-duplication-menu">Dupliquer ce plat</h2>
             <p className="aide">
               {menuADupliquer.plat} : plat, prix, allergènes, remplacement et recette sont copiés sur le jour choisi.
             </p>
@@ -350,8 +380,8 @@ export default function AdminMenus({ afficherToast }) {
           <div className="fenetre-bas fenetre-centre" role="alertdialog" aria-modal="true" aria-labelledby="titre-copie-semaine">
             <h2 id="titre-copie-semaine">Copier la semaine ?</h2>
             <p className="aide">
-              {texteMenusPublies(menusEnLigne.length)} cette semaine, copiés sur la semaine du {formaterPlageSemaine(lundiSuivant)}.
-              Les jours qui ont déjà un menu ne sont pas touchés.
+              {textePlats(menusEnLigne.length)} en ligne cette semaine, copiés sur la semaine du {formaterPlageSemaine(lundiSuivant)}.
+              Un plat déjà au menu le même jour n’est pas copié deux fois.
             </p>
             <button type="button" className="btn" onClick={confirmerCopieSemaine} disabled={actionEnCours}>
               {actionEnCours ? 'Copie…' : 'Copier la semaine'}
@@ -366,12 +396,12 @@ export default function AdminMenus({ afficherToast }) {
       {menuASupprimer && (
         <div className="voile">
           <div className="fenetre-bas fenetre-centre" role="alertdialog" aria-modal="true" aria-labelledby="titre-suppression-menu">
-            <h2 id="titre-suppression-menu">Supprimer ce menu ?</h2>
+            <h2 id="titre-suppression-menu">Supprimer ce plat ?</h2>
             <p className="aide">
               {menuASupprimer.plat}, {formaterDate(menuASupprimer.jour)}. Les élèves ne le verront plus.
             </p>
             <button type="button" className="btn btn-secondaire" onClick={() => setMenuASupprimer(null)} disabled={suppressionEnCours}>
-              Garder le menu
+              Garder le plat
             </button>
             <button type="button" className="btn btn-danger" onClick={confirmerSuppression} disabled={suppressionEnCours}>
               <span className="avec-icone">

@@ -56,7 +56,7 @@ insert into public.menus (jour, entree, plat, dessert, allergenes, prix, prix_em
 select j.jour, p.entree, p.plat, p.dessert, p.allergenes, 1000, 1500, p.photo_url, p.plat_alternatif, p.photo_alternative, p.allergenes_alternatif
 from jours j
 join plats p on p.numero = (j.rang + j.semaine) % 5
-on conflict (jour) do nothing;
+where not exists (select 1 from public.menus m where m.jour = j.jour);
 
 -- =====================================================================
 -- 3. LES RÉSERVATIONS PASSÉES

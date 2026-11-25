@@ -1,6 +1,6 @@
 -- CantiJuste : données de DÉMONSTRATION du module Stocks. Relançable sans doublons (Supabase > SQL Editor).
 -- À lancer APRÈS patch_stocks.sql et donnees_demo.sql.
--- 10 ingrédients ivoiriens et la recette (quantité par repas) de chacun des 5 plats de démo, appliquée à tous les menus
+-- 10 ingrédients ivoiriens et la recette (quantité par repas) de chacun des plats de démo, appliquée à tous les menus
 -- qui portent ce plat. Pour que la démo montre l'alerte : la pâte d'arachide est sous son seuil (stock bas) et le thon ne
 -- couvre pas le prochain service (rupture). Relancer remet ces 10 stocks à leur état de départ.
 
@@ -42,7 +42,22 @@ with recettes (plat, ingredient, quantite_par_repas) as (
     ('Garba au piment doux',   'Attiéké',          0.200),
     ('Garba au piment doux',   'Thon',             0.100),
     ('Garba au piment doux',   'Tomate',           0.030),
-    ('Garba au piment doux',   'Piment',           0.003)
+    ('Garba au piment doux',   'Piment',           0.003),
+    ('Alloco omelette',        'Banane plantain',  0.300),
+    ('Alloco omelette',        'Huile rouge',      0.030),
+    ('Alloco omelette',        'Piment',           0.003),
+    ('Riz gras au bœuf',       'Riz',              0.150),
+    ('Riz gras au bœuf',       'Tomate',           0.050),
+    ('Riz gras au bœuf',       'Huile rouge',      0.020),
+    ('Foutou sauce graine',    'Banane plantain',  0.400),
+    ('Foutou sauce graine',    'Huile rouge',      0.030),
+    ('Foutou sauce graine',    'Piment',           0.005),
+    ('Placali sauce gombo',    'Poisson braisé',   0.100),
+    ('Placali sauce gombo',    'Piment',           0.005),
+    ('Haricots rouges et riz blanc', 'Riz',        0.120),
+    ('Haricots rouges et riz blanc', 'Tomate',     0.030),
+    ('Spaghetti à la viande',  'Tomate',           0.040),
+    ('Spaghetti à la viande',  'Huile rouge',      0.010)
 )
 insert into public.ingredients_par_menu (menu_id, ingredient_id, quantite_par_repas)
 select m.id, i.id, r.quantite_par_repas

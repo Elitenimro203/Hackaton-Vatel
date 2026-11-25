@@ -1,4 +1,4 @@
-// Panneau d'ajout ou de modification du menu d'un jour (date, plat, prix, photo, allergènes, contenu pour les régimes, remplacement, recette) et ses actions.
+// Panneau d'ajout ou de modification d'un plat du jour (plat, prix, photo, allergènes, formule ; régimes, remplacement et recette repliés) et ses actions.
 import { useEffect, useState } from 'react'
 import { ALLERGENES } from '../lib/allergenes'
 import { CONTENUS } from '../lib/regimes'
@@ -9,12 +9,15 @@ import SectionRecette from './SectionRecette'
 import Icone from './Icone'
 import '../allergies.css'
 
-function champsDepuisMenu(menu, jour) {
+// formule : un autre plat du même jour, pour reprendre l'entrée, le dessert et la boisson d'un nouveau plat
+function champsDepuisMenu(menu, jour, formule) {
+  const source = menu || formule
   return {
     jour: menu?.jour || jour,
-    entree: menu?.entree || '',
+    entree: source?.entree || '',
     plat: menu?.plat || '',
-    dessert: menu?.dessert || '',
+    dessert: source?.dessert || '',
+    boisson: source?.boisson || '',
     allergenes: menu?.allergenes || [],
     prix: String(menu?.prix ?? PRIX_ELEVE_PAR_DEFAUT),
     prixEmploye: String(menu?.prix_employe ?? PRIX_EMPLOYE_PAR_DEFAUT),
@@ -45,9 +48,36 @@ function CasesContenu({ id, titre, valeurs, onBasculer }) {
   )
 }
 
-// menu : le menu du jour à modifier, ou null pour en créer un à la date « jour »
-export default function FormulaireMenu({ menu, jour, onEnregistre, onSupprimer, onRetirer, onRemettre, onDupliquer, afficherToast }) {
-  const [champs, setChamps] = useState(() => champsDepuisMenu(menu, jour))
+// Bloc replié par défaut (régimes, remplacement, recette) : le titre et un résumé restent visibles
+function BlocReplie({ titre, resume, children }) {
+  return (
+    <details className="repli">
+      <summary className="repli-titre">
+        <span>
+          <span className="sous-titre">{titre}</span>
+          {resume && <span className="mention">{resume}</span>}
+        </span>
+        <Icone nom="chevron-bas" className="repli-icone" />
+      </summary>
+      <div className="pile repli-contenu">{children}</div>
+    </details>
+  )
+}
+
+// menu : le plat à modifier, ou null pour en ajouter un à la date « jour » ; onFermer (facultatif) referme le panneau
+export default function FormulaireMenu({
+  menu,
+  jour,
+  formuleDuJour,
+  onEnregistre,
+  onFermer,
+  onSupprimer,
+  onRetirer,
+  onRemettre,
+  onDupliquer,
+  afficherToast,
+}) {
+  const [champs, setChamps] = useState(() => champsDepuisMenu(menu, jour, formuleDuJour))
   const [erreur, setErreur] = useState(null)
   const [envoiEnCours, setEnvoiEnCours] = useState(false)
   const [ingredients, setIngredients] = useState([])
@@ -110,7 +140,7 @@ export default function FormulaireMenu({ menu, jour, onEnregistre, onSupprimer, 
       afficherToast(message, 'erreur')
       return
     }
-    afficherToast(estModification ? 'Menu enregistré.' : 'Menu publié pour les élèves.')
+    afficherToast(estModification ? 'Plat enregistré.' : 'Plat publié pour les élèves.')
     onEnregistre(ligne.jour)
   }
 
@@ -121,39 +151,11 @@ export default function FormulaireMenu({ menu, jour, onEnregistre, onSupprimer, 
         <div className="rangee">
           <span className={estModification ? 'badge badge-attention' : 'badge badge-succes'}>
             <Icone nom={estModification ? 'crayon' : 'plus'} />
-            {estModification ? 'Modification' : 'Nouveau menu'}
+            {estModification ? 'Modification' : 'Nouveau plat au choix'}
           </span>
           {estRetire && <span className="badge badge-neutre"><Icone nom="retirer" />Retiré du menu</span>}
         </div>
         {estRetire && <p className="aide">Les élèves ne voient plus ce plat. Remettez-le au menu pour le proposer à nouveau.</p>}
-      </div>
-
-      <div className="champ">
-        <label htmlFor="menu-jour">Date</label>
-        <input id="menu-jour" type="date" value={champs.jour} onChange={(e) => changerChamp('jour', e.target.value)} required />
-      </div>
-
-      <div className="champs-2">
-        <div className="champ">
-          <label htmlFor="menu-entree">Entrée</label>
-          <input
-            id="menu-entree"
-            type="text"
-            placeholder="Salade de tomates"
-            value={champs.entree}
-            onChange={(e) => changerChamp('entree', e.target.value)}
-          />
-        </div>
-        <div className="champ">
-          <label htmlFor="menu-dessert">Dessert</label>
-          <input
-            id="menu-dessert"
-            type="text"
-            placeholder="Ananas frais"
-            value={champs.dessert}
-            onChange={(e) => changerChamp('dessert', e.target.value)}
-          />
-        </div>
       </div>
 
       <div className="champ">
@@ -166,6 +168,11 @@ export default function FormulaireMenu({ menu, jour, onEnregistre, onSupprimer, 
           onChange={(e) => changerChamp('plat', e.target.value)}
           required
         />
+      </div>
+
+      <div className="champ">
+        <label htmlFor="menu-jour">Date</label>
+        <input id="menu-jour" type="date" value={champs.jour} onChange={(e) => changerChamp('jour', e.target.value)} required />
       </div>
 
       <div className="champs-2">
@@ -231,18 +238,32 @@ export default function FormulaireMenu({ menu, jour, onEnregistre, onSupprimer, 
         </div>
       </div>
 
-      <CasesContenu
-        id="titre-contenu-menu"
-        titre="Ce plat contient (pour les régimes)"
-        valeurs={champs.contenu}
-        onBasculer={(valeur) => basculerValeur('contenu', valeur)}
-      />
-
-      <div className="pile panneau-alternative">
-        <div>
-          <h3 className="sous-titre">Plat de remplacement</h3>
-          <p className="aide">Proposé aux élèves allergiques ou dont le régime ne va pas au plat du jour, au même prix.</p>
+      <BlocReplie titre="Formule et régimes" resume={[champs.entree, champs.dessert, champs.boisson].filter(Boolean).join(' · ') || 'Entrée, dessert, boisson'}>
+        <p className="aide">La même formule accompagne en général tous les plats du jour.</p>
+        <div className="champ">
+          <label htmlFor="menu-entree">Entrée</label>
+          <input id="menu-entree" type="text" placeholder="Salade de tomates" value={champs.entree} onChange={(e) => changerChamp('entree', e.target.value)} />
         </div>
+        <div className="champs-2">
+          <div className="champ">
+            <label htmlFor="menu-dessert">Dessert</label>
+            <input id="menu-dessert" type="text" placeholder="Ananas frais" value={champs.dessert} onChange={(e) => changerChamp('dessert', e.target.value)} />
+          </div>
+          <div className="champ">
+            <label htmlFor="menu-boisson">Boisson</label>
+            <input id="menu-boisson" type="text" placeholder="Bissap" value={champs.boisson} onChange={(e) => changerChamp('boisson', e.target.value)} />
+          </div>
+        </div>
+        <CasesContenu
+          id="titre-contenu-menu"
+          titre="Ce plat contient (pour les régimes)"
+          valeurs={champs.contenu}
+          onBasculer={(valeur) => basculerValeur('contenu', valeur)}
+        />
+      </BlocReplie>
+
+      <BlocReplie titre="Plat de remplacement" resume={champs.platAlternatif.trim() || 'Aucun'}>
+        <p className="aide">Proposé aux élèves allergiques ou dont le régime ne va pas à ce plat, au même prix.</p>
 
         <div className="champ">
           <label htmlFor="menu-plat-alternatif">Plat</label>
@@ -299,15 +320,17 @@ export default function FormulaireMenu({ menu, jour, onEnregistre, onSupprimer, 
           valeurs={champs.contenuAlternatif}
           onBasculer={(valeur) => basculerValeur('contenuAlternatif', valeur)}
         />
-      </div>
+      </BlocReplie>
 
       {recetteChargee && ingredients.length > 0 && (
-        <SectionRecette lignes={recette} ingredients={ingredients} onChange={setRecette} />
+        <BlocReplie titre="Recette et stock" resume={recette.length === 0 ? 'Aucun ingrédient' : `${recette.length} ingrédient${recette.length > 1 ? 's' : ''}`}>
+          <SectionRecette lignes={recette} ingredients={ingredients} onChange={setRecette} />
+        </BlocReplie>
       )}
 
       {erreur && (
         <div className="alerte alerte-erreur" role="alert">
-          <strong>Menu non enregistré</strong>
+          <strong>Plat non enregistré</strong>
           <p>{erreur}</p>
         </div>
       )}
@@ -319,9 +342,15 @@ export default function FormulaireMenu({ menu, jour, onEnregistre, onSupprimer, 
           </button>
         )}
         <button type="submit" className="btn btn-plein" disabled={envoiEnCours}>
-          {envoiEnCours ? 'Enregistrement…' : estModification ? 'Enregistrer' : 'Publier ce menu'}
+          {envoiEnCours ? 'Enregistrement…' : estModification ? 'Enregistrer' : 'Publier ce plat'}
         </button>
       </div>
+
+      {onFermer && (
+        <button type="button" className="btn btn-discret" onClick={onFermer} disabled={envoiEnCours}>
+          Fermer sans enregistrer
+        </button>
+      )}
 
       {estModification && (
         <div className="actions-menu">
