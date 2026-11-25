@@ -1,7 +1,7 @@
 // Carte cantine virtuelle : identité du convive, tarif, solde, allergies et code de retrait du jour, lisibles d'un seul regard au comptoir.
 import { useCallback, useEffect, useState } from 'react'
 import { trouverAllergene } from '../lib/allergenes'
-import { libelleRegime } from '../lib/regimes'
+import { libelleRegime, listerAutresAllergies } from '../lib/regimes'
 import { soldeEstBas } from '../lib/recharges'
 import { PRIX_ELEVE_PAR_DEFAUT, PRIX_EMPLOYE_PAR_DEFAUT } from '../lib/menus'
 import { chargerTicketDuJour } from '../lib/reservations'
@@ -98,7 +98,9 @@ export default function CarteCantine({ profil }) {
                 </span>
               ))}
               {regime && <span className="badge badge-neutre">{regime}</span>}
-              {profil.autre_allergie && <span className="badge badge-neutre">{profil.autre_allergie}</span>}
+              {listerAutresAllergies(profil.autre_allergie).map((allergie) => (
+                <span key={allergie} className="badge badge-erreur">{allergie}</span>
+              ))}
             </span>
           ) : (
             <span>Aucune allergie ni régime déclaré.</span>

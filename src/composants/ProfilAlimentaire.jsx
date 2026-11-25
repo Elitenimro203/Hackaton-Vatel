@@ -1,51 +1,97 @@
-// Profil alimentaire rempli par l'élève ou son parent : allergènes en grandes tuiles, régime, autre allergie en texte libre, et Enregistrer.
-import { useEffect, useState } from 'react'
-import { ALLERGENES } from '../lib/allergenes'
-import { REGIMES } from '../lib/regimes'
+// Formulaire du profil alimentaire, rempli par l'élève ou son parent : allergies écrites librement (étiquettes à ajouter ou retirer),
+// raccourcis pour les 5 allergènes suivis, régime proposé ou écrit à la main, puis Enregistrer.
+import { useState } from 'react'
+import { ALLERGENES, reconnaitreAllergene, trouverAllergene } from '../lib/allergenes'
+import { LONGUEUR_MAX_REGIME, REGIMES, REGIME_AUTRE, listerAutresAllergies, regimeEstPersonnel } from '../lib/regimes'
 import { modifierProfilAlimentaire } from '../lib/allergies'
 import Icone from './Icone'
 import '../allergies.css'
 
-const LONGUEUR_MAX_AUTRE = 60
+const LONGUEUR_MAX_ALLERGIE = 30
+const LONGUEUR_MAX_AUTRES = 200
+const NOMBRE_MAX_AUTRES = 8
 
-function memesAllergies(premiere, seconde) {
+function memesListes(premiere, seconde) {
   return premiere.length === seconde.length && premiere.every((valeur) => seconde.includes(valeur))
 }
 
-// eleve : { id, nom, allergies, regime, autre_allergie } ; pourParent : textes au « vous » pour l'espace parent
-export default function ProfilAlimentaire({ eleve, afficherToast, onEnregistre, pourParent = false }) {
-  const allergiesEnregistrees = eleve.allergies || []
+function comparable(texte) {
+  return texte.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+}
+
+// « halal » écrit à la main redevient le régime proposé « halal » (la cantine sait le vérifier)
+function regimeAEnregistrer(choix, texteLibre) {
+  if (choix !== REGIME_AUTRE) return choix
+  const propose = REGIMES.find((regime) => [regime.valeur, regime.libelle].some((nom) => comparable(nom) === comparable(texteLibre)))
+  return propose ? propose.valeur : texteLibre.trim()
+}
+
+// eleve : { id, nom, allergies, regime, autre_allergie } ; pourParent : textes pour l'espace parent ; onFermer : après Enregistrer ou Annuler
+export default function ProfilAlimentaire({ eleve, afficherToast, onEnregistre, onFermer, pourParent = false }) {
+  const connusEnregistres = eleve.allergies || []
+  const autresEnregistrees = listerAutresAllergies(eleve.autre_allergie)
   const regimeEnregistre = eleve.regime || 'aucun'
-  const autreEnregistree = eleve.autre_allergie || ''
-  const [selection, setSelection] = useState(allergiesEnregistrees)
-  const [regime, setRegime] = useState(regimeEnregistre)
-  const [autreAllergie, setAutreAllergie] = useState(autreEnregistree)
+  const [connus, setConnus] = useState(connusEnregistres)
+  const [autres, setAutres] = useState(autresEnregistrees)
+  const [saisie, setSaisie] = useState('')
+  const [erreurSaisie, setErreurSaisie] = useState(null)
+  const [choixRegime, setChoixRegime] = useState(regimeEstPersonnel(regimeEnregistre) ? REGIME_AUTRE : regimeEnregistre)
+  const [regimeLibre, setRegimeLibre] = useState(regimeEstPersonnel(regimeEnregistre) ? regimeEnregistre : '')
+  const [erreurRegime, setErreurRegime] = useState(null)
   const [envoiEnCours, setEnvoiEnCours] = useState(false)
-  const cleEnregistree = `${allergiesEnregistrees.join(',')}|${regimeEnregistre}|${autreEnregistree}`
-  const modifie =
-    !memesAllergies(selection, allergiesEnregistrees) || regime !== regimeEnregistre || autreAllergie.trim() !== autreEnregistree
   const prenom = eleve.nom.trim().split(' ')[0] || 'votre enfant'
+  const suggestions = ALLERGENES.filter((allergene) => !connus.includes(allergene.valeur))
+  const modifie =
+    !memesListes(connus, connusEnregistres) ||
+    autres.join(', ') !== autresEnregistrees.join(', ') ||
+    regimeAEnregistrer(choixRegime, regimeLibre) !== regimeEnregistre
 
-  // Si le profil change ailleurs (parent, autre appareil), le formulaire suit
-  useEffect(() => {
-    const [allergies, regimeBase, autreBase] = cleEnregistree.split('|')
-    setSelection(allergies ? allergies.split(',') : [])
-    setRegime(regimeBase)
-    setAutreAllergie(autreBase)
-  }, [cleEnregistree])
-
-  function basculer(valeur) {
-    setSelection((anciennes) =>
-      anciennes.includes(valeur) ? anciennes.filter((autre) => autre !== valeur) : [...anciennes, valeur],
-    )
+  function ajouterConnu(valeur) {
+    setConnus((anciens) => (anciens.includes(valeur) ? anciens : [...anciens, valeur]))
   }
 
-  async function enregistrer() {
+  // Ajoute ce qui est tapé : un des 5 allergènes suivis s'il est reconnu (« cacahuètes » → Arachide), sinon une allergie libre
+  function ajouterSaisie() {
+    const brut = saisie.trim().replace(/,/g, ' ').replace(/\s+/g, ' ')
+    const texte = brut.charAt(0).toUpperCase() + brut.slice(1)
+    if (!texte) return
+    const connu = reconnaitreAllergene(texte)
+    if (connu) {
+      ajouterConnu(connu)
+    } else if (autres.some((autre) => comparable(autre) === comparable(texte))) {
+      setErreurSaisie(null)
+    } else if (autres.length >= NOMBRE_MAX_AUTRES) {
+      setErreurSaisie(`${NOMBRE_MAX_AUTRES} allergies libres au plus. Retire-en une pour en ajouter une autre.`)
+      return
+    } else if ([...autres, texte].join(', ').length > LONGUEUR_MAX_AUTRES) {
+      setErreurSaisie('La liste est trop longue. Raccourcis une allergie.')
+      return
+    } else {
+      setAutres((anciennes) => [...anciennes, texte])
+    }
+    setErreurSaisie(null)
+    setSaisie('')
+  }
+
+  function surToucheSaisie(evenement) {
+    if (evenement.key === 'Enter') {
+      evenement.preventDefault()
+      ajouterSaisie()
+    }
+  }
+
+  async function enregistrer(evenement) {
+    evenement.preventDefault()
+    if (choixRegime === REGIME_AUTRE && !regimeLibre.trim()) {
+      setErreurRegime('Écris le régime, par exemple « Sans gluten » ou « Pas de bœuf ».')
+      return
+    }
+    setErreurRegime(null)
     setEnvoiEnCours(true)
     const erreur = await modifierProfilAlimentaire(eleve.id, {
-      allergies: selection,
-      regime,
-      autreAllergie: autreAllergie.trim(),
+      allergies: connus,
+      regime: regimeAEnregistrer(choixRegime, regimeLibre),
+      autreAllergie: autres.join(', '),
     })
     setEnvoiEnCours(false)
 
@@ -55,59 +101,127 @@ export default function ProfilAlimentaire({ eleve, afficherToast, onEnregistre, 
     }
     afficherToast(pourParent ? `Profil de ${prenom} enregistré.` : 'Ton profil est enregistré.')
     if (onEnregistre) onEnregistre()
+    if (onFermer) onFermer()
   }
 
+  const rien = connus.length === 0 && autres.length === 0
+
   return (
-    <div className="pile">
-      <h3 className="sous-titre">{pourParent ? 'Ses allergies' : 'Tes allergies'}</h3>
-      <div className="choix-grille" role="group" aria-label={pourParent ? `Allergies de ${prenom}` : 'Tes allergies'}>
-        {ALLERGENES.map((allergene) => {
-          const estChoisi = selection.includes(allergene.valeur)
-          return (
-            <label key={allergene.valeur} className="choix choix-allergie">
-              <input type="checkbox" checked={estChoisi} onChange={() => basculer(allergene.valeur)} disabled={envoiEnCours} />
-              <span className="choix-allergie-nom">
-                <Icone nom={allergene.icone} /> {allergene.libelle}
-              </span>
-              <span className="choix-etat">{estChoisi && <Icone nom="coche" />}
-                {estChoisi ? 'Sélectionné' : 'Non sélectionné'}</span>
-            </label>
-          )
-        })}
-      </div>
+    <form className="pile formulaire-profil" onSubmit={enregistrer} noValidate>
+      <fieldset className="pile groupe-profil" disabled={envoiEnCours}>
+        <legend className="sous-titre">{pourParent ? 'Ses allergies' : 'Tes allergies'}</legend>
 
-      <div className={autreAllergie.length > LONGUEUR_MAX_AUTRE ? 'champ champ-erreur' : 'champ'}>
-        <label htmlFor={`autre-allergie-${eleve.id}`}>Autre allergie</label>
-        <input
-          id={`autre-allergie-${eleve.id}`}
-          type="text"
-          maxLength={LONGUEUR_MAX_AUTRE}
-          placeholder="Crevettes, kiwi…"
-          value={autreAllergie}
-          onChange={(e) => setAutreAllergie(e.target.value)}
-          disabled={envoiEnCours}
-        />
-        <span className="champ-message">Facultatif. La cuisine la verra sur sa liste du jour.</span>
-      </div>
+        {rien ? (
+          <p className="aide">Aucune allergie déclarée pour l’instant.</p>
+        ) : (
+          <ul className="etiquettes" aria-label="Allergies déclarées">
+            {connus.map((valeur) => {
+              const allergene = trouverAllergene(valeur)
+              return (
+                <li key={valeur} className="etiquette">
+                  <Icone nom={allergene.icone} />
+                  {allergene.libelle}
+                  <button
+                    type="button"
+                    className="etiquette-retirer"
+                    onClick={() => setConnus((anciens) => anciens.filter((autre) => autre !== valeur))}
+                    aria-label={`Retirer ${allergene.libelle}`}
+                  >
+                    <Icone nom="fermer" />
+                  </button>
+                </li>
+              )
+            })}
+            {autres.map((allergie) => (
+              <li key={allergie} className="etiquette">
+                <Icone nom="alerte" />
+                {allergie}
+                <button
+                  type="button"
+                  className="etiquette-retirer"
+                  onClick={() => setAutres((anciennes) => anciennes.filter((autre) => autre !== allergie))}
+                  aria-label={`Retirer ${allergie}`}
+                >
+                  <Icone nom="fermer" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
 
-      <h3 className="sous-titre" id={`titre-regime-${eleve.id}`}>{pourParent ? 'Son régime' : 'Ton régime'}</h3>
-      <div className="choix-grille" role="radiogroup" aria-labelledby={`titre-regime-${eleve.id}`}>
-        {REGIMES.map((unRegime) => (
-          <label key={unRegime.valeur} className="choix choix-safran">
+        <div className={erreurSaisie ? 'champ champ-erreur' : 'champ'}>
+          <label htmlFor={`ajout-allergie-${eleve.id}`}>Ajouter une allergie</label>
+          <div className="champ-ajout">
             <input
-              type="radio"
-              name={`regime-${eleve.id}`}
-              value={unRegime.valeur}
-              checked={regime === unRegime.valeur}
-              onChange={() => setRegime(unRegime.valeur)}
-              disabled={envoiEnCours}
+              id={`ajout-allergie-${eleve.id}`}
+              type="text"
+              maxLength={LONGUEUR_MAX_ALLERGIE}
+              placeholder="Crevettes, kiwi, sésame…"
+              value={saisie}
+              onChange={(e) => setSaisie(e.target.value)}
+              onKeyDown={surToucheSaisie}
+              autoComplete="off"
             />
-            <Icone nom={unRegime.icone} className="choix-icone" />
-            {unRegime.libelle}
-            <span className="choix-detail">{unRegime.detail}</span>
-          </label>
-        ))}
-      </div>
+            <button type="button" className="btn btn-secondaire btn-ajouter" onClick={ajouterSaisie} disabled={!saisie.trim()}>
+              Ajouter
+            </button>
+          </div>
+          <span className="champ-message">
+            {erreurSaisie || 'Écris ce que tu veux, une allergie à la fois. La cuisine la verra sur sa liste du jour.'}
+          </span>
+        </div>
+
+        {suggestions.length > 0 && (
+          <div className="suggestions" role="group" aria-label="Allergies fréquentes">
+            <span className="mention">Fréquentes :</span>
+            {suggestions.map((allergene) => (
+              <button key={allergene.valeur} type="button" className="suggestion" onClick={() => ajouterConnu(allergene.valeur)}>
+                <Icone nom="plus" />
+                {allergene.libelle}
+              </button>
+            ))}
+          </div>
+        )}
+      </fieldset>
+
+      <fieldset className="pile groupe-profil" disabled={envoiEnCours}>
+        <legend className="sous-titre">{pourParent ? 'Son régime' : 'Ton régime'}</legend>
+        <div className="champ">
+          <label htmlFor={`regime-${eleve.id}`}>Régime alimentaire</label>
+          <select
+            id={`regime-${eleve.id}`}
+            value={choixRegime}
+            onChange={(e) => {
+              setChoixRegime(e.target.value)
+              setErreurRegime(null)
+            }}
+          >
+            {REGIMES.map((regime) => (
+              <option key={regime.valeur} value={regime.valeur}>
+                {regime.libelle} ({regime.detail.toLowerCase()})
+              </option>
+            ))}
+            <option value={REGIME_AUTRE}>Autre, je l’écris</option>
+          </select>
+        </div>
+
+        {choixRegime === REGIME_AUTRE && (
+          <div className={erreurRegime ? 'champ champ-erreur' : 'champ'}>
+            <label htmlFor={`regime-libre-${eleve.id}`}>{pourParent ? 'Son régime, en quelques mots' : 'Ton régime, en quelques mots'}</label>
+            <input
+              id={`regime-libre-${eleve.id}`}
+              type="text"
+              maxLength={LONGUEUR_MAX_REGIME}
+              placeholder="Sans gluten, pas de bœuf…"
+              value={regimeLibre}
+              onChange={(e) => setRegimeLibre(e.target.value)}
+            />
+            <span className="champ-message">
+              {erreurRegime || 'La cuisine le voit, et l’appli te prévient quand un plat semble ne pas convenir.'}
+            </span>
+          </div>
+        )}
+      </fieldset>
 
       <div className="alerte alerte-info alerte-prevenu">
         <Icone nom="bouclier" />
@@ -117,9 +231,16 @@ export default function ProfilAlimentaire({ eleve, afficherToast, onEnregistre, 
         </div>
       </div>
 
-      <button type="button" className="btn btn-enregistrer" onClick={enregistrer} disabled={!modifie || envoiEnCours}>
-        {envoiEnCours ? 'Enregistrement…' : 'Enregistrer'}
-      </button>
-    </div>
+      <div className="pile actions-profil">
+        <button type="submit" className="btn btn-enregistrer" disabled={!modifie || envoiEnCours}>
+          {envoiEnCours ? 'Enregistrement…' : 'Enregistrer'}
+        </button>
+        {onFermer && (
+          <button type="button" className="btn btn-discret" onClick={onFermer} disabled={envoiEnCours}>
+            Annuler
+          </button>
+        )}
+      </div>
+    </form>
   )
 }

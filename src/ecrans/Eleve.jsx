@@ -3,7 +3,7 @@ import { useState } from 'react'
 import BarreOnglets from '../composants/BarreOnglets'
 import BandeauSoldeBas from '../composants/BandeauSoldeBas'
 import CarteCantine from '../composants/CarteCantine'
-import ProfilAlimentaireReplie from '../composants/ProfilAlimentaireReplie'
+import CarteProfilAlimentaire from '../composants/CarteProfilAlimentaire'
 import ATable from './ATable'
 import MenuSemaine from './MenuSemaine'
 import FichePlat from './FichePlat'
@@ -149,7 +149,7 @@ export default function Eleve({ profil, afficherToast, onProfilModifie }) {
           <p className="aide">Montre-la au comptoir : la cuisine voit ton code du jour et tes allergies d’un seul coup d’œil.</p>
           <CarteCantine profil={profil} />
 
-          <ProfilAlimentaireReplie eleve={profil} afficherToast={afficherToast} onEnregistre={onProfilModifie} />
+          <CarteProfilAlimentaire eleve={profil} afficherToast={afficherToast} onEnregistre={onProfilModifie} />
         </section>
       )}
 

@@ -3,7 +3,7 @@ import { Fragment, useCallback, useEffect, useState } from 'react'
 import { prixPourProfil } from '../lib/menus'
 import { reservationFermee, reserverRepas } from '../lib/reservations'
 import { allergenesARisque, alternativeCompatible, nommerAllergenes, resumerProfil } from '../lib/allergenes'
-import { libelleRegime, raisonRegimeDuMenu, soupconAutreAllergie } from '../lib/regimes'
+import { libelleRegime, raisonRegimeDuMenu, regimeEstPersonnel, soupconAutreAllergie } from '../lib/regimes'
 import { chargerAffluence } from '../lib/affluence'
 import { creneauConseille, preparerCreneaux } from '../lib/fileAttente'
 import { formaterCreneau, formaterDate, formaterMontant, HORAIRE_SERVICE } from '../lib/formatage'
@@ -179,9 +179,11 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
         <div className="verif verif-danger" role="alert">
           <Icone nom="alerte" className="verif-icone" />
           <div>
-            <p className="verif-titre">Hors de ton régime {libelleRegime(regime).toLowerCase()}</p>
+            <p className="verif-titre">
+              {regimeEstPersonnel(regime) ? `À vérifier : ${libelleRegime(regime).toLowerCase()}` : `Hors de ton régime ${libelleRegime(regime).toLowerCase()}`}
+            </p>
             <p className="verif-texte">
-              {raisonRegime}.{' '}
+              {regimeEstPersonnel(regime) ? 'Le nom du plat le laisse penser, demande à la cantine' : raisonRegime}.{' '}
               {avecAlternative ? `Le plat de remplacement te va : ${menu.plat_alternatif}.` : 'Pas de remplacement ce jour-là.'}
             </p>
           </div>
@@ -192,7 +194,7 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
         <div className="alerte alerte-attention" role="alert">
           <Icone nom="alerte" />
           <div>
-            <strong>Peut contenir : {profil.autre_allergie}</strong>
+            <strong>Peut contenir : {soupcon}</strong>
             <p>Demande à la cantine avant de réserver. Ton parent et la cuisine voient cette allergie.</p>
           </div>
         </div>

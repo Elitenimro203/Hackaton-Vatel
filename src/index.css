@@ -3545,3 +3545,146 @@ tbody tr:hover {
 .compte-entete .compte-detail {
   max-width: 100%;
 }
+
+/* =========================================================
+   37. FORMULAIRE DU PROFIL ALIMENTAIRE (panneau du bas)
+   .resume-profil       ligne « Allergies et régime · Modifier » en bouton
+   .fenetre-profil      panneau du formulaire (avec .fenetre-bas)
+   .groupe-profil       fieldset sans cadre (Tes allergies, Ton régime)
+   .etiquettes          liste des allergies déclarées
+   .etiquette           une allergie, avec .etiquette-retirer (croix ronde)
+   .champ-ajout         champ texte + bouton Ajouter sur une ligne
+   .suggestions         raccourcis « + Arachide » pour les allergènes suivis
+   ========================================================= */
+.resume-profil {
+  width: 100%;
+  border: 0;
+  color: var(--creme);
+  font: inherit;
+  text-align: left;
+}
+
+.resume-profil:hover .repli-action {
+  background: var(--safran);
+  color: var(--braise);
+}
+
+.fenetre-profil {
+  gap: 18px;
+}
+
+.formulaire-profil {
+  gap: 22px;
+}
+
+.groupe-profil {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.groupe-profil legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.etiquettes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.etiquette {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 4px 4px 4px 12px;
+  border: 1px solid var(--alerte-bord);
+  border-radius: 999px;
+  background: var(--alerte-fond);
+  color: var(--creme);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.etiquette > .icone {
+  color: var(--alerte);
+}
+
+.etiquette-retirer {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--carte-2);
+  color: var(--creme-2);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.etiquette-retirer:hover {
+  background: var(--alerte);
+  color: var(--creme);
+}
+
+.champ-ajout {
+  display: flex;
+  gap: 8px;
+}
+
+.champ-ajout input {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-ajouter {
+  width: auto;
+  flex: none;
+  padding: 0 18px;
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.suggestions .mention {
+  margin: 0;
+}
+
+.suggestion {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px dashed var(--reflet);
+  border-radius: 999px;
+  background: none;
+  color: var(--creme-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.suggestion:hover {
+  border-color: var(--safran);
+  color: var(--safran);
+}
+
+.actions-profil {
+  gap: 8px;
+}
+
