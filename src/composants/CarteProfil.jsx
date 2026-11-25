@@ -1,4 +1,4 @@
-// Carte du compte connecté (nom, e-mail, rôle) avec le bouton de déconnexion.
+// Carte du compte connecté : initiales, nom, profil et e-mail sur une ligne, puis « Se déconnecter » en ligne discrète.
 import { useState } from 'react'
 import { seDeconnecter } from '../lib/authentification'
 import Icone from './Icone'
@@ -8,6 +8,12 @@ const LIBELLES_PROFIL = {
   employe: 'Employé',
   parent: 'Parent',
   admin: 'Admin',
+}
+
+// « Awa Koné » → « AK » (une lettre si un seul mot)
+function initiales(nom) {
+  const mots = (nom || '').trim().split(/\s+/).filter(Boolean)
+  return mots.slice(0, 2).map((mot) => mot.charAt(0).toUpperCase()).join('') || '?'
 }
 
 export default function CarteProfil({ profil, afficherToast }) {
@@ -24,17 +30,17 @@ export default function CarteProfil({ profil, afficherToast }) {
   }
 
   return (
-    <section className="carte pile">
-      <div className="espace-entre">
-        <h2 className="carte-titre">{profil.nom || 'Mon compte'}</h2>
-        <span className="badge badge-info">{LIBELLES_PROFIL[cleProfil]}</span>
-      </div>
-      <p className="mention">{profil.email}</p>
-      <button type="button" className="btn btn-danger" onClick={deconnecter} disabled={envoiEnCours}>
-        <span className="avec-icone">
-          <Icone nom="deconnexion" />
-          {envoiEnCours ? 'Déconnexion…' : 'Se déconnecter'}
+    <section className="carte compte">
+      <div className="compte-ligne">
+        <span className="compte-avatar" aria-hidden="true">{initiales(profil.nom)}</span>
+        <span className="compte-texte">
+          <strong className="compte-nom">{profil.nom || 'Mon compte'}</strong>
+          <span className="mention compte-detail">{LIBELLES_PROFIL[cleProfil]} · {profil.email}</span>
         </span>
+      </div>
+      <button type="button" className="compte-deconnexion" onClick={deconnecter} disabled={envoiEnCours}>
+        <Icone nom="deconnexion" className="icone-alerte" />
+        {envoiEnCours ? 'Déconnexion…' : 'Se déconnecter'}
       </button>
     </section>
   )

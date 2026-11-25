@@ -3417,3 +3417,85 @@ tbody tr:hover {
 .carte-jour-bouton .mention {
   margin: 0;
 }
+
+/* =========================================================
+   36. CARTE COMPTE (profil élève, parent, admin)
+   .compte              carte sans marge intérieure, deux rangées séparées par un trait fin
+   .compte-ligne        initiales + nom + « Élève · e-mail »
+   .compte-avatar       pastille ronde des initiales, safran
+   .compte-deconnexion  rangée « Se déconnecter » discrète, toute la largeur
+   ========================================================= */
+.compte {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.compte-ligne {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+}
+
+.compte-avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--safran-fond);
+  color: var(--safran);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.compte-texte {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.compte-nom {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.compte-detail {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compte-deconnexion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 16px;
+  border: 0;
+  border-top: 1px solid var(--trait);
+  background: none;
+  color: var(--creme-2);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.compte-deconnexion:hover:not(:disabled) {
+  background: var(--carte-2);
+  color: var(--creme);
+}
+
+.compte-deconnexion:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
