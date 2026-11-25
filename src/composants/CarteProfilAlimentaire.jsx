@@ -1,6 +1,7 @@
-// Profil alimentaire en une ligne (« Arachide · Kiwi · Sans gluten ») ; la toucher ouvre le formulaire dans un panneau du bas.
+// Passeport alimentaire du profil (même style que la carte cantine) ; le toucher ouvre le formulaire dans un panneau du bas.
 import { useCallback, useEffect, useState } from 'react'
-import { resumerProfil } from '../lib/allergenes'
+import { listerAutresAllergies } from '../lib/regimes'
+import PasseportAlimentaire from './PasseportAlimentaire'
 import ProfilAlimentaire from './ProfilAlimentaire'
 import Icone from './Icone'
 import '../allergies.css'
@@ -36,19 +37,16 @@ function FenetreProfilAlimentaire({ eleve, afficherToast, onEnregistre, onFermer
 export default function CarteProfilAlimentaire({ eleve, afficherToast, onEnregistre, pourParent = false }) {
   const [ouvert, setOuvert] = useState(false)
   const fermer = useCallback(() => setOuvert(false), [])
-  const resume = resumerProfil(eleve)
-  const aSurveiller = (eleve.allergies || []).length > 0 || Boolean(eleve.autre_allergie)
 
   return (
     <>
-      <button type="button" className="repli repli-carte repli-titre resume-profil" onClick={() => setOuvert(true)} aria-haspopup="dialog">
-        <Icone nom={aSurveiller ? 'alerte' : 'bouclier'} className={aSurveiller ? 'icone-alerte' : 'icone-feuille'} />
-        <span>
-          <span className="sous-titre">Allergies et régime</span>
-          <span className="mention">{resume || 'Rien de déclaré'}</span>
-        </span>
-        <span className="repli-action">Modifier</span>
-      </button>
+      <PasseportAlimentaire
+        nom={eleve.nom}
+        allergies={eleve.allergies || []}
+        autres={listerAutresAllergies(eleve.autre_allergie)}
+        regime={eleve.regime}
+        onModifier={() => setOuvert(true)}
+      />
       {ouvert && (
         <FenetreProfilAlimentaire eleve={eleve} afficherToast={afficherToast} onEnregistre={onEnregistre} onFermer={fermer} pourParent={pourParent} />
       )}

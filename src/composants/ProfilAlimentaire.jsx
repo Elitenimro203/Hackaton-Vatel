@@ -5,6 +5,7 @@ import { ALLERGENES, reconnaitreAllergene } from '../lib/allergenes'
 import { LONGUEUR_MAX_REGIME, REGIMES, REGIME_AUTRE, listerAutresAllergies, regimeEstPersonnel } from '../lib/regimes'
 import { modifierProfilAlimentaire } from '../lib/allergies'
 import Icone from './Icone'
+import PasseportAlimentaire from './PasseportAlimentaire'
 import '../allergies.css'
 
 const LONGUEUR_MAX_ALLERGIE = 30
@@ -122,6 +123,8 @@ export default function ProfilAlimentaire({ eleve, afficherToast, onEnregistre, 
 
   return (
     <form className="pile formulaire-profil" onSubmit={enregistrer} noValidate>
+      <PasseportAlimentaire compact nom={eleve.nom} allergies={connus} autres={autres} regime={regimeAEnregistrer(choixRegime, regimeLibre) || 'aucun'} />
+
       <fieldset className="pile groupe-profil" disabled={envoiEnCours}>
         <legend className="sous-titre">{pourParent ? 'Ses allergies' : 'Tes allergies'}</legend>
         <p className="aide">Touche ce qui {pourParent ? 'le' : 'te'} concerne. La cantine vérifie ces 5 allergènes sur chaque plat.</p>

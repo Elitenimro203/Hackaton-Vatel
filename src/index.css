@@ -3710,3 +3710,206 @@ tbody tr:hover {
   margin: 0;
 }
 
+/* =========================================================
+   38. PASSEPORT ALIMENTAIRE (même famille que la carte cantine)
+   .passeport               carte braise à halo, guillochis (.carte-cantine-motif) et liseré
+   .passeport-alerte        halo et liseré rouges : au moins une allergie
+   .passeport-ok            halo vert : rien à surveiller
+   .passeport-compact       aperçu en tête du formulaire (sans le bas de carte)
+   .passeport-bouton        la carte entière ouvre le formulaire
+   .passeport-sceau         médaillon rond, doré
+   .passeport-titre         « Sans arachide et kiwi. » en Fraunces italique
+   .passeport-pastille      allergie (-allergie), régime (-regime), rien (-ok)
+   ========================================================= */
+.passeport {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 440px;
+  padding: 18px 20px 20px;
+  border: 0;
+  border-radius: var(--rayon);
+  color: var(--creme);
+  font: inherit;
+  text-align: left;
+  background:
+    radial-gradient(120% 90% at 100% 0%, var(--feuille-fond) 0%, var(--braise-transparent) 55%),
+    radial-gradient(90% 80% at 0% 100%, var(--safran-fond) 0%, var(--braise-transparent) 60%),
+    linear-gradient(150deg, var(--carte-2) 0%, var(--carte) 45%, var(--braise) 100%);
+  box-shadow:
+    inset 0 0 0 1px var(--feuille-fond),
+    inset 0 1px 0 var(--trait),
+    0 18px 40px var(--ombre);
+  animation: carte-apparait 0.6s var(--rebond) both;
+}
+
+.passeport-alerte {
+  background:
+    radial-gradient(120% 90% at 100% 0%, var(--piment-halo) 0%, var(--braise-transparent) 55%),
+    radial-gradient(90% 80% at 0% 100%, var(--alerte-fond) 0%, var(--braise-transparent) 60%),
+    linear-gradient(150deg, var(--carte-2) 0%, var(--carte) 45%, var(--braise) 100%);
+  box-shadow:
+    inset 0 0 0 1px var(--alerte-bord),
+    inset 0 1px 0 var(--trait),
+    0 18px 40px var(--ombre);
+}
+
+.passeport-compact {
+  gap: 10px;
+  padding: 16px 18px;
+  box-shadow: inset 0 0 0 1px var(--trait);
+  animation: none;
+}
+
+.passeport-compact.passeport-alerte {
+  box-shadow: inset 0 0 0 1px var(--alerte-bord);
+}
+
+.passeport-bouton {
+  cursor: pointer;
+  transition: transform 0.25s var(--rebond);
+}
+
+.passeport-bouton:active {
+  transform: scale(0.98);
+}
+
+.passeport-bouton:focus-visible {
+  outline: 2px solid var(--safran);
+  outline-offset: 3px;
+}
+
+.passeport-haut,
+.passeport-bas {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.passeport-bas {
+  align-items: flex-end;
+}
+
+.passeport-surtitre {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--safran);
+}
+
+.passeport-sceau {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--safran) 0%, var(--ticket) 45%, var(--safran) 100%);
+  color: var(--braise);
+  font-size: 18px;
+  box-shadow: inset 0 0 0 1px var(--ticket-trait), 0 4px 14px var(--ombre);
+}
+
+.passeport-compact .passeport-sceau {
+  width: 32px;
+  height: 32px;
+  font-size: 15px;
+}
+
+.passeport-titre {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: clamp(26px, 8vw, 32px);
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+}
+
+.passeport-compact .passeport-titre {
+  font-size: 22px;
+}
+
+.passeport-pastilles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.passeport-pastille {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.passeport-pastille-allergie {
+  background: var(--alerte);
+  color: var(--creme);
+  box-shadow: 0 4px 12px var(--piment-fond);
+}
+
+.passeport-pastille-regime {
+  background: var(--safran);
+  color: var(--braise);
+}
+
+.passeport-pastille-ok {
+  background: var(--feuille-fond);
+  color: var(--feuille);
+}
+
+.passeport-identite {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.passeport-nom {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.passeport-modifier {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--creme);
+  color: var(--braise);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* Tuiles du formulaire : l'allergie cochée prend le halo rouge du passeport, le régime choisi le halo safran */
+.formulaire-profil .choix-allergie:has(input:checked) {
+  background:
+    radial-gradient(120% 120% at 100% 0%, var(--piment-halo) 0%, var(--braise-transparent) 60%),
+    var(--carte);
+}
+
+.formulaire-profil .choix-safran:has(input:checked) {
+  background:
+    radial-gradient(120% 120% at 100% 0%, var(--safran-fond) 0%, var(--braise-transparent) 70%),
+    var(--carte-2);
+}
+
