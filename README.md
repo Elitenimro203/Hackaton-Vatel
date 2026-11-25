@@ -34,7 +34,7 @@ Projet réalisé seul pendant le hackathon « Application de gestion de cantine 
 - **4 plats au choix chaque jour** (plus entrée, dessert et boisson) : ceux qui vont à son profil passent en premier, un seul repas par jour.
 - **Menu** : la semaine du lundi au vendredi, les plats au choix de chaque jour, réservation en 3 touchers, choix du créneau, ticket crème avec le code de retrait « CJ · 0812 ».
 - **Mes repas** : solde en direct, tickets à venir (annulables jusqu'à la veille 18 h), repas servis à noter en étoiles, historique des mouvements, recharge Mobile Money.
-- **Profil** : **carte cantine virtuelle** (titulaire, tarif, solde, code du jour et allergies d'un seul regard au comptoir), profil alimentaire replié en une ligne, déconnexion.
+- **Profil** : **carte cantine virtuelle** (titulaire, tarif, solde, code du jour et allergies d'un seul regard au comptoir), profil alimentaire replié en une ligne. La déconnexion se trouve derrière le prénom, en haut à droite, sur tous les écrans.
 - Bandeau **« Solde bas »** sous 2 000 F.
 
 ### Parent (3 onglets)

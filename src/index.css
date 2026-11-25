@@ -3419,24 +3419,20 @@ tbody tr:hover {
 }
 
 /* =========================================================
-   36. CARTE COMPTE (profil élève, parent, admin)
-   .compte              carte sans marge intérieure, deux rangées séparées par un trait fin
-   .compte-ligne        initiales + nom + « Élève · e-mail »
-   .compte-avatar       pastille ronde des initiales, safran
-   .compte-deconnexion  rangée « Se déconnecter » discrète, toute la largeur
+   36. COMPTE (panneau ouvert depuis la pastille du prénom, en haut à droite)
+   .entete-compte       pastille du prénom devenue bouton : initiales + prénom
+   .entete-avatar       petit rond des initiales dans la pastille
+   .fenetre-compte      panneau du compte (avec .fenetre-bas)
+   .compte-entete       initiales en grand, nom, « Élève · e-mail », centrés
+   .compte              carte sans marge intérieure qui porte les rangées d'action
+   .compte-avatar       rond des initiales, safran (.compte-avatar-grand : 72 px)
+   .compte-deconnexion  rangée « Se déconnecter », toute la largeur
    ========================================================= */
 .compte {
   display: flex;
   flex-direction: column;
   padding: 0;
   overflow: hidden;
-}
-
-.compte-ligne {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px;
 }
 
 .compte-avatar {
@@ -3451,18 +3447,6 @@ tbody tr:hover {
   font-size: 17px;
   font-weight: 800;
   letter-spacing: 0.04em;
-}
-
-.compte-texte {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.compte-nom {
-  font-size: 17px;
-  font-weight: 700;
 }
 
 .compte-detail {
@@ -3480,7 +3464,6 @@ tbody tr:hover {
   min-height: 56px;
   padding: 0 16px;
   border: 0;
-  border-top: 1px solid var(--trait);
   background: none;
   color: var(--creme-2);
   font: inherit;
@@ -3498,4 +3481,67 @@ tbody tr:hover {
 .compte-deconnexion:disabled {
   cursor: default;
   opacity: 0.6;
+}
+
+.entete-compte {
+  gap: 8px;
+  padding: 5px 14px 5px 5px;
+  border: 1px solid var(--trait);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.entete-compte:hover,
+.entete-compte[aria-expanded='true'] {
+  background: var(--carte-2);
+  border-color: var(--safran);
+}
+
+.entete-avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--safran-fond);
+  color: var(--safran);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.entete-prenom-texte {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fenetre-compte {
+  gap: 20px;
+}
+
+.compte-entete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: 8px;
+  text-align: center;
+}
+
+.compte-avatar-grand {
+  width: 72px;
+  height: 72px;
+  margin-bottom: 6px;
+  font-size: 24px;
+}
+
+.fenetre-bas .compte-nom-grand {
+  font-size: 26px;
+}
+
+.compte-entete .compte-detail {
+  max-width: 100%;
 }

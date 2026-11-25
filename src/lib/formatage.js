@@ -11,6 +11,19 @@ export function prenomAffiche(nom, parDefaut = '') {
   return premierMot ? premierMot.charAt(0).toUpperCase() + premierMot.slice(1) : parDefaut
 }
 
+// « Awa Koné » → « AK » (une lettre si un seul mot)
+export function initiales(nom) {
+  const mots = (nom || '').trim().split(/\s+/).filter(Boolean)
+  return mots.slice(0, 2).map((mot) => mot.charAt(0).toUpperCase()).join('') || '?'
+}
+
+const LIBELLES_PROFIL = { eleve: 'Élève', employe: 'Employé', parent: 'Parent', admin: 'Admin' }
+
+// Libellé du profil affiché sous le nom : Élève, Employé, Parent ou Admin
+export function libelleDuProfil(profil) {
+  return LIBELLES_PROFIL[profil.role === 'eleve' ? profil.type_usager : profil.role] || ''
+}
+
 // Nom propre avec majuscules (« bakayoko sania » → « Bakayoko Sania », « kouadio-assi » → « Kouadio-Assi »)
 export function nomPropre(nom) {
   return (nom || '').trim().toLowerCase().replace(/(^|[\s'’-])(\p{L})/gu, (_tout, avant, lettre) => avant + lettre.toUpperCase())

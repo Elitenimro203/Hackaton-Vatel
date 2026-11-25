@@ -2,7 +2,6 @@
 import { useState } from 'react'
 import BarreOnglets from '../composants/BarreOnglets'
 import BandeauSoldeBas from '../composants/BandeauSoldeBas'
-import CarteProfil from '../composants/CarteProfil'
 import CarteCantine from '../composants/CarteCantine'
 import ProfilAlimentaireReplie from '../composants/ProfilAlimentaireReplie'
 import ATable from './ATable'
@@ -151,7 +150,6 @@ export default function Eleve({ profil, afficherToast, onProfilModifie }) {
           <CarteCantine profil={profil} />
 
           <ProfilAlimentaireReplie eleve={profil} afficherToast={afficherToast} onEnregistre={onProfilModifie} />
-          <CarteProfil profil={profil} afficherToast={afficherToast} />
         </section>
       )}
 

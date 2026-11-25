@@ -20,7 +20,7 @@ const ONGLETS = [
   { id: 'insights', icone: 'avis', libelle: 'Insights' },
 ]
 
-export default function Admin({ profil, afficherToast }) {
+export default function Admin({ afficherToast }) {
   const [ongletActif, setOngletActif] = useState('pilotage')
   const [deconnexionEnCours, setDeconnexionEnCours] = useState(false)
 
@@ -77,7 +77,6 @@ export default function Admin({ profil, afficherToast }) {
 
         {ongletActif === 'pilotage' && (
           <AdminPilotage
-            profil={profil}
             afficherToast={afficherToast}
             onVoirCommandes={() => choisirOnglet('commandes')}
             onVoirMenus={() => choisirOnglet('menus')}
