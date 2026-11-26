@@ -1,15 +1,18 @@
-// Onglet « À table » de l'élève : le prochain repas à réserver, un plat vedette en grand et les autres plats au choix du même jour.
+// Onglet « À table » de l'élève : rappel de l'heure limite (ou du jour raté), le prochain repas à réserver, un plat vedette en grand et les autres plats au choix du même jour.
 import { useCallback, useEffect, useState } from 'react'
 import { chargerMenusEntre, decrireFormule, platsDuJour, prixPourProfil } from '../lib/menus'
 import { chargerMesReservations, reservationFermee } from '../lib/reservations'
 import { problemeDuPlat } from '../lib/allergenes'
 import { ajouterJours, dateDuJour, formaterDateCourte, formaterMontant, prenomAffiche } from '../lib/formatage'
 import { useTempsReel } from '../lib/useTempsReel'
+import { MINUTES_RAPPEL_URGENT, jourRate, minutesAvantLimite } from '../lib/rappels'
+import RappelReservation from '../composants/RappelReservation'
 import ChoixPlat from '../composants/ChoixPlat'
 import Vide from '../composants/Vide'
 import Icone from '../composants/Icone'
 
 const JOURS_AFFICHES = 13
+const UNE_MINUTE = 60 * 1000
 
 export default function ATable({ profil, onOuvrirPlat, onVoirMenu, onVoirReservations }) {
   const aujourdhui = dateDuJour()
@@ -17,6 +20,7 @@ export default function ATable({ profil, onOuvrirPlat, onVoirMenu, onVoirReserva
   const [reservations, setReservations] = useState([])
   const [chargement, setChargement] = useState(true)
   const [erreur, setErreur] = useState(null)
+  const [maintenant, setMaintenant] = useState(() => new Date())
   const prenom = prenomAffiche(profil.nom, 'toi')
 
   const charger = useCallback(async () => {
@@ -31,6 +35,12 @@ export default function ATable({ profil, onOuvrirPlat, onVoirMenu, onVoirReserva
   useEffect(() => {
     charger()
   }, [charger])
+
+  // Le compte à rebours avant 18 h se met à jour chaque minute
+  useEffect(() => {
+    const minuteur = setInterval(() => setMaintenant(new Date()), UNE_MINUTE)
+    return () => clearInterval(minuteur)
+  }, [])
 
   useTempsReel('menus', charger)
   useTempsReel('reservations', charger, `eleve_id=eq.${profil.id}`)
@@ -48,6 +58,10 @@ export default function ATable({ profil, onOuvrirPlat, onVoirMenu, onVoirReserva
     platsDuProchainJour[0]
   const autresChoix = platsDuProchainJour.filter((menu) => menu !== vedette)
   const estReserve = (menu) => menu.id === idReserve
+
+  const minutesRestantes = prochainJour ? minutesAvantLimite(prochainJour, maintenant) : null
+  const jourUrgent = prochainJour && !idReserve && minutesRestantes <= MINUTES_RAPPEL_URGENT ? prochainJour : null
+  const jourManque = jourRate(menus, reservations, aujourdhui, maintenant)
 
   function ouvrir(menu) {
     if (estReserve(menu)) onVoirReservations()
@@ -86,6 +100,7 @@ export default function ATable({ profil, onOuvrirPlat, onVoirMenu, onVoirReserva
     return (
       <section className="pile">
         <h1>Eh, {prenom}. On mange quoi ?</h1>
+        <RappelReservation jourManque={jourManque} onVoirMenu={onVoirMenu} />
         <Vide
           icone="a-table"
           titre="La cuisine prépare la suite"
@@ -105,6 +120,13 @@ export default function ATable({ profil, onOuvrirPlat, onVoirMenu, onVoirReserva
       <p className="a-table-salut">
         Eh, {prenom}. On mange quoi ?
       </p>
+
+      <RappelReservation
+        jourUrgent={jourUrgent}
+        minutesRestantes={minutesRestantes}
+        jourManque={jourManque}
+        onVoirMenu={onVoirMenu}
+      />
 
       <article className="plat-vedette">
         {vedette.photo_url && <img className="plat-vedette-photo" src={vedette.photo_url} alt={vedette.plat} />}

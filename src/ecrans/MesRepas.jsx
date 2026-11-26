@@ -1,6 +1,13 @@
-// Onglet Mes repas de l'élève : solde en temps réel avec bouton Recharger (l'alerte solde bas est en haut de l'écran, dans Eleve), tickets à venir (annulables avant la veille 18 h), repas servis à noter (étoiles + mot pour la cuisine), historique et mouvements.
+// Onglet Mes repas de l'élève : solde en temps réel avec bouton Recharger (l'alerte solde bas est en haut de l'écran, dans Eleve), tickets à venir (annulables avant la veille 18 h, puis « Je ne viendrai pas » jusqu'à 10 h avec la moitié rendue), repas servis à noter (étoiles + mot pour la cuisine), historique et mouvements.
 import { useCallback, useEffect, useState } from 'react'
-import { annulerReservation, chargerHistoriqueReservations, reservationFermee, statutAffiche } from '../lib/reservations'
+import {
+  absencePossible,
+  annulerReservation,
+  chargerHistoriqueReservations,
+  reservationFermee,
+  signalerAbsence,
+  statutAffiche,
+} from '../lib/reservations'
 import { chargerMesMouvements } from '../lib/mouvements'
 import { chargerMesAvis } from '../lib/avis'
 import { PRIX_ELEVE_PAR_DEFAUT, PRIX_EMPLOYE_PAR_DEFAUT } from '../lib/menus'
@@ -25,6 +32,7 @@ export default function MesRepas({ profil, afficherToast, onVoirMenu, onRecharge
   const [chargement, setChargement] = useState(true)
   const [erreur, setErreur] = useState(null)
   const [aAnnuler, setAAnnuler] = useState(null)
+  const [enAbsence, setEnAbsence] = useState(false)
   const [annulationEnCours, setAnnulationEnCours] = useState(false)
   const aujourdhui = dateDuJour()
   const prixRepas = profil.type_usager === 'employe' ? PRIX_EMPLOYE_PAR_DEFAUT : PRIX_ELEVE_PAR_DEFAUT
@@ -55,17 +63,29 @@ export default function MesRepas({ profil, afficherToast, onVoirMenu, onRecharge
     .sort((a, b) => b.menus.jour.localeCompare(a.menus.jour))
   const historique = reservations.filter((reservation) => !estAVenir(reservation, aujourdhui) && reservation.statut !== 'servie')
 
+  // absence = true : après la veille 18 h, on prévient la cantine et on récupère la moitié
+  function ouvrirAnnulation(reservation, absence) {
+    setEnAbsence(absence)
+    setAAnnuler(reservation)
+  }
+
   async function confirmerAnnulation() {
     setAnnulationEnCours(true)
-    const erreurAnnulation = await annulerReservation(aAnnuler.id)
+    const resultat = enAbsence
+      ? await signalerAbsence(aAnnuler.id)
+      : { erreur: await annulerReservation(aAnnuler.id), rendu: aAnnuler.montant }
     setAnnulationEnCours(false)
     setAAnnuler(null)
 
-    if (erreurAnnulation) {
-      afficherToast(erreurAnnulation, 'erreur')
+    if (resultat.erreur) {
+      afficherToast(resultat.erreur, 'erreur')
       return
     }
-    afficherToast(`Repas annulé : ${formaterMontant(aAnnuler.montant)} remis sur ton solde.`)
+    afficherToast(
+      enAbsence
+        ? `La cantine est prévenue : ${formaterMontant(resultat.rendu)} remis sur ton solde.`
+        : `Repas annulé : ${formaterMontant(resultat.rendu)} remis sur ton solde.`,
+    )
     charger()
   }
 
@@ -128,12 +148,21 @@ export default function MesRepas({ profil, afficherToast, onVoirMenu, onRecharge
             code={reservation.code_retrait}
             creneau={reservation.creneau}
           />
-          {reservationFermee(reservation.menus.jour) ? (
-            <p className="mention centre">Plus annulable : la cuisine prépare ton assiette.</p>
-          ) : (
-            <button type="button" className="btn btn-danger" onClick={() => setAAnnuler(reservation)}>
+          {!reservationFermee(reservation.menus.jour) && (
+            <button type="button" className="btn btn-danger" onClick={() => ouvrirAnnulation(reservation, false)}>
               Annuler · récupérer {formaterMontant(reservation.montant)}
             </button>
+          )}
+          {absencePossible(reservation.menus.jour) && (
+            <>
+              <button type="button" className="btn btn-danger" onClick={() => ouvrirAnnulation(reservation, true)}>
+                Je ne viendrai pas · récupérer {formaterMontant(Math.floor(reservation.montant / 2))}
+              </button>
+              <p className="mention centre">Ta portion est déjà commandée : prévenir avant 10 h rend la moitié du repas.</p>
+            </>
+          )}
+          {reservationFermee(reservation.menus.jour) && !absencePossible(reservation.menus.jour) && (
+            <p className="mention centre">La cuisine prépare ton assiette. Un repas pas retiré n’est pas remboursé.</p>
           )}
         </div>
       ))}
@@ -202,16 +231,18 @@ export default function MesRepas({ profil, afficherToast, onVoirMenu, onRecharge
       {aAnnuler && (
         <div className="voile">
           <div className="fenetre-bas fenetre-centre" role="alertdialog" aria-modal="true" aria-labelledby="titre-annulation">
-            <h2 id="titre-annulation">Annuler ton repas&nbsp;?</h2>
+            <h2 id="titre-annulation">{enAbsence ? 'Tu ne viendras pas\u00A0?' : 'Annuler ton repas\u00A0?'}</h2>
             <p className="aide">
-              {aAnnuler.menus.plat}, {formaterDate(aAnnuler.menus.jour)}. Tu récupères {formaterMontant(aAnnuler.montant)} tout
-              de suite.
+              {aAnnuler.menus.plat}, {formaterDate(aAnnuler.menus.jour)}.{' '}
+              {enAbsence
+                ? `La cuisine a déjà commandé ta portion : tu récupères ${formaterMontant(Math.floor(aAnnuler.montant / 2))}, la moitié du repas.`
+                : `Tu récupères ${formaterMontant(aAnnuler.montant)} tout de suite.`}
             </p>
             <button type="button" className="btn btn-secondaire" onClick={() => setAAnnuler(null)} disabled={annulationEnCours}>
               Garder mon repas
             </button>
             <button type="button" className="btn btn-danger" onClick={confirmerAnnulation} disabled={annulationEnCours}>
-              {annulationEnCours ? 'Annulation…' : 'Oui, annuler'}
+              {annulationEnCours ? 'Envoi…' : enAbsence ? 'Oui, prévenir la cantine' : 'Oui, annuler'}
             </button>
           </div>
         </div>

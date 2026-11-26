@@ -4147,3 +4147,656 @@ tbody tr:hover {
   color: var(--creme-3);
 }
 
+
+/* =========================================================
+   40. CONNEXION RELOOKÉE (carte posée sur la photo, mot de passe oublié)
+   .hero-connexion       photo d'accueil plus courte, la carte de connexion la chevauche
+   .carte-connexion      carte de connexion relevée, visible sans faire défiler
+   .carte-connexion-seule  même carte sans photo au-dessus (nouveau mot de passe)
+   .champ-icone          enveloppe d'un champ avec icône à gauche (mail, cadenas)
+   .avec-oeil            champ avec le bouton œil à droite
+   .btn-oeil             bouton œil (afficher / masquer le mot de passe)
+   .lien-oubli           lien safran « Mot de passe oublié ? », aligné à droite
+   .lien-retour          petit retour « ‹ Connexion » en haut d'une carte
+   .separateur-ou        ligne fine avec un texte au milieu
+   .envoi-reussi-icone   bulle safran avec une icône (e-mail envoyé, clé)
+   .texte-creme          texte en crème vive dans une phrase d'aide
+   .pile-serree          empile les enfants avec 8 px d'écart
+   .demo-rapide          bloc des comptes de démo sous la carte
+   .atouts-ligne         3 atouts courts côte à côte
+   .atout-mini           un atout : icône safran + texte court
+   ========================================================= */
+.hero-connexion {
+  min-height: 46vh;
+  min-height: 46svh;
+  padding-bottom: 76px;
+}
+
+.hero-connexion .hero-accroche {
+  max-width: 13em;
+  font-size: clamp(28px, 8.6vw, 38px);
+  animation: monter 0.7s ease-out both;
+}
+
+.page > .carte-connexion {
+  position: relative;
+  z-index: 1;
+  margin-top: -56px;
+}
+
+.carte-connexion {
+  padding: 24px 20px;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-grand);
+  background: var(--carte);
+  box-shadow: 0 24px 60px var(--ombre);
+  animation: entrer 0.5s ease-out 0.1s both;
+}
+
+.page > .carte-connexion-seule {
+  margin-top: 24px;
+}
+
+.champ-icone {
+  position: relative;
+}
+
+.champ-icone > .icone {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  width: 20px;
+  height: 20px;
+  color: var(--creme-3);
+  transform: translateY(-50%);
+  pointer-events: none;
+  transition: color 0.2s;
+}
+
+.champ-icone:focus-within > .icone {
+  color: var(--safran);
+}
+
+.champ .champ-icone input {
+  padding-left: 48px;
+}
+
+.champ .champ-icone input.avec-oeil {
+  padding-right: 56px;
+}
+
+.btn-oeil {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--creme-3);
+  transform: translateY(-50%);
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+
+.btn-oeil:hover,
+.btn-oeil[aria-pressed='true'] {
+  color: var(--creme);
+  background: var(--carte-2);
+}
+
+.btn-oeil:focus-visible,
+.lien-oubli:focus-visible,
+.lien-retour:focus-visible {
+  outline: 2px solid var(--safran);
+  outline-offset: 2px;
+}
+
+.btn-oeil .icone {
+  width: 20px;
+  height: 20px;
+}
+
+.lien-oubli {
+  align-self: flex-end;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--safran);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.lien-oubli:disabled {
+  opacity: 0.5;
+}
+
+.lien-retour {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 0 8px 0 0;
+  border: 0;
+  background: none;
+  color: var(--creme-2);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.separateur-ou {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--creme-3);
+  font-size: 14px;
+  text-align: center;
+}
+
+.separateur-ou::before,
+.separateur-ou::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--trait);
+}
+
+.envoi-reussi-icone {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: var(--safran-fond);
+  color: var(--safran);
+  animation: apparaitre 0.4s var(--rebond) both;
+}
+
+.envoi-reussi-icone .icone {
+  width: 28px;
+  height: 28px;
+}
+
+.texte-creme {
+  color: var(--creme);
+  overflow-wrap: anywhere;
+}
+
+.pile-serree {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.demo-rapide .espace-entre {
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.demo-rapide .btn-demo {
+  gap: 6px;
+  min-width: 0;
+}
+
+.demo-rapide .btn-demo .icone {
+  flex: none;
+}
+
+.atouts-ligne {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.atout-mini {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--creme-2);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.atout-mini .icone {
+  width: 22px;
+  height: 22px;
+  color: var(--safran);
+}
+
+.demo-rapide .btn-demo {
+  width: 100%;
+}
+
+.carte-connexion .titre-accueil + .aide {
+  margin-top: 6px;
+}
+
+.page > .atouts-ligne {
+  margin-top: 24px;
+}
+
+/* =========================================================
+   41. RAPPEL DE RÉSERVATION (« Plus que 2 h 15 », jour raté)
+   .rappel     alerte posée au-dessus du plat vedette (avec .alerte-attention ou .alerte-info)
+   .btn-lien   bouton texte safran souligné, dans une alerte ou une phrase
+   ========================================================= */
+.rappel {
+  animation: apparaitre 0.4s ease both;
+}
+
+.rappel p {
+  margin-top: 2px;
+  color: var(--creme-2);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.rappel .icone {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+}
+
+.btn-lien {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--safran);
+  font-family: var(--police);
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.btn-lien:focus-visible {
+  outline: 2px solid var(--safran);
+  outline-offset: 2px;
+}
+
+.demo-rapide .demo-grille {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* =========================================================
+   42. COMPTOIR (rôle cantine : clavier du code, carte de remise, « Bon appétit »)
+   .cases-code         4 cases du code « CJ · 0 8 1 _ » (+ .cases-code-erreur : secousse rouge)
+   .case-code          une case (+ .actif : bord safran, c'est la prochaine)
+   .pave-chiffres      pavé de 12 touches (3 colonnes)
+   .touche             une touche du pavé (+ .touche-texte : Effacer, retour arrière)
+   .remise-convive     initiales + nom + profil en tête de la carte de remise
+   .remise-avatar      pastille ronde des initiales
+   .remise-risques     badges d'allergènes posés sur la photo
+   .remise-confirmee   écran « Bon appétit » centré
+   .remise-coche       grand rond vert avec la coche qui se dessine
+   .remise-resume      liste « Plat remis · Repas remis aujourd'hui »
+   ========================================================= */
+.cases-code {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  border-radius: var(--rayon-grand);
+  background: var(--carte);
+}
+
+.cases-code-erreur {
+  animation: secouer 0.5s ease both;
+}
+
+.cases-code-prefixe {
+  flex: none;
+  color: var(--creme-3);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.case-code {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-width: 0;
+  height: 64px;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  background: var(--carte-2);
+  font-size: 32px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.case-code.actif {
+  border-color: var(--safran);
+}
+
+.cases-code-erreur .case-code {
+  border-color: var(--alerte-bord);
+}
+
+.pave-chiffres {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.touche {
+  display: grid;
+  place-items: center;
+  min-height: 60px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--carte);
+  color: var(--creme);
+  font-family: var(--police);
+  font-size: 26px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s var(--rebond), background 0.2s;
+}
+
+.touche:active {
+  transform: scale(0.94);
+  background: var(--carte-2);
+}
+
+.touche:focus-visible {
+  outline: 2px solid var(--safran);
+  outline-offset: 2px;
+}
+
+.touche:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.touche-texte {
+  background: none;
+  color: var(--creme-2);
+  font-size: 16px;
+}
+
+.touche-texte .icone {
+  width: 26px;
+  height: 26px;
+}
+
+.remise-convive {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.remise-convive > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.remise-avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--carte-2);
+  color: var(--safran);
+  font-weight: 800;
+}
+
+.remise-nom {
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.remise-risques {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+}
+
+.remise-plat {
+  font-size: clamp(26px, 8vw, 34px);
+  line-height: 1.1;
+}
+
+.remise-paye {
+  padding-top: 12px;
+  border-top: 1px solid var(--trait);
+}
+
+.remise-confirmee {
+  align-items: center;
+  padding-top: 24px;
+  text-align: center;
+}
+
+.remise-coche {
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  background: var(--feuille);
+  box-shadow: 0 0 0 16px var(--feuille-fond);
+  color: var(--braise);
+  animation: apparaitre 0.4s var(--rebond) both;
+}
+
+.remise-coche .coche {
+  width: 56px;
+  height: 56px;
+}
+
+.remise-resume {
+  align-self: stretch;
+  margin: 0;
+  text-align: left;
+}
+
+.remise-resume > div {
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.remise-resume > div + div {
+  border-top: 1px solid var(--trait);
+}
+
+.remise-resume dd {
+  margin: 0;
+  text-align: right;
+}
+
+.remise-confirmee .btn {
+  align-self: stretch;
+}
+
+.remise-risques {
+  z-index: 1;
+}
+
+/* =========================================================
+   43. QR CODE (ticket de l'élève, scanner du comptoir)
+   .qr-cadre          fond blanc arrondi autour du QR (sur le ticket crème)
+   .qr                le QR en SVG (modules couleur braise)
+   .ticket-secours    phrase sous le QR : le code à 4 chiffres reste le secours
+   .segment           choix « Scanner | Taper le code » (2 boutons)
+   .segment-option    un bouton du choix (+ .actif)
+   .scanner           cadre de la caméra (+ .scanner-reconnu : voile vert)
+   .scanner-video     image de la caméra
+   .scanner-consigne  « Vise le QR du ticket » en haut du cadre
+   .viseur            4 coins safran (verts quand c'est reconnu) et ligne qui balaie
+   .scanner-badge     « CJ · 0812 » reconnu, en bas du cadre
+   ========================================================= */
+.qr-cadre {
+  width: min(196px, 62%);
+  margin: 4px auto 0;
+  padding: 10px;
+  border-radius: 18px;
+  background: var(--creme);
+  box-shadow: 0 0 0 1px var(--ticket-trait);
+  animation: apparaitre 0.4s ease both;
+}
+
+.qr {
+  display: block;
+  width: 100%;
+  height: auto;
+  fill: var(--ticket-texte);
+}
+
+.ticket-secours {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.segment {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 18px;
+  background: var(--carte);
+}
+
+.segment-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: var(--creme-3);
+  font-family: var(--police);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.segment-option.actif {
+  background: var(--carte-2);
+  color: var(--creme);
+}
+
+.segment-option:focus-visible {
+  outline: 2px solid var(--safran);
+  outline-offset: 2px;
+}
+
+.scanner {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--rayon-grand);
+  background: var(--carte);
+}
+
+.scanner-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scanner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--feuille-fond);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.scanner-reconnu::after {
+  opacity: 1;
+}
+
+.scanner-consigne {
+  position: absolute;
+  top: 14px;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  color: var(--creme);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 2px 8px var(--ombre);
+}
+
+.viseur {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  width: 62%;
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+}
+
+.viseur i {
+  position: absolute;
+  width: 20%;
+  height: 20%;
+  border: 4px solid var(--safran);
+  transition: border-color 0.3s;
+}
+
+.viseur i:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; border-radius: 14px 0 0 0; }
+.viseur i:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; border-radius: 0 14px 0 0; }
+.viseur i:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; border-radius: 0 0 0 14px; }
+.viseur i:nth-child(4) { right: 0; bottom: 0; border-left: 0; border-top: 0; border-radius: 0 0 14px 0; }
+
+.scanner-reconnu .viseur i {
+  border-color: var(--feuille);
+}
+
+.viseur-ligne {
+  position: absolute;
+  right: 8%;
+  left: 8%;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--safran);
+  box-shadow: 0 0 18px var(--safran);
+  animation: balayer 2s ease-in-out infinite alternate;
+}
+
+@keyframes balayer {
+  from { top: 8%; }
+  to { top: 92%; }
+}
+
+.scanner-badge {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  z-index: 1;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}

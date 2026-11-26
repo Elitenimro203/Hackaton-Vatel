@@ -1,120 +1,71 @@
-// Page d'accueil avant connexion : photo, accroche, 3 atouts, connexion et comptes de démo en un clic.
-import { useState } from 'react'
-import { COMPTES_DEMO, MOT_DE_PASSE_DEMO, seConnecter } from '../lib/authentification'
+// Page d'accueil avant connexion : photo, accroche, carte de connexion (ou mot de passe oublié) posée sur la photo, comptes de démo et 3 atouts.
+import { useEffect, useState } from 'react'
+import { COMPTES_DEMO, MOT_DE_PASSE_DEMO, lienRecuperationExpire, seConnecter } from '../lib/authentification'
+import FormulaireConnexion from '../composants/FormulaireConnexion'
+import FormulaireMotDePasseOublie from '../composants/FormulaireMotDePasseOublie'
 import Icone from '../composants/Icone'
 
 const ATOUTS = [
-  { icone: 'pousse', titre: 'Moins de gaspillage', texte: 'Chaque portion réservée est une portion mangée.' },
-  { icone: 'bouclier', titre: 'Allergies protégées', texte: 'Chaque plat est vérifié avec ton profil.' },
-  { icone: 'telephone', titre: 'Zéro ticket papier', texte: 'Un code à 4 chiffres suffit au comptoir.' },
+  { icone: 'pousse', texte: 'Moins de gaspillage' },
+  { icone: 'bouclier', texte: 'Allergies vérifiées' },
+  { icone: 'ticket', texte: 'Code à 4 chiffres' },
 ]
 
+const ICONES_DEMO = { eleve: 'profil', parent: 'enfants', cantine: 'service', admin: 'pilotage' }
+
 export default function Accueil({ onCreerCompte, afficherToast }) {
+  const [vue, setVue] = useState('connexion')
   const [email, setEmail] = useState('')
-  const [motDePasse, setMotDePasse] = useState('')
-  const [erreur, setErreur] = useState(null)
-  const [envoiEnCours, setEnvoiEnCours] = useState(false)
+  const [connexionEnCours, setConnexionEnCours] = useState(false)
   const [roleDemoEnCours, setRoleDemoEnCours] = useState(null)
 
-  async function connecter(evenement) {
-    evenement.preventDefault()
-    setErreur(null)
-    setEnvoiEnCours(true)
-    const message = await seConnecter(email, motDePasse)
-    setEnvoiEnCours(false)
-    if (message) setErreur(message)
-  }
+  // Lien « mot de passe oublié » trop vieux ou déjà utilisé : on le dit et on propose d'en redemander un
+  useEffect(() => {
+    if (lienRecuperationExpire()) {
+      setVue('oubli')
+      afficherToast('Ce lien a expiré. Demande un nouveau lien.', 'erreur')
+    }
+  }, [afficherToast])
 
   async function connecterDemo(compte) {
-    setErreur(null)
     setRoleDemoEnCours(compte.role)
     const message = await seConnecter(compte.email, MOT_DE_PASSE_DEMO)
     setRoleDemoEnCours(null)
-    if (message) {
-      afficherToast(`Compte ${compte.libelle} indisponible : ${message}`, 'erreur')
-    }
+    if (message) afficherToast(`Compte ${compte.libelle} indisponible : ${message}`, 'erreur')
   }
 
-  const occupe = envoiEnCours || roleDemoEnCours !== null
+  const occupe = connexionEnCours || roleDemoEnCours !== null
 
   return (
     <main className="page">
-      <section className="hero">
+      <section className="hero hero-connexion">
         <img className="hero-photo" src="/photos/accueil.jpg" alt="Poisson braisé, attiéké et sauce pimentée" />
         <div className="logo">
           Canti<em>Juste</em>
           <span className="surtitre">Cantine Vatel · Vallon</span>
         </div>
         <h1 className="hero-accroche">Le bon repas, pour la bonne personne, en bonne quantité.</h1>
-        <p className="hero-sous-titre">Réserve ton plat la veille : la cuisine prépare juste ce qu’il faut.</p>
       </section>
 
-      <ul className="atouts liste">
-        {ATOUTS.map((atout) => (
-          <li key={atout.titre} className="atout">
-            <span className="atout-icone">
-              <Icone nom={atout.icone} />
-            </span>
-            <div>
-              <p className="atout-titre">{atout.titre}</p>
-              <p className="atout-texte">{atout.texte}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
-
-      <form className="carte pile" onSubmit={connecter} noValidate>
-        <div>
-          <h2 className="titre-accueil">Content de te revoir</h2>
-          <p className="aide">Cantine Vatel · Vallon</p>
-        </div>
-
-        <div className="champ">
-          <label htmlFor="email-connexion">Ton adresse e-mail</label>
-          <input
-            id="email-connexion"
-            type="email"
-            autoComplete="email"
-            inputMode="email"
-            placeholder="awa.kone@vatel.ci"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
+      <section className="carte-connexion" aria-live="polite">
+        {vue === 'connexion' ? (
+          <FormulaireConnexion
+            email={email}
+            onEmail={setEmail}
+            occupe={occupe}
+            onOccupe={setConnexionEnCours}
+            onMotDePasseOublie={() => setVue('oubli')}
+            onCreerCompte={onCreerCompte}
           />
-        </div>
-
-        <div className="champ">
-          <label htmlFor="mdp-connexion">Ton mot de passe</label>
-          <input
-            id="mdp-connexion"
-            type="password"
-            autoComplete="current-password"
-            value={motDePasse}
-            onChange={(e) => setMotDePasse(e.target.value)}
-            required
-          />
-        </div>
-
-        {erreur && (
-          <div className="alerte alerte-erreur" role="alert">
-            <strong>Connexion impossible</strong>
-            <p>{erreur}</p>
-          </div>
+        ) : (
+          <FormulaireMotDePasseOublie email={email} onEmail={setEmail} onRetour={() => setVue('connexion')} />
         )}
+      </section>
 
-        <button type="submit" className="btn" disabled={occupe || !email || !motDePasse}>
-          {envoiEnCours ? 'Connexion…' : 'Se connecter'}
-        </button>
-        <button type="button" className="btn btn-discret" onClick={onCreerCompte} disabled={occupe}>
-          Créer un compte
-        </button>
-      </form>
-
-      <section className="carte pile">
-        <div>
+      <section className="demo-rapide pile-serree">
+        <div className="espace-entre">
           <span className="surtitre">Essayer en un clic</span>
-          <h2 className="carte-titre">Comptes de démonstration</h2>
-          <p className="mention">Mot de passe : {MOT_DE_PASSE_DEMO}</p>
+          <span className="mention">Mot de passe : {MOT_DE_PASSE_DEMO}</span>
         </div>
         <div className="demo-grille">
           {COMPTES_DEMO.map((compte) => (
@@ -126,11 +77,21 @@ export default function Accueil({ onCreerCompte, afficherToast }) {
               disabled={occupe}
               title={compte.email}
             >
+              <Icone nom={ICONES_DEMO[compte.role]} />
               {roleDemoEnCours === compte.role ? '…' : compte.libelle}
             </button>
           ))}
         </div>
       </section>
+
+      <ul className="atouts-ligne liste">
+        {ATOUTS.map((atout) => (
+          <li key={atout.texte} className="atout-mini">
+            <Icone nom={atout.icone} />
+            {atout.texte}
+          </li>
+        ))}
+      </ul>
 
       <footer className="pied-page">CantiJuste · Hackathon Vatel 2026</footer>
     </main>
