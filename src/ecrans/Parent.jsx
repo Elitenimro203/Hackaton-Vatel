@@ -1,4 +1,4 @@
-// Espace parent : bandeau « Solde bas » par enfant en haut de l'écran, puis onglets Mes enfants, Recharger (Mobile Money simulé), Ce qu'il mange et Profil.
+// Espace parent : bandeau « Solde bas » par enfant en haut de l'écran, puis onglets Mes enfants, Recharger (Mobile Money simulé) et Ce qu'il mange. La déconnexion est derrière le prénom, en haut à droite.
 import { useCallback, useEffect, useState } from 'react'
 import { chargerEnfants, prenomDe } from '../lib/enfants'
 import { soldeEstBas } from '../lib/recharges'
@@ -6,7 +6,6 @@ import { formaterMontant } from '../lib/formatage'
 import { useTempsReel } from '../lib/useTempsReel'
 import BarreOnglets from '../composants/BarreOnglets'
 import BandeauSoldeBas from '../composants/BandeauSoldeBas'
-import CarteProfil from '../composants/CarteProfil'
 import MesEnfants from './MesEnfants'
 import RechargeParent from './RechargeParent'
 import CeQuilMange from './CeQuilMange'
@@ -15,10 +14,9 @@ const ONGLETS = [
   { id: 'enfants', icone: 'enfants', libelle: 'Mes enfants' },
   { id: 'recharger', icone: 'carte-bancaire', libelle: 'Recharger' },
   { id: 'repas', icone: 'a-table', libelle: 'Ce qu’il mange' },
-  { id: 'profil', icone: 'profil', libelle: 'Profil' },
 ]
 
-export default function Parent({ profil, afficherToast }) {
+export default function Parent({ afficherToast }) {
   const [ongletActif, setOngletActif] = useState('enfants')
   const [idEnfantARecharger, setIdEnfantARecharger] = useState(null)
   const [enfantsSoldeBas, setEnfantsSoldeBas] = useState([])
@@ -70,13 +68,6 @@ export default function Parent({ profil, afficherToast }) {
       )}
 
       {ongletActif === 'repas' && <CeQuilMange onVoirEnfants={() => choisirOnglet('enfants')} />}
-
-      {ongletActif === 'profil' && (
-        <section className="pile">
-          <h1>Votre profil</h1>
-          <CarteProfil profil={profil} afficherToast={afficherToast} />
-        </section>
-      )}
 
       <BarreOnglets onglets={ONGLETS} ongletActif={ongletActif} onChoisir={choisirOnglet} />
     </>

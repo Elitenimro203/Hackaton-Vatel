@@ -36,7 +36,7 @@ export default function GuichetRetrait({ resultat, numeroResultat, enCours, onSe
             type="text"
             inputMode="numeric"
             autoComplete="off"
-            placeholder="0812"
+            placeholder="····"
             value={code}
             onChange={changerCode}
             aria-describedby="code-retrait-aide"

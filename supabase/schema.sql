@@ -26,7 +26,7 @@ create table if not exists public.liens_parent (
   check (parent_id <> eleve_id)
 );
 
--- Un menu par jour
+-- Les plats du jour : une ligne par plat (plusieurs plats le même jour, voir la section 14)
 create table if not exists public.menus (
   id         bigint generated always as identity primary key,
   jour       date not null unique,
@@ -2444,10 +2444,7 @@ alter table public.profiles add column if not exists autre_allergie text not nul
 
 do $$
 begin
-  if not exists (select 1 from pg_constraint where conname = 'profiles_regime_valide') then
-    alter table public.profiles add constraint profiles_regime_valide
-      check (regime in ('aucun', 'vegetarien', 'sans_porc', 'halal'));
-  end if;
+  -- Le régime peut être écrit à la main : sa contrainte est posée en section 15
   if not exists (select 1 from pg_constraint where conname = 'profiles_autre_allergie_courte') then
     alter table public.profiles add constraint profiles_autre_allergie_courte
       check (char_length(autre_allergie) <= 60);
@@ -3028,3 +3025,1032 @@ $$;
 
 revoke execute on function public.rapport_activite(date, date) from public, anon;
 grant  execute on function public.rapport_activite(date, date) to authenticated;
+
+-- =====================================================================
+-- 14. PLUSIEURS PLATS AU CHOIX CHAQUE JOUR (aussi disponible seul : patch_menus_multi_plats.sql)
+-- =====================================================================
+
+-- =====================================================================
+-- 1. Plusieurs plats le même jour, une boisson dans la formule
+-- =====================================================================
+alter table public.menus drop constraint if exists menus_jour_key;
+create unique index if not exists menus_un_plat_par_jour on public.menus (jour, plat);
+alter table public.menus add column if not exists boisson text not null default '';
+
+-- =====================================================================
+-- 2. Le jour du repas recopié dans la réservation, pour les règles « par jour »
+-- =====================================================================
+alter table public.reservations add column if not exists jour date;
+
+update public.reservations r
+set jour = m.jour
+from public.menus m
+where m.id = r.menu_id and r.jour is distinct from m.jour;
+
+alter table public.reservations alter column jour set not null;
+
+-- Rempli tout seul à chaque réservation (fonctions RPC et scripts de démonstration)
+create or replace function public.remplir_jour_reservation()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  select m.jour into new.jour from public.menus m where m.id = new.menu_id;
+  return new;
+end;
+$$;
+
+drop trigger if exists reservations_remplir_jour on public.reservations;
+create trigger reservations_remplir_jour
+  before insert or update of menu_id on public.reservations
+  for each row execute function public.remplir_jour_reservation();
+
+-- Si l'admin change la date d'un plat, ses réservations suivent
+create or replace function public.suivre_jour_menu()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.reservations set jour = new.jour where menu_id = new.id;
+  return new;
+end;
+$$;
+
+drop trigger if exists menus_suivre_jour on public.menus;
+create trigger menus_suivre_jour
+  after update of jour on public.menus
+  for each row when (old.jour is distinct from new.jour)
+  execute function public.suivre_jour_menu();
+
+revoke execute on function public.remplir_jour_reservation() from public, anon, authenticated;
+revoke execute on function public.suivre_jour_menu() from public, anon, authenticated;
+
+-- Un seul repas actif par élève et par jour ; un code de retrait unique parmi les repas du jour
+drop index if exists public.reservations_un_repas_par_jour;
+drop index if exists public.reservations_code_unique_du_jour;
+create unique index if not exists reservations_un_repas_par_eleve_et_jour
+  on public.reservations (eleve_id, jour) where statut <> 'annulee';
+create unique index if not exists reservations_code_unique_par_jour
+  on public.reservations (jour, code_retrait) where statut <> 'annulee';
+
+-- =====================================================================
+-- 3. Réserver : un repas par jour, créneaux et codes comptés sur la journée
+-- =====================================================================
+create or replace function public.reserver(
+  p_menu_id bigint,
+  p_creneau time default null,
+  p_accepte_allergie boolean default false,
+  p_alternative boolean default false
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  menu_choisi     public.menus;
+  profil          public.profiles;
+  plat_choisi     text;
+  allergenes_plat text[];
+  risques         text[];
+  prix_a_payer    integer;
+  nouveau_code    text;
+  reglages        public.reglages_file;
+begin
+  if auth.uid() is null then
+    return public.reponse_refus('Connecte-toi pour réserver.');
+  end if;
+  if public.mon_role() is distinct from 'eleve' then
+    return public.reponse_refus('Seul un élève ou un employé peut réserver un repas.');
+  end if;
+
+  select * into menu_choisi from public.menus where id = p_menu_id;
+  if not found then
+    return public.reponse_refus('Ce menu n''existe pas.');
+  end if;
+  if menu_choisi.retire then
+    return public.reponse_refus('Ce plat a été retiré du menu.');
+  end if;
+  if now() >= public.heure_limite(menu_choisi.jour) then
+    return public.reponse_refus('Trop tard : on réserve au plus tard la veille à 18 h.');
+  end if;
+  if coalesce(p_alternative, false) and trim(menu_choisi.plat_alternatif) = '' then
+    return public.reponse_refus('Pas de plat de remplacement ce jour-là.');
+  end if;
+
+  -- Verrou sur le profil : deux réservations en même temps ne peuvent pas dépasser le solde
+  select * into profil from public.profiles where id = auth.uid() for update;
+  if not found then
+    return public.reponse_refus('Profil introuvable.');
+  end if;
+
+  -- Un seul repas par jour, quel que soit le plat choisi
+  if exists (
+    select 1 from public.reservations
+    where eleve_id = auth.uid() and jour = menu_choisi.jour and statut <> 'annulee'
+  ) then
+    return public.reponse_refus('Tu as déjà ton repas ce jour-là. Annule-le dans Mes repas pour changer de plat.');
+  end if;
+
+  -- Créneau de passage : un des 7 créneaux, et pas au plafond (75 % de ce que les guichets servent en 10 min)
+  if p_creneau is not null then
+    if p_creneau not in (time '11:50', time '12:00', time '12:10', time '12:20', time '12:30', time '12:40', time '12:50') then
+      return public.reponse_refus('Ce créneau n''existe pas.');
+    end if;
+    select * into reglages from public.reglages_file where id = 1;
+    if (
+      select count(*) from public.reservations
+      where jour = menu_choisi.jour and creneau = p_creneau and statut <> 'annulee'
+    ) >= public.plafond_creneau(reglages) then
+      return public.reponse_refus('Ce créneau est complet : choisis-en un autre.');
+    end if;
+  end if;
+
+  if coalesce(p_alternative, false) then
+    plat_choisi := menu_choisi.plat_alternatif;
+    allergenes_plat := menu_choisi.allergenes_alternatif;
+  else
+    plat_choisi := menu_choisi.plat;
+    allergenes_plat := menu_choisi.allergenes;
+  end if;
+
+  risques := array(select unnest(allergenes_plat) intersect select unnest(profil.allergies) order by 1);
+  if cardinality(risques) > 0 and not coalesce(p_accepte_allergie, false) then
+    return public.reponse_refus('Ce plat contient un allergène de ton profil : confirme pour réserver quand même.', risques);
+  end if;
+
+  prix_a_payer := case when profil.type_usager = 'employe' then menu_choisi.prix_employe else menu_choisi.prix end;
+  if profil.solde < prix_a_payer then
+    return public.reponse_refus('Solde insuffisant : recharge ton compte.');
+  end if;
+
+  loop
+    nouveau_code := lpad((floor(random() * 10000))::int::text, 4, '0');
+    exit when not exists (
+      select 1 from public.reservations
+      where jour = menu_choisi.jour and code_retrait = nouveau_code and statut <> 'annulee'
+    );
+  end loop;
+
+  insert into public.reservations (eleve_id, menu_id, jour, code_retrait, montant, creneau, alternative)
+  values (auth.uid(), p_menu_id, menu_choisi.jour, nouveau_code, prix_a_payer, p_creneau, coalesce(p_alternative, false));
+
+  update public.profiles set solde = solde - prix_a_payer where id = auth.uid();
+
+  insert into public.mouvements (eleve_id, montant, motif)
+  values (auth.uid(), -prix_a_payer, 'Repas : ' || plat_choisi);
+
+  -- L'élève a confirmé malgré son allergie : ses parents sont prévenus
+  if cardinality(risques) > 0 then
+    insert into public.alertes (eleve_id, menu_id, allergenes, message)
+    values (
+      auth.uid(),
+      p_menu_id,
+      risques,
+      coalesce(nullif(trim(profil.nom), ''), 'Votre enfant') || ' a réservé « ' || plat_choisi
+        || ' » malgré son allergie (' || replace(array_to_string(risques, ', '), 'oeuf', 'œuf') || ').'
+    );
+  end if;
+
+  return jsonb_build_object(
+    'ok', true,
+    'message', 'ok',
+    'alerte_allergie', case when cardinality(risques) > 0 then to_jsonb(risques) end,
+    'code_retrait', nouveau_code
+  );
+exception
+  when unique_violation then
+    return public.reponse_refus('Tu as déjà ton repas ce jour-là. Annule-le dans Mes repas pour changer de plat.');
+end;
+$$;
+
+revoke execute on function public.reserver(bigint, time, boolean, boolean) from public, anon;
+grant  execute on function public.reserver(bigint, time, boolean, boolean) to authenticated;
+
+-- =====================================================================
+-- 4. Prévision : la moyenne des semaines passées se calcule par jour (tous plats confondus)
+-- =====================================================================
+create or replace function public.prevision_du_jour(p_jour date)
+returns table (reserves integer, moyenne numeric, prevision integer, conseille integer)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  with deja_reserves as (
+    select count(*)::integer as nombre
+    from public.reservations r
+    join public.menus m on m.id = r.menu_id
+    where m.jour = p_jour and r.statut <> 'annulee'
+  ),
+  semaines_passees as (
+    select avg(nombre) as moyenne
+    from (
+      select count(r.id) as nombre
+      from public.menus m
+      left join public.reservations r on r.menu_id = m.id and r.statut <> 'annulee'
+      where m.jour in (p_jour - 7, p_jour - 14, p_jour - 21, p_jour - 28)
+      group by m.jour
+    ) jours
+  ),
+  calcul as (
+    select
+      d.nombre as reserves,
+      round(coalesce(s.moyenne, 0), 1) as moyenne,
+      greatest(d.nombre, round(coalesce(s.moyenne, 0))::integer) as prevision
+    from deja_reserves d, semaines_passees s
+  )
+  select reserves, moyenne, prevision, ceil(prevision * 1.05)::integer
+  from calcul;
+$$;
+
+
+revoke execute on function public.prevision_du_jour(date) from public, anon, authenticated;
+
+-- =====================================================================
+-- 5. Dupliquer un plat : refusé seulement si ce même plat est déjà au menu ce jour-là
+-- =====================================================================
+create or replace function public.dupliquer_menu(p_menu_id bigint, p_jour date)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  nouvel_id bigint;
+begin
+  if public.mon_role() is distinct from 'admin' then
+    return 'Réservé à l''administrateur.';
+  end if;
+  if p_jour is null then
+    return 'Choisissez la date du nouveau menu.';
+  end if;
+  if p_jour < (now() at time zone 'Africa/Abidjan')::date then
+    return 'Choisissez aujourd''hui ou un jour à venir.';
+  end if;
+  if exists (
+    select 1 from public.menus copie, public.menus source
+    where source.id = p_menu_id and copie.jour = p_jour and copie.plat = source.plat
+  ) then
+    return 'Ce plat est déjà au menu ce jour-là.';
+  end if;
+
+  insert into public.menus (
+    jour, entree, plat, dessert, boisson, allergenes, prix, prix_employe, photo_url,
+    plat_alternatif, photo_alternative, allergenes_alternatif, contenu, contenu_alternatif
+  )
+  select
+    p_jour, entree, plat, dessert, boisson, allergenes, prix, prix_employe, photo_url,
+    plat_alternatif, photo_alternative, allergenes_alternatif, contenu, contenu_alternatif
+  from public.menus where id = p_menu_id
+  returning id into nouvel_id;
+
+  if nouvel_id is null then
+    return 'Ce menu n''existe plus.';
+  end if;
+
+  insert into public.ingredients_par_menu (menu_id, ingredient_id, quantite_par_repas)
+  select nouvel_id, ingredient_id, quantite_par_repas from public.ingredients_par_menu where menu_id = p_menu_id;
+
+  return 'ok';
+exception
+  when unique_violation then
+    return 'Ce plat est déjà au menu ce jour-là.';
+end;
+$$;
+
+revoke execute on function public.dupliquer_menu(bigint, date) from public, anon;
+grant  execute on function public.dupliquer_menu(bigint, date) to authenticated;
+
+
+-- =========================================================
+-- 15. PROFIL ALIMENTAIRE ÉCRIT À LA MAIN (aussi disponible seul : patch_profil_libre.sql)
+
+alter table public.profiles drop constraint if exists profiles_regime_valide;
+alter table public.profiles drop constraint if exists profiles_regime_court;
+alter table public.profiles add constraint profiles_regime_court
+  check (char_length(regime) between 1 and 40);
+
+alter table public.profiles drop constraint if exists profiles_autre_allergie_courte;
+alter table public.profiles add constraint profiles_autre_allergie_courte
+  check (char_length(autre_allergie) <= 200);
+
+-- Le profil alimentaire complet : allergènes suivis, régime (proposé ou écrit), allergies libres (élève, ses parents liés ou l'admin)
+create or replace function public.modifier_profil_alimentaire(
+  p_eleve_id uuid,
+  p_allergies text[],
+  p_regime text,
+  p_autre_allergie text
+)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  liste        text[] := array(select distinct unnest(coalesce(p_allergies, '{}')) order by 1);
+  autre_texte  text := trim(coalesce(p_autre_allergie, ''));
+  regime_texte text := trim(coalesce(p_regime, ''));
+begin
+  if auth.uid() is null then
+    return 'Connectez-vous pour modifier le profil alimentaire.';
+  end if;
+  if not (p_eleve_id = auth.uid() or public.est_parent_de(p_eleve_id) or public.mon_role() = 'admin') then
+    return 'Seuls l''élève, ses parents et la cantine peuvent modifier ce profil.';
+  end if;
+  if not exists (select 1 from public.profiles where id = p_eleve_id and role = 'eleve') then
+    return 'Compte élève introuvable.';
+  end if;
+  if not liste <@ array['arachide', 'lait', 'gluten', 'poisson', 'oeuf'] then
+    return 'Allergène inconnu de la cantine : écris-le dans tes autres allergies.';
+  end if;
+  if regime_texte = '' then
+    regime_texte := 'aucun';
+  end if;
+  if char_length(regime_texte) > 40 then
+    return 'Le régime doit tenir en 40 caractères.';
+  end if;
+  if char_length(autre_texte) > 200 then
+    return 'Les autres allergies doivent tenir en 200 caractères.';
+  end if;
+
+  update public.profiles
+  set allergies = liste, regime = regime_texte, autre_allergie = autre_texte
+  where id = p_eleve_id;
+  return 'ok';
+end;
+$$;
+
+
+-- Texte en minuscules sans accents (« Crevettes » → « crevettes », « Bœuf » → « boeuf »), pour comparer ce que l'élève a écrit aux plats
+create or replace function public.texte_simple(p_texte text)
+returns text
+language sql
+immutable
+set search_path = public
+as $$
+  select translate(
+    lower(replace(replace(coalesce(p_texte, ''), 'œ', 'oe'), 'Œ', 'oe')),
+    'àâäáãåéèêëíìîïóòôöõúùûüçñÿ',
+    'aaaaaaeeeeiiiiooooouuuucny'
+  );
+$$;
+
+-- Les allergies écrites à la main (« Crevettes, Kiwi ») retrouvées dans le plat : son nom, l'entrée, le dessert
+-- et les ingrédients de sa recette (stocks). Le plat de remplacement n'a que son nom.
+create or replace function public.allergies_libres_du_plat(p_autre text, p_menu_id bigint, p_alternative boolean default false)
+returns text[]
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  with plat as (
+    select public.texte_simple(
+      case when coalesce(p_alternative, false) then m.plat_alternatif
+           else concat_ws(' ', m.entree, m.plat, m.dessert, m.boisson) end
+      || ' ' || case when coalesce(p_alternative, false) then ''
+           else coalesce((
+             select string_agg(i.nom, ' ')
+             from public.ingredients_par_menu r
+             join public.ingredients i on i.id = r.ingredient_id
+             where r.menu_id = m.id
+           ), '') end
+    ) as texte
+    from public.menus m
+    where m.id = p_menu_id
+  ),
+  allergies as (
+    select distinct trim(morceau) as allergie
+    from unnest(string_to_array(coalesce(p_autre, ''), ',')) as morceau
+    where trim(morceau) <> ''
+  )
+  select coalesce(array_agg(a.allergie order by a.allergie), '{}')
+  from allergies a
+  cross join plat p
+  where exists (
+    select 1
+    from regexp_split_to_table(public.texte_simple(a.allergie), '[^a-z]+') as mot
+    where char_length(mot) >= 4
+      and mot not in ('sans', 'avec', 'aucun', 'aucune', 'tout', 'tous', 'rien', 'plus')
+      and p.texte like '%' || regexp_replace(mot, 's$', '') || '%'
+  );
+$$;
+
+revoke execute on function public.allergies_libres_du_plat(text, bigint, boolean) from public, anon;
+grant  execute on function public.allergies_libres_du_plat(text, bigint, boolean) to authenticated;
+
+-- Réservation : les allergies écrites à la main déclenchent la même fenêtre de confirmation et la même alerte au parent
+create or replace function public.reserver(
+  p_menu_id bigint,
+  p_creneau time default null,
+  p_accepte_allergie boolean default false,
+  p_alternative boolean default false
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  menu_choisi     public.menus;
+  profil          public.profiles;
+  plat_choisi     text;
+  allergenes_plat text[];
+  risques         text[];
+  prix_a_payer    integer;
+  nouveau_code    text;
+  reglages        public.reglages_file;
+begin
+  if auth.uid() is null then
+    return public.reponse_refus('Connecte-toi pour réserver.');
+  end if;
+  if public.mon_role() is distinct from 'eleve' then
+    return public.reponse_refus('Seul un élève ou un employé peut réserver un repas.');
+  end if;
+
+  select * into menu_choisi from public.menus where id = p_menu_id;
+  if not found then
+    return public.reponse_refus('Ce menu n''existe pas.');
+  end if;
+  if menu_choisi.retire then
+    return public.reponse_refus('Ce plat a été retiré du menu.');
+  end if;
+  if now() >= public.heure_limite(menu_choisi.jour) then
+    return public.reponse_refus('Trop tard : on réserve au plus tard la veille à 18 h.');
+  end if;
+  if coalesce(p_alternative, false) and trim(menu_choisi.plat_alternatif) = '' then
+    return public.reponse_refus('Pas de plat de remplacement ce jour-là.');
+  end if;
+
+  -- Verrou sur le profil : deux réservations en même temps ne peuvent pas dépasser le solde
+  select * into profil from public.profiles where id = auth.uid() for update;
+  if not found then
+    return public.reponse_refus('Profil introuvable.');
+  end if;
+
+  -- Un seul repas par jour, quel que soit le plat choisi
+  if exists (
+    select 1 from public.reservations
+    where eleve_id = auth.uid() and jour = menu_choisi.jour and statut <> 'annulee'
+  ) then
+    return public.reponse_refus('Tu as déjà ton repas ce jour-là. Annule-le dans Mes repas pour changer de plat.');
+  end if;
+
+  -- Créneau de passage : un des 7 créneaux, et pas au plafond (75 % de ce que les guichets servent en 10 min)
+  if p_creneau is not null then
+    if p_creneau not in (time '11:50', time '12:00', time '12:10', time '12:20', time '12:30', time '12:40', time '12:50') then
+      return public.reponse_refus('Ce créneau n''existe pas.');
+    end if;
+    select * into reglages from public.reglages_file where id = 1;
+    if (
+      select count(*) from public.reservations
+      where jour = menu_choisi.jour and creneau = p_creneau and statut <> 'annulee'
+    ) >= public.plafond_creneau(reglages) then
+      return public.reponse_refus('Ce créneau est complet : choisis-en un autre.');
+    end if;
+  end if;
+
+  if coalesce(p_alternative, false) then
+    plat_choisi := menu_choisi.plat_alternatif;
+    allergenes_plat := menu_choisi.allergenes_alternatif;
+  else
+    plat_choisi := menu_choisi.plat;
+    allergenes_plat := menu_choisi.allergenes;
+  end if;
+
+  risques := array(select unnest(allergenes_plat) intersect select unnest(profil.allergies) order by 1);
+  -- Les allergies écrites à la main comptent aussi (nom du plat et ingrédients de la recette)
+  risques := risques || public.allergies_libres_du_plat(profil.autre_allergie, p_menu_id, coalesce(p_alternative, false));
+  if cardinality(risques) > 0 and not coalesce(p_accepte_allergie, false) then
+    return public.reponse_refus('Ce plat contient une de tes allergies : confirme pour réserver quand même.', risques);
+  end if;
+
+  prix_a_payer := case when profil.type_usager = 'employe' then menu_choisi.prix_employe else menu_choisi.prix end;
+  if profil.solde < prix_a_payer then
+    return public.reponse_refus('Solde insuffisant : recharge ton compte.');
+  end if;
+
+  loop
+    nouveau_code := lpad((floor(random() * 10000))::int::text, 4, '0');
+    exit when not exists (
+      select 1 from public.reservations
+      where jour = menu_choisi.jour and code_retrait = nouveau_code and statut <> 'annulee'
+    );
+  end loop;
+
+  insert into public.reservations (eleve_id, menu_id, jour, code_retrait, montant, creneau, alternative)
+  values (auth.uid(), p_menu_id, menu_choisi.jour, nouveau_code, prix_a_payer, p_creneau, coalesce(p_alternative, false));
+
+  update public.profiles set solde = solde - prix_a_payer where id = auth.uid();
+
+  insert into public.mouvements (eleve_id, montant, motif)
+  values (auth.uid(), -prix_a_payer, 'Repas : ' || plat_choisi);
+
+  -- L'élève a confirmé malgré son allergie : ses parents sont prévenus
+  if cardinality(risques) > 0 then
+    insert into public.alertes (eleve_id, menu_id, allergenes, message)
+    values (
+      auth.uid(),
+      p_menu_id,
+      risques,
+      coalesce(nullif(trim(profil.nom), ''), 'Votre enfant') || ' a réservé « ' || plat_choisi
+        || ' » malgré son allergie (' || replace(array_to_string(risques, ', '), 'oeuf', 'œuf') || ').'
+    );
+  end if;
+
+  return jsonb_build_object(
+    'ok', true,
+    'message', 'ok',
+    'alerte_allergie', case when cardinality(risques) > 0 then to_jsonb(risques) end,
+    'code_retrait', nouveau_code
+  );
+exception
+  when unique_violation then
+    return public.reponse_refus('Tu as déjà ton repas ce jour-là. Annule-le dans Mes repas pour changer de plat.');
+end;
+$$;
+
+revoke execute on function public.reserver(bigint, time, boolean, boolean) from public, anon;
+grant  execute on function public.reserver(bigint, time, boolean, boolean) to authenticated;
+
+
+-- =========================================================
+-- 16. LIER UN PARENT AVEC UN CODE DONNÉ PAR L'ÉLÈVE (aussi disponible seul : patch_lien_parent_code.sql)
+
+create table if not exists public.codes_parent (
+  eleve_id  uuid primary key references public.profiles (id) on delete cascade,
+  code      text not null unique check (code ~ '^[A-Z2-9]{6}$'),
+  expire_le timestamptz not null
+);
+
+alter table public.codes_parent enable row level security;
+
+-- L'élève relit son propre code ; tout le reste passe par les fonctions ci-dessous
+grant select on public.codes_parent to authenticated;
+drop policy if exists codes_parent_lecture on public.codes_parent;
+create policy codes_parent_lecture on public.codes_parent
+  for select to authenticated
+  using (eleve_id = auth.uid());
+
+-- Élève : crée (ou remplace) son code pour un parent. Renvoie { ok, message, code, expire_le }.
+create or replace function public.creer_code_parent()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  alphabet     constant text := 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  nouveau_code text;
+  fin          timestamptz := now() + interval '24 hours';
+begin
+  if auth.uid() is null or public.mon_role() is distinct from 'eleve' then
+    return jsonb_build_object('ok', false, 'message', 'Seul un élève peut inviter un parent.');
+  end if;
+
+  loop
+    nouveau_code := '';
+    for i in 1..6 loop
+      nouveau_code := nouveau_code || substr(alphabet, 1 + floor(random() * length(alphabet))::int, 1);
+    end loop;
+    exit when not exists (select 1 from public.codes_parent where code = nouveau_code);
+  end loop;
+
+  insert into public.codes_parent (eleve_id, code, expire_le)
+  values (auth.uid(), nouveau_code, fin)
+  on conflict (eleve_id) do update set code = excluded.code, expire_le = excluded.expire_le;
+
+  return jsonb_build_object('ok', true, 'message', 'ok', 'code', nouveau_code, 'expire_le', fin);
+end;
+$$;
+
+-- Parent : se lie à l'enfant qui lui a donné ce code. Le code ne sert qu'une fois.
+create or replace function public.lier_enfant_avec_code(p_code text)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  code_propre text := upper(regexp_replace(coalesce(p_code, ''), '[^A-Za-z0-9]', '', 'g'));
+  invitation  public.codes_parent;
+begin
+  if public.mon_role() is distinct from 'parent' then
+    return 'Réservé aux parents.';
+  end if;
+  if char_length(code_propre) <> 6 then
+    return 'Le code fait 6 caractères : demandez-le à votre enfant.';
+  end if;
+
+  select * into invitation from public.codes_parent where code = code_propre for update;
+  if invitation.eleve_id is null or invitation.expire_le < now() then
+    return 'Code inconnu ou expiré. Demandez-en un nouveau à votre enfant.';
+  end if;
+  if exists (select 1 from public.liens_parent where parent_id = auth.uid() and eleve_id = invitation.eleve_id) then
+    delete from public.codes_parent where eleve_id = invitation.eleve_id;
+    return 'Cet enfant est déjà lié à votre compte.';
+  end if;
+
+  insert into public.liens_parent (parent_id, eleve_id) values (auth.uid(), invitation.eleve_id);
+  delete from public.codes_parent where eleve_id = invitation.eleve_id;
+  return 'ok';
+end;
+$$;
+
+-- Élève : les parents liés à son compte (leur nom seulement)
+create or replace function public.mes_parents()
+returns table (id uuid, nom text)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select p.id, p.nom
+  from public.liens_parent l
+  join public.profiles p on p.id = l.parent_id
+  where l.eleve_id = auth.uid()
+  order by p.nom;
+$$;
+
+revoke execute on function public.creer_code_parent() from public, anon;
+grant  execute on function public.creer_code_parent() to authenticated;
+revoke execute on function public.lier_enfant_avec_code(text) from public, anon;
+grant  execute on function public.lier_enfant_avec_code(text) to authenticated;
+revoke execute on function public.mes_parents() from public, anon;
+grant  execute on function public.mes_parents() to authenticated;
+
+-- Temps réel : l'élève voit le nom de son parent apparaître dès que le code est saisi
+do $$
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (
+       select 1 from pg_publication_tables
+       where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'liens_parent'
+     ) then
+    alter publication supabase_realtime add table public.liens_parent;
+  end if;
+end;
+$$;
+
+-- L'ancienne liaison par e-mail disparaît : elle permettait de suivre n'importe quel élève
+drop function if exists public.lier_enfant(text);
+
+-- =====================================================================
+-- PATCH PARCOURS (25/11/2026) : rôle Cantine pour le comptoir, lecture d'un ticket sans le servir,
+-- absence signalée le jour même (moitié rendue). À coller tel quel dans Supabase > SQL Editor (relançable).
+-- =====================================================================
+
+-- 1. RÔLE CANTINE : le personnel du comptoir sert les repas sans voir les finances, les menus ni les stocks
+alter table public.profiles drop constraint if exists profiles_role_check;
+alter table public.profiles add constraint profiles_role_check
+  check (role in ('eleve', 'parent', 'admin', 'cantine'));
+
+-- Vrai pour l'admin et le personnel du comptoir
+create or replace function public.est_personnel()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(public.mon_role() in ('admin', 'cantine'), false);
+$$;
+
+-- Le comptoir lit les réservations (temps réel des compteurs) ; l'écriture reste réservée aux fonctions RPC
+drop policy if exists reservations_lecture on public.reservations;
+create policy reservations_lecture on public.reservations
+  for select to authenticated
+  using (eleve_id = auth.uid() or public.est_parent_de(eleve_id) or public.est_personnel());
+
+-- 2. SERVICE : mêmes fonctions qu'avant, ouvertes à l'admin ET au rôle cantine
+create or replace function public.marquer_servie(p_code text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  code_nettoye   text := regexp_replace(coalesce(p_code, ''), '[^0-9]', '', 'g');
+  aujourdhui     date := (now() at time zone 'Africa/Abidjan')::date;
+  resa           public.reservations;
+  nom_complet    text;
+  allergies_eleve text[];
+  plat_servi     text;
+  autre_jour     date;
+begin
+  if not public.est_personnel() then
+    return jsonb_build_object('ok', false, 'resultat', 'refuse', 'message', 'Réservé au personnel de la cantine.');
+  end if;
+
+  if code_nettoye !~ '^[0-9]{4}$' then
+    return jsonb_build_object('ok', false, 'resultat', 'inconnu', 'message', 'Le code doit avoir 4 chiffres.');
+  end if;
+
+  -- La réservation du jour avec ce code (verrouillée pour éviter de servir deux fois en même temps)
+  select r.* into resa
+  from public.reservations r
+  join public.menus m on m.id = r.menu_id
+  where r.code_retrait = code_nettoye
+    and r.statut <> 'annulee'
+    and m.jour = aujourdhui
+  for update of r;
+
+  if not found then
+    -- Le code existe-t-il pour un autre jour ?
+    select m.jour into autre_jour
+    from public.reservations r
+    join public.menus m on m.id = r.menu_id
+    where r.code_retrait = code_nettoye
+      and r.statut <> 'annulee'
+    order by abs(m.jour - aujourdhui)
+    limit 1;
+
+    if autre_jour is not null then
+      return jsonb_build_object(
+        'ok', false, 'resultat', 'pas_aujourdhui', 'message', 'Pas pour aujourd''hui',
+        'code_retrait', code_nettoye, 'jour', autre_jour
+      );
+    end if;
+    return jsonb_build_object('ok', false, 'resultat', 'inconnu', 'message', 'Code inconnu', 'code_retrait', code_nettoye);
+  end if;
+
+  select p.nom, p.allergies, case when resa.alternative then m.plat_alternatif else m.plat end
+  into nom_complet, allergies_eleve, plat_servi
+  from public.profiles p, public.menus m
+  where p.id = resa.eleve_id and m.id = resa.menu_id;
+
+  if resa.statut = 'servie' then
+    return jsonb_build_object(
+      'ok', false, 'resultat', 'deja_servi', 'message', 'Déjà servi',
+      'prenom', split_part(trim(nom_complet), ' ', 1), 'plat', plat_servi,
+      'allergies', to_jsonb(coalesce(allergies_eleve, '{}')), 'code_retrait', code_nettoye, 'jour', aujourdhui
+    );
+  end if;
+
+  update public.reservations set statut = 'servie', servie_le = now() where id = resa.id;
+
+  -- Stock : les ingrédients de la recette du menu sont déduits (jamais sous 0, une seule fois par réservation
+  -- grâce à l'index unique de mouvements_stock). Si un ingrédient manque, le repas est servi quand même.
+  with retraits as (
+    select i.id as ingredient_id, least(r.quantite_par_repas, i.quantite) as retire
+    from public.ingredients_par_menu r
+    join public.ingredients i on i.id = r.ingredient_id
+    where r.menu_id = resa.menu_id
+    for update of i
+  ),
+  enregistres as (
+    insert into public.mouvements_stock (ingredient_id, quantite, motif, reservation_id)
+    select ingredient_id, -retire, 'Repas servi', resa.id
+    from retraits
+    where retire > 0
+    on conflict do nothing
+    returning ingredient_id, -quantite as retire
+  )
+  update public.ingredients i
+  set quantite = i.quantite - e.retire
+  from enregistres e
+  where i.id = e.ingredient_id;
+
+  return jsonb_build_object(
+    'ok', true, 'resultat', 'servi', 'message', 'Servi',
+    'prenom', split_part(trim(nom_complet), ' ', 1), 'plat', plat_servi,
+    'allergies', to_jsonb(coalesce(allergies_eleve, '{}')), 'code_retrait', code_nettoye, 'jour', aujourdhui
+  );
+end;
+$$;
+
+create or replace function public.commandes_du_jour(p_jour date default null)
+returns table (
+  reservation_id bigint,
+  nom            text,
+  plat           text,
+  photo_url      text,
+  alternative    boolean,
+  code_retrait   text,
+  statut         text,
+  servie_le      timestamptz,
+  allergies      text[]
+)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not public.est_personnel() then
+    return;
+  end if;
+
+  return query
+  select
+    r.id,
+    p.nom,
+    case when r.alternative then m.plat_alternatif else m.plat end,
+    case when r.alternative then coalesce(nullif(m.photo_alternative, ''), m.photo_url) else m.photo_url end,
+    r.alternative,
+    r.code_retrait,
+    r.statut,
+    r.servie_le,
+    p.allergies
+  from public.reservations r
+  join public.menus m on m.id = r.menu_id
+  join public.profiles p on p.id = r.eleve_id
+  where m.jour = coalesce(p_jour, (now() at time zone 'Africa/Abidjan')::date)
+    and r.statut <> 'annulee'
+  order by p.nom, r.id;
+end;
+$$;
+
+create or replace function public.allergies_du_jour(p_jour date default null)
+returns table (
+  reservation_id bigint,
+  nom            text,
+  allergies      text[],
+  plat           text,
+  alternative    boolean,
+  risques        text[],
+  code_retrait   text,
+  regime         text,
+  autre_allergie text,
+  conflit_regime text
+)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not public.est_personnel() then
+    return;
+  end if;
+
+  return query
+  select
+    r.id,
+    p.nom,
+    p.allergies,
+    case when r.alternative then m.plat_alternatif else m.plat end,
+    r.alternative,
+    array(
+      select unnest(case when r.alternative then m.allergenes_alternatif else m.allergenes end)
+      intersect
+      select unnest(p.allergies)
+      order by 1
+    ),
+    r.code_retrait,
+    p.regime,
+    p.autre_allergie,
+    public.conflit_regime(
+      p.regime,
+      case when r.alternative then m.contenu_alternatif else m.contenu end,
+      case when r.alternative then m.allergenes_alternatif else m.allergenes end
+    )
+  from public.reservations r
+  join public.menus m on m.id = r.menu_id
+  join public.profiles p on p.id = r.eleve_id
+  where m.jour = coalesce(p_jour, (now() at time zone 'Africa/Abidjan')::date)
+    and r.statut <> 'annulee'
+    and (cardinality(p.allergies) > 0 or p.regime <> 'aucun' or p.autre_allergie <> '')
+  order by 6 desc, 10 nulls last, p.nom;
+end;
+$$;
+
+-- 3. LIRE UN TICKET SANS LE SERVIR : la carte de remise du comptoir (qui, quel plat, quelles allergies)
+create or replace function public.lire_ticket(p_code text)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  code_nettoye text := regexp_replace(coalesce(p_code, ''), '[^0-9]', '', 'g');
+  aujourdhui   date := (now() at time zone 'Africa/Abidjan')::date;
+  ticket       record;
+  autre_jour   date;
+begin
+  if not public.est_personnel() then
+    return jsonb_build_object('ok', false, 'resultat', 'refuse', 'message', 'Réservé au personnel de la cantine.');
+  end if;
+  if code_nettoye !~ '^[0-9]{4}$' then
+    return jsonb_build_object('ok', false, 'resultat', 'inconnu', 'message', 'Le code doit avoir 4 chiffres.');
+  end if;
+
+  select r.id, r.statut, r.montant, r.creneau, r.servie_le, r.alternative,
+         p.nom, p.type_usager, p.allergies, p.regime, p.autre_allergie,
+         case when r.alternative then m.plat_alternatif else m.plat end as plat,
+         case when r.alternative then coalesce(nullif(m.photo_alternative, ''), m.photo_url) else m.photo_url end as photo_url,
+         case when r.alternative then m.allergenes_alternatif else m.allergenes end as allergenes_plat,
+         m.plat_alternatif
+  into ticket
+  from public.reservations r
+  join public.menus m on m.id = r.menu_id
+  join public.profiles p on p.id = r.eleve_id
+  where r.code_retrait = code_nettoye
+    and r.statut <> 'annulee'
+    and m.jour = aujourdhui;
+
+  if not found then
+    select m.jour into autre_jour
+    from public.reservations r
+    join public.menus m on m.id = r.menu_id
+    where r.code_retrait = code_nettoye and r.statut <> 'annulee'
+    order by abs(m.jour - aujourdhui)
+    limit 1;
+    if autre_jour is not null then
+      return jsonb_build_object('ok', false, 'resultat', 'pas_aujourdhui', 'message', 'Pas pour aujourd''hui',
+        'code_retrait', code_nettoye, 'jour', autre_jour);
+    end if;
+    return jsonb_build_object('ok', false, 'resultat', 'inconnu', 'message', 'Code inconnu', 'code_retrait', code_nettoye);
+  end if;
+
+  return jsonb_build_object(
+    'ok', ticket.statut = 'reservee',
+    'resultat', case when ticket.statut = 'servie' then 'deja_servi' else 'a_remettre' end,
+    'message', case when ticket.statut = 'servie' then 'Déjà servi' else 'À remettre' end,
+    'code_retrait', code_nettoye,
+    'nom', ticket.nom,
+    'type_usager', ticket.type_usager,
+    'plat', ticket.plat,
+    'photo_url', ticket.photo_url,
+    'montant', ticket.montant,
+    'creneau', ticket.creneau,
+    'servie_le', ticket.servie_le,
+    'allergies', to_jsonb(coalesce(ticket.allergies, '{}')),
+    'risques', to_jsonb(array(select unnest(coalesce(ticket.allergies, '{}')) intersect select unnest(coalesce(ticket.allergenes_plat, '{}')))),
+    'regime', ticket.regime,
+    'autre_allergie', ticket.autre_allergie,
+    'plat_remplacement', case when ticket.alternative then '' else coalesce(ticket.plat_alternatif, '') end
+  );
+end;
+$$;
+
+-- 4. ABSENCE SIGNALÉE LE JOUR MÊME : après la veille 18 h et avant 10 h le jour du repas,
+-- l'élève prévient qu'il ne viendra pas. La portion est déjà commandée : on lui rend la moitié.
+create or replace function public.signaler_absence(p_reservation_id bigint)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  resa       public.reservations;
+  jour_menu  date;
+  nom_plat   text;
+  rendu      integer;
+begin
+  if auth.uid() is null then
+    return jsonb_build_object('ok', false, 'message', 'Connecte-toi pour prévenir la cantine.');
+  end if;
+
+  select * into resa from public.reservations where id = p_reservation_id for update;
+  if not found or resa.eleve_id <> auth.uid() then
+    return jsonb_build_object('ok', false, 'message', 'Réservation introuvable.');
+  end if;
+  if resa.statut <> 'reservee' then
+    return jsonb_build_object('ok', false, 'message', 'Ce repas est déjà annulé ou servi.');
+  end if;
+
+  select jour, case when resa.alternative then plat_alternatif else plat end
+  into jour_menu, nom_plat
+  from public.menus where id = resa.menu_id;
+
+  if now() < public.heure_limite(jour_menu) then
+    return jsonb_build_object('ok', false, 'message', 'Tu peux encore annuler : tu récupères tout le montant.');
+  end if;
+  if now() >= (jour_menu + time '10:00') at time zone 'Africa/Abidjan' then
+    return jsonb_build_object('ok', false, 'message', 'Trop tard : on prévient la cantine avant 10 h le jour du repas.');
+  end if;
+
+  rendu := resa.montant / 2;
+  update public.reservations set statut = 'annulee' where id = resa.id;
+  update public.profiles set solde = solde + rendu where id = resa.eleve_id;
+  insert into public.mouvements (eleve_id, montant, motif)
+  values (resa.eleve_id, rendu, 'Absence signalée : ' || nom_plat || ' (moitié rendue)');
+
+  return jsonb_build_object('ok', true, 'message', 'La cantine est prévenue.', 'rendu', rendu);
+end;
+$$;
+
+-- 5. DROITS : personne n'appelle ces fonctions sans être connecté
+revoke execute on function public.est_personnel()               from public, anon;
+revoke execute on function public.marquer_servie(text)          from public, anon;
+revoke execute on function public.commandes_du_jour(date)       from public, anon;
+revoke execute on function public.allergies_du_jour(date)       from public, anon;
+revoke execute on function public.lire_ticket(text)             from public, anon;
+revoke execute on function public.signaler_absence(bigint)      from public, anon;
+grant  execute on function public.est_personnel()               to authenticated;
+grant  execute on function public.marquer_servie(text)          to authenticated;
+grant  execute on function public.commandes_du_jour(date)       to authenticated;
+grant  execute on function public.allergies_du_jour(date)       to authenticated;
+grant  execute on function public.lire_ticket(text)             to authenticated;
+grant  execute on function public.signaler_absence(bigint)      to authenticated;
+
+-- 6. DÉMO : le compte du comptoir. Crée-le d'abord dans l'appli (Créer mon compte : Mariam Traoré,
+-- cantine.demo@cantijuste.ci, mot de passe Demo2026!), puis relance ce script : il lui donne le rôle cantine.
+update public.profiles set role = 'cantine' where email = 'cantine.demo@cantijuste.ci';

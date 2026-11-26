@@ -29,3 +29,10 @@ export function repartirParPlat(commandes) {
   })
   return [...parPlat.values()].sort((a, b) => b.portions - a.portions)
 }
+
+// Moment de la journée par rapport au service de midi (12 h – 14 h). Abidjan vit en UTC toute l'année, d'où getUTCHours.
+export function phaseDuService(maintenant) {
+  const heure = maintenant.getUTCHours()
+  if (heure < 12) return 'avant'
+  return heure < 14 ? 'pendant' : 'apres'
+}

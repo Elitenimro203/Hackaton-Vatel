@@ -1,16 +1,18 @@
-// Onglet « À table » de l'élève : le plat vedette à réserver en grand, puis la semaine qui se savoure en carrousel.
+// Onglet « À table » de l'élève : rappel de l'heure limite (ou du jour raté), le prochain repas à réserver, un plat vedette en grand et les autres plats au choix du même jour.
 import { useCallback, useEffect, useState } from 'react'
-import { chargerMenusEntre, prixPourProfil } from '../lib/menus'
+import { chargerMenusEntre, decrireFormule, platsDuJour, prixPourProfil } from '../lib/menus'
 import { chargerMesReservations, reservationFermee } from '../lib/reservations'
-import { allergenesARisque, decrireAllergenes } from '../lib/allergenes'
-import { raisonRegimeDuMenu } from '../lib/regimes'
+import { problemeDuPlat } from '../lib/allergenes'
 import { ajouterJours, dateDuJour, formaterDateCourte, formaterMontant, prenomAffiche } from '../lib/formatage'
 import { useTempsReel } from '../lib/useTempsReel'
-import PhotoPlat from '../composants/PhotoPlat'
+import { MINUTES_RAPPEL_URGENT, jourRate, minutesAvantLimite } from '../lib/rappels'
+import RappelReservation from '../composants/RappelReservation'
+import ChoixPlat from '../composants/ChoixPlat'
 import Vide from '../composants/Vide'
 import Icone from '../composants/Icone'
 
 const JOURS_AFFICHES = 13
+const UNE_MINUTE = 60 * 1000
 
 export default function ATable({ profil, onOuvrirPlat, onVoirMenu, onVoirReservations }) {
   const aujourdhui = dateDuJour()
@@ -18,7 +20,7 @@ export default function ATable({ profil, onOuvrirPlat, onVoirMenu, onVoirReserva
   const [reservations, setReservations] = useState([])
   const [chargement, setChargement] = useState(true)
   const [erreur, setErreur] = useState(null)
-  const allergies = profil.allergies || []
+  const [maintenant, setMaintenant] = useState(() => new Date())
   const prenom = prenomAffiche(profil.nom, 'toi')
 
   const charger = useCallback(async () => {
@@ -34,19 +36,32 @@ export default function ATable({ profil, onOuvrirPlat, onVoirMenu, onVoirReserva
     charger()
   }, [charger])
 
+  // Le compte à rebours avant 18 h se met à jour chaque minute
+  useEffect(() => {
+    const minuteur = setInterval(() => setMaintenant(new Date()), UNE_MINUTE)
+    return () => clearInterval(minuteur)
+  }, [])
+
   useTempsReel('menus', charger)
   useTempsReel('reservations', charger, `eleve_id=eq.${profil.id}`)
 
-  // Les plats qu'on peut encore réserver (jusqu'à la veille 18 h) ; le premier est la vedette
+  // Le premier jour encore ouvert à la réservation (jusqu'à la veille 18 h) et ses plats au choix
   const menusOuverts = menus.filter((menu) => !reservationFermee(menu.jour))
-  const vedette = menusOuverts[0]
-  const suite = menusOuverts.slice(1)
-  const estReserve = (menu) => reservations.some((resa) => resa.menu_id === menu.id)
-  // Ce qui ne va pas au profil (« Arachide », « Contient du porc »), ou null si le plat lui convient
-  const problemeDe = (menu) => {
-    const risques = allergenesARisque(menu.allergenes, allergies)
-    return risques.length > 0 ? decrireAllergenes(risques) : raisonRegimeDuMenu(menu, profil)
-  }
+  const prochainJour = menusOuverts[0]?.jour
+  const platsDuProchainJour = prochainJour ? platsDuJour(menusOuverts, prochainJour) : []
+  const idReserve = reservations.find((resa) => platsDuProchainJour.some((menu) => menu.id === resa.menu_id))?.menu_id ?? null
+  // La vedette : le plat réservé, sinon le premier qui va au profil (avec photo de préférence), sinon le premier du jour
+  const vedette =
+    platsDuProchainJour.find((menu) => menu.id === idReserve) ||
+    platsDuProchainJour.find((menu) => !problemeDuPlat(menu, profil) && menu.photo_url) ||
+    platsDuProchainJour.find((menu) => !problemeDuPlat(menu, profil)) ||
+    platsDuProchainJour[0]
+  const autresChoix = platsDuProchainJour.filter((menu) => menu !== vedette)
+  const estReserve = (menu) => menu.id === idReserve
+
+  const minutesRestantes = prochainJour ? minutesAvantLimite(prochainJour, maintenant) : null
+  const jourUrgent = prochainJour && !idReserve && minutesRestantes <= MINUTES_RAPPEL_URGENT ? prochainJour : null
+  const jourManque = jourRate(menus, reservations, aujourdhui, maintenant)
 
   function ouvrir(menu) {
     if (estReserve(menu)) onVoirReservations()
@@ -85,6 +100,7 @@ export default function ATable({ profil, onOuvrirPlat, onVoirMenu, onVoirReserva
     return (
       <section className="pile">
         <h1>Eh, {prenom}. On mange quoi ?</h1>
+        <RappelReservation jourManque={jourManque} onVoirMenu={onVoirMenu} />
         <Vide
           icone="a-table"
           titre="La cuisine prépare la suite"
@@ -96,7 +112,7 @@ export default function ATable({ profil, onOuvrirPlat, onVoirMenu, onVoirReserva
     )
   }
 
-  const problemeVedette = problemeDe(vedette)
+  const problemeVedette = problemeDuPlat(vedette, profil)
   const vedetteReservee = estReserve(vedette)
 
   return (
@@ -105,8 +121,15 @@ export default function ATable({ profil, onOuvrirPlat, onVoirMenu, onVoirReserva
         Eh, {prenom}. On mange quoi ?
       </p>
 
+      <RappelReservation
+        jourUrgent={jourUrgent}
+        minutesRestantes={minutesRestantes}
+        jourManque={jourManque}
+        onVoirMenu={onVoirMenu}
+      />
+
       <article className="plat-vedette">
-        <img className="plat-vedette-photo" src={vedette.photo_url} alt={vedette.plat} />
+        {vedette.photo_url && <img className="plat-vedette-photo" src={vedette.photo_url} alt={vedette.plat} />}
         <div className="plat-vedette-contenu">
           <div className="rangee">
             <span className="pastille">{vedette.jour === aujourdhui ? 'Le feu du jour' : formaterDateCourte(vedette.jour)}</span>
@@ -120,10 +143,7 @@ export default function ATable({ profil, onOuvrirPlat, onVoirMenu, onVoirReserva
               <span key={position}>{mot}&nbsp;</span>
             ))}
           </h1>
-          <p className="phrase-gourmande">
-            {vedette.entree ? `${vedette.entree} · ` : ''}
-            {vedette.dessert || 'La braise crépite. Le piment réveille.'}
-          </p>
+          <p className="phrase-gourmande">{decrireFormule(vedette) || 'La braise crépite. Le piment réveille.'}</p>
           <button type="button" className="btn" onClick={() => ouvrir(vedette)}>
             {vedetteReservee ? 'Voir mon ticket' : 'Ça me donne faim'}
             {!vedetteReservee && <span className="btn-prix">{formaterMontant(prixPourProfil(vedette, profil))}</span>}
@@ -131,50 +151,22 @@ export default function ATable({ profil, onOuvrirPlat, onVoirMenu, onVoirReserva
         </div>
       </article>
 
-      <div className="titre-section">
-        <h2>La semaine se savoure</h2>
-        {suite.length > 1 && <span className="mention avec-icone">Glisse<Icone nom="fleche-droite" /></span>}
-      </div>
-
-      {suite.length === 0 ? (
-        <Vide
-          icone="calendrier"
-          titre="La suite arrive bientôt"
-          texte="Les prochains plats seront publiés par la cantine."
-          libelleBouton="Voir le menu"
-          onAction={onVoirMenu}
-        />
-      ) : (
-        <div className="carrousel cascade">
-          {suite.map((menu) => {
-            const probleme = problemeDe(menu)
-            const reserve = estReserve(menu)
-            return (
-              <button
-                key={menu.id}
-                type="button"
-                className={probleme && !reserve ? 'carte-menu carte-deconseillee' : 'carte-menu'}
-                onClick={() => ouvrir(menu)}
-              >
-                <PhotoPlat adresse={menu.photo_url} nomPlat={menu.plat}>
-                  <span className="pastille pastille-verre coin-haut">{formaterDateCourte(menu.jour)}</span>
-                  {reserve && <span className="pastille pastille-ok coin-droite"><Icone nom="coche" />Réservé</span>}
-                  {!reserve && probleme && (
-                    <span className="pastille pastille-danger coin-bas">{probleme}</span>
-                  )}
-                </PhotoPlat>
-                <span className="carte-menu-corps">
-                  <span className="nom-plat">{menu.plat}</span>
-                  <span className="carte-menu-pied">
-                    <span className="prix texte-safran">{formaterMontant(prixPourProfil(menu, profil))}</span>
-                    {!reserve && probleme && <span className="mention-danger"><Icone nom="alerte" /> Pas pour toi</span>}
-                  </span>
-                </span>
-              </button>
-            )
-          })}
-        </div>
+      {autresChoix.length > 0 && (
+        <>
+          <div className="titre-section">
+            <h2>Ou un autre plat au choix</h2>
+          </div>
+          <div className="liste-choix cascade">
+            {autresChoix.map((menu) => (
+              <ChoixPlat key={menu.id} menu={menu} profil={profil} etat={idReserve ? 'autre' : 'libre'} onOuvrir={ouvrir} />
+            ))}
+          </div>
+        </>
       )}
+
+      <button type="button" className="btn btn-discret" onClick={onVoirMenu}>
+        <span className="avec-icone">Voir toute la semaine<Icone nom="fleche-droite" /></span>
+      </button>
     </section>
   )
 }

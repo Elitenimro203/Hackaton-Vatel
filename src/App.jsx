@@ -1,17 +1,19 @@
 // Racine de l'appli : écoute la session, charge le profil et affiche l'écran du rôle connecté.
 import { useCallback, useEffect, useState } from 'react'
-import { chargerProfil, ecouterSession, seDeconnecter } from './lib/authentification'
+import { chargerProfil, ecouterRecuperation, ecouterSession, ouvertDepuisLienRecuperation, seDeconnecter } from './lib/authentification'
 import { useTempsReel } from './lib/useTempsReel'
 import { useToast } from './composants/useToast'
 import EnTete from './composants/EnTete'
 import BandeauHorsLigne from './composants/BandeauHorsLigne'
 import Accueil from './ecrans/Accueil'
 import Inscription from './ecrans/Inscription'
+import NouveauMotDePasse from './ecrans/NouveauMotDePasse'
 import Eleve from './ecrans/Eleve'
 import Parent from './ecrans/Parent'
 import Admin from './ecrans/Admin'
+import Cantine from './ecrans/Cantine'
 
-const ECRANS_PAR_ROLE = { eleve: Eleve, parent: Parent, admin: Admin }
+const ECRANS_PAR_ROLE = { eleve: Eleve, parent: Parent, admin: Admin, cantine: Cantine }
 
 function EcranChargement() {
   return (
@@ -31,10 +33,12 @@ export default function App() {
   const [profil, setProfil] = useState(null)
   const [erreurProfil, setErreurProfil] = useState(null)
   const [afficherInscription, setAfficherInscription] = useState(false)
+  const [recuperationMotDePasse, setRecuperationMotDePasse] = useState(ouvertDepuisLienRecuperation)
 
   const idUtilisateur = session?.user?.id ?? null
 
   useEffect(() => ecouterSession(setSession), [])
+  useEffect(() => ecouterRecuperation(() => setRecuperationMotDePasse(true)), [])
 
   const rechargerProfil = useCallback(async () => {
     if (!idUtilisateur) return
@@ -68,10 +72,20 @@ export default function App() {
     )
   }
 
+  // Arrivé par le lien « mot de passe oublié » : on choisit d'abord un nouveau mot de passe
+  if (recuperationMotDePasse) {
+    return (
+      <>
+        <NouveauMotDePasse afficherToast={afficherToast} onTermine={() => setRecuperationMotDePasse(false)} />
+        {toast}
+      </>
+    )
+  }
+
   if (erreurProfil) {
     return (
       <main className="page">
-        <EnTete nom="" />
+        <EnTete />
         <div className="alerte alerte-erreur" role="alert">
           <strong>Impossible de charger ton profil</strong>
           <p>{erreurProfil}</p>
@@ -94,7 +108,7 @@ export default function App() {
   return (
     <main className={profil.role === 'admin' ? 'page-admin' : 'page'}>
       <BandeauHorsLigne />
-      <EnTete nom={profil.nom} />
+      <EnTete profil={profil} afficherToast={afficherToast} />
       <EcranRole profil={profil} afficherToast={afficherToast} onProfilModifie={rechargerProfil} />
       {toast}
     </main>

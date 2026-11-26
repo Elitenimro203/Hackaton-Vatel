@@ -41,7 +41,7 @@ export default function CarteAllergiesDuJour({ lignes, jour, estAujourdhui }) {
                   <span className="badge badge-erreur"><Icone nom="alerte" />{ligne.conflit_regime}</span>
                 )}
                 {ligne.autre_allergie && (
-                  <p className="mention texte-alerte">Autre allergie : {ligne.autre_allergie}</p>
+                  <p className="mention texte-alerte">Autres allergies : {ligne.autre_allergie}</p>
                 )}
               </div>
               <div className="allergenes allergenes-droite">

@@ -26,7 +26,15 @@ where r.menu_id = m.id
 insert into public.reservations (eleve_id, menu_id, statut, code_retrait, montant, alternative)
 select p.id, m.id, 'reservee', '0812', m.prix, false
 from public.profiles p
-join public.menus m on m.jour = (now() at time zone 'Africa/Abidjan')::date and not m.retire
+cross join lateral (
+  select id, prix from public.menus
+  where jour = (now() at time zone 'Africa/Abidjan')::date and not retire
+  order by id
+  limit 1
+) m
 where p.email = 'eleve.demo@cantijuste.ci'
-  and not exists (select 1 from public.reservations r where r.menu_id = m.id and r.code_retrait = '0812' and r.statut <> 'annulee')
+  and not exists (
+    select 1 from public.reservations r
+    where r.jour = (now() at time zone 'Africa/Abidjan')::date and r.code_retrait = '0812' and r.statut <> 'annulee'
+  )
 on conflict do nothing;

@@ -17,7 +17,6 @@ import PrevisionSemaine from '../composants/PrevisionSemaine'
 import FavorisCantine from '../composants/FavorisCantine'
 import Vide from '../composants/Vide'
 import AdminSoldes from './AdminSoldes'
-import CarteProfil from '../composants/CarteProfil'
 import Icone from '../composants/Icone'
 import '../pilotage.css'
 
@@ -33,7 +32,7 @@ function LigneEvolution({ evolution, aujourdhui }) {
   )
 }
 
-export default function AdminPilotage({ profil, afficherToast, onVoirCommandes, onVoirMenus }) {
+export default function AdminPilotage({ afficherToast, onVoirCommandes, onVoirMenus }) {
   const aujourdhui = dateDuJour()
   const [tableau, setTableau] = useState(null)
   const [chargement, setChargement] = useState(true)
@@ -185,7 +184,6 @@ export default function AdminPilotage({ profil, afficherToast, onVoirCommandes, 
       )}
 
       <AdminSoldes afficherToast={afficherToast} />
-      <CarteProfil profil={profil} afficherToast={afficherToast} />
     </section>
   )
 }

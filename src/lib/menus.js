@@ -1,11 +1,11 @@
-// Appels Supabase de la table menus : lecture pour tous les connectés, écriture réservée à l'admin (RLS), retirer et dupliquer par RPC.
+// Appels Supabase de la table menus (une ligne par plat, plusieurs plats au choix par jour) : lecture pour tous, écriture admin (RLS), retirer et dupliquer par RPC.
 import { supabase } from './supabaseClient'
 import { traduireErreur } from './authentification'
 import { ALLERGENES } from './allergenes'
 import { CONTENUS } from './regimes'
 
 const COLONNES_MENU =
-  'id, jour, entree, plat, dessert, allergenes, prix, prix_employe, photo_url, plat_alternatif, photo_alternative, allergenes_alternatif, ' +
+  'id, jour, entree, plat, dessert, boisson, allergenes, prix, prix_employe, photo_url, plat_alternatif, photo_alternative, allergenes_alternatif, ' +
   'contenu, contenu_alternatif, retire'
 
 export const PRIX_ELEVE_PAR_DEFAUT = 1000
@@ -13,7 +13,7 @@ export const PRIX_EMPLOYE_PAR_DEFAUT = 1500
 
 // Codes d'erreur Postgres traduits pour l'admin
 function traduireErreurMenu(erreur) {
-  if (erreur.code === '23505') return 'Il y a déjà un menu ce jour-là. Modifiez-le plutôt.'
+  if (erreur.code === '23505') return 'Ce plat est déjà au menu ce jour-là. Modifiez-le plutôt.'
   if (erreur.code === '23503') return 'Des élèves ont déjà réservé ce menu : il ne peut plus être supprimé.'
   if (erreur.code === '42501') return 'Seul l’administrateur peut modifier les menus.'
   if (erreur.code === '23514') return 'Vérifiez les prix et les allergènes.'
@@ -29,9 +29,20 @@ export async function chargerMenusEntre(premierJour, dernierJour, { avecRetires 
     .gte('jour', premierJour)
     .lte('jour', dernierJour)
     .order('jour', { ascending: true })
+    .order('id', { ascending: true })
   if (!avecRetires) requete = requete.eq('retire', false)
   const { data, error } = await requete
   return { menus: data || [], erreur: error ? traduireErreurMenu(error) : null }
+}
+
+// Les plats au choix d'un jour, dans l'ordre où la cantine les a saisis
+export function platsDuJour(menus, jour) {
+  return menus.filter((menu) => menu.jour === jour)
+}
+
+// La formule commune du jour : « Carottes râpées · Papaye · Bissap » (vide si rien n'est saisi)
+export function decrireFormule(menu) {
+  return [menu?.entree, menu?.dessert, menu?.boisson].filter(Boolean).join(' · ')
 }
 
 // Prix payé par la personne connectée : prix élève ou prix employé
@@ -68,6 +79,7 @@ export function preparerMenu(champs) {
       entree: champs.entree.trim(),
       plat: champs.plat.trim(),
       dessert: champs.dessert.trim(),
+      boisson: champs.boisson.trim(),
       allergenes: champs.allergenes.filter((valeur) => allergenesConnus.includes(valeur)),
       prix,
       prix_employe: prixEmploye,
@@ -114,14 +126,14 @@ export async function remettreAuMenu(idMenu) {
   return data === 'ok' ? null : data
 }
 
-// Copie le menu (avec sa recette) vers un jour libre. Renvoie null si c'est fait, sinon le message d'erreur
+// Copie le plat (avec sa recette) vers un autre jour où il n'est pas encore au menu. Renvoie null si c'est fait, sinon le message d'erreur
 export async function dupliquerMenu(idMenu, jour) {
   const { data, error } = await supabase.rpc('dupliquer_menu', { p_menu_id: idMenu, p_jour: jour })
   if (error) return traduireErreurMenu(error)
   return data === 'ok' ? null : data
 }
 
-// Copie les menus d'une semaine vers une autre (jours pris ou passés sautés). Renvoie { erreur, copies, sautes }
+// Copie les plats d'une semaine vers une autre (plats déjà présents ou jours passés sautés). Renvoie { erreur, copies, sautes }
 export async function dupliquerSemaine(lundiSource, lundiCible) {
   const { data, error } = await supabase.rpc('dupliquer_semaine', { p_lundi_source: lundiSource, p_lundi_cible: lundiCible })
   if (error) return { erreur: traduireErreurMenu(error), copies: 0, sautes: 0 }

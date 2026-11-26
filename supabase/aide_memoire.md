@@ -1,10 +1,10 @@
 AIDE-MÉMOIRE CantiJuste (base Supabase, supabase/schema.sql)
 
 TABLES
-- profiles(id uuid = auth.users.id, email, nom, role 'eleve'|'parent'|'admin', type_usager 'eleve'|'employe', solde int, allergies text[], cree_le)
+- profiles(id uuid = auth.users.id, email, nom, role 'eleve'|'parent'|'admin'|'cantine', type_usager 'eleve'|'employe', solde int, allergies text[], cree_le)
 - liens_parent(parent_id, eleve_id, cree_le)  clé (parent_id, eleve_id)
-- menus(id bigint, jour date unique, entree, plat, dessert, allergenes text[], prix int (élève), prix_employe int (défaut 1500), photo_url, plat_alternatif text ('' = aucun), photo_alternative, allergenes_alternatif text[], cree_le)
-- reservations(id bigint, eleve_id, menu_id, statut 'reservee'|'annulee'|'servie', code_retrait '0812', montant int, creneau time null, alternative bool (plat de remplacement), cree_le, servie_le)
+- menus(id bigint, jour date, entree, plat, dessert, boisson, (jour, plat) unique : plusieurs plats au choix par jour, allergenes text[], prix int (élève), prix_employe int (défaut 1500), photo_url, plat_alternatif text ('' = aucun), photo_alternative, allergenes_alternatif text[], cree_le)
+- reservations(id bigint, eleve_id, menu_id, jour date (rempli par déclencheur ; un repas actif par élève et par jour, code unique par jour), statut 'reservee'|'annulee'|'servie', code_retrait '0812', montant int, creneau time null, alternative bool (plat de remplacement), cree_le, servie_le)
 - alertes(id bigint, eleve_id, menu_id null, allergenes text[], message, lue bool, cree_le)  élève qui réserve malgré son allergie ; lecture : élève, parents liés, admin
 - mouvements(id bigint, eleve_id, montant int +/-, motif, cree_le)
 - avis(id bigint, eleve_id null, menu_id null, plat, etoiles 1-5, commentaire null, source 'appli'|'import', cree_le)  unique (eleve_id, menu_id)
@@ -25,8 +25,13 @@ FONCTIONS RPC (renvoient 'ok' ou un message d'erreur en français)
 - crediter(p_eleve_id, p_montant, p_motif = 'Crédit cantine')   admin ; 1 à 100 000 ; élève ou employé seulement ; crée un mouvement
 - recharger_mobile_money(p_eleve_id, p_montant, p_operateur = 'Wave')   rôle eleve (lui-même) ou parent (enfant lié) vérifié en base ; 100 à 50 000 ; opérateurs 'Wave'|'Orange Money'|'MTN MoMo'|'Moov Money' ; mouvement 'Recharge <opérateur>'
 - chercher_personnes(p_texte)   admin ; 2 lettres mini ; lignes (id, nom, email, type_usager, solde) des élèves/employés, 8 max
-- lier_enfant(p_email)                                     parent ; 'ok' ou 'Aucun compte CantiJuste avec cet e-mail.' / 'Ce compte n'est pas un compte élève.' / 'Cet enfant est déjà lié à votre compte.'. Délier : delete direct sur liens_parent (RLS : ses liens seulement)
-SOLDE BAS : seuil unique SEUIL_SOLDE_BAS = 2000 (src/lib/recharges.js), élève et parent
+- lier_enfant_avec_code(p_code)                            parent ; 'ok' ou message (code inconnu/expiré, déjà lié)
+- creer_code_parent()                                      élève ; { ok, code, expire_le } (24 h, un seul usage)
+- mes_parents()                                            élève ; ses parents liés (id, nom)
+- est_personnel()                                          vrai pour admin et cantine (rôle du comptoir, patch_parcours)
+- lire_ticket(p_code)                                      admin ou cantine ; JSON { ok, resultat 'a_remettre'|'deja_servi'|'pas_aujourdhui'|'inconnu'|'refuse', nom, plat, photo_url, montant, creneau, allergies, risques, regime, autre_allergie, plat_remplacement } ; ne sert pas
+- signaler_absence(p_reservation_id)                      élève ; après la veille 18 h et avant 10 h le jour même ; rend la moitié ; JSON { ok, message, rendu }
+- marquer_servie, commandes_du_jour, allergies_du_jour : admin OU cantine depuis patch_parcours
 - marquer_servie(p_code)                                   admin ; accepte '0812' ou 'CJ · 0812' ; RENVOIE UN JSON { ok, resultat, message, prenom, plat, allergies, code_retrait, jour } ; resultat = 'servi' | 'deja_servi' | 'pas_aujourdhui' | 'inconnu' | 'refuse' ; réservation du jour (heure d'Abidjan) seulement
 - commandes_du_jour(p_jour = aujourd'hui)                  admin ; lignes (reservation_id, nom, plat, photo_url, alternative, code_retrait, statut, servie_le, allergies) des réservations actives
 Aides : mon_role(), est_parent_de(p_eleve_id), heure_limite(p_jour)

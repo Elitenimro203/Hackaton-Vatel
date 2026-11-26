@@ -2,8 +2,9 @@
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { prixPourProfil } from '../lib/menus'
 import { reservationFermee, reserverRepas } from '../lib/reservations'
-import { allergenesARisque, alternativeCompatible, decrireAllergenes, nommerAllergenes } from '../lib/allergenes'
-import { libelleRegime, raisonRegimeDuMenu, soupconAutreAllergie } from '../lib/regimes'
+import { allergenesARisque, alternativeCompatible, nommerAllergenes, resumerProfil } from '../lib/allergenes'
+import { libelleRegime, listerAutresAllergies, raisonRegimeDuMenu, regimeEstPersonnel, soupconAutreAllergie } from '../lib/regimes'
+import { chargerAllergiesLibresDuPlat } from '../lib/allergies'
 import { chargerAffluence } from '../lib/affluence'
 import { creneauConseille, preparerCreneaux } from '../lib/fileAttente'
 import { formaterCreneau, formaterDate, formaterMontant, HORAIRE_SERVICE } from '../lib/formatage'
@@ -15,23 +16,14 @@ import '../reservation.css'
 
 const DUREE_VERIFICATION = 900
 
-// Le texte de l'entrée et du dessert sous le nom du plat
-function decrireAccompagnements(menu) {
-  const morceaux = []
-  if (menu.entree) morceaux.push(`En entrée, ${menu.entree.toLowerCase()}`)
-  if (menu.dessert) morceaux.push(`en dessert, ${menu.dessert.toLowerCase()}`)
-  if (morceaux.length === 0) return 'Préparé ce matin par la cantine.'
-  const phrase = morceaux.join(' et ')
-  return `${phrase.charAt(0).toUpperCase()}${phrase.slice(1)}.`
-}
+const problemeLibre = (allergie, menu) => Boolean(soupconAutreAllergie(allergie, menu))
 
-// « Arachide · Végétarien · Autre : kiwi », ou null si rien n'est déclaré
-function resumerProfil(profil) {
-  const morceaux = []
-  if ((profil.allergies || []).length > 0) morceaux.push(decrireAllergenes(profil.allergies))
-  if (profil.regime && profil.regime !== 'aucun') morceaux.push(libelleRegime(profil.regime))
-  if (profil.autre_allergie) morceaux.push(`Autre : ${profil.autre_allergie}`)
-  return morceaux.length > 0 ? morceaux.join(' · ') : null
+// La formule autour du plat : « Avec ton plat : carottes râpées, papaye et bissap. »
+function decrireAccompagnements(menu) {
+  const morceaux = [menu.entree, menu.dessert, menu.boisson].filter(Boolean).map((texte) => texte.toLowerCase())
+  if (morceaux.length === 0) return 'Préparé ce matin par la cantine.'
+  const fin = morceaux.pop()
+  return `Avec ton plat : ${morceaux.length > 0 ? `${morceaux.join(', ')} et ${fin}` : fin}.`
 }
 
 // Le menu tel qu'il a été réservé : avec le nom et la photo du plat de remplacement si besoin
@@ -47,10 +39,11 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
   const [creneaux, setCreneaux] = useState([])
   const [creneauChoisi, setCreneauChoisi] = useState(null)
   const allergies = profil.allergies || []
-  const risques = allergenesARisque(menu.allergenes, allergies)
+  // Allergies écrites à la main retrouvées dans le plat (nom + ingrédients de la recette), vérifiées par la base
+  const [allergiesLibres, setAllergiesLibres] = useState([])
+  const risques = [...allergenesARisque(menu.allergenes, allergies), ...allergiesLibres]
   const regime = profil.regime || 'aucun'
   const raisonRegime = raisonRegimeDuMenu(menu, profil)
-  const soupcon = soupconAutreAllergie(profil.autre_allergie, menu)
   const avecAlternative = alternativeCompatible(menu, allergies, regime)
   const proposerRemplacement = risques.length === 0 && Boolean(raisonRegime) && avecAlternative
   const resumeProfil = resumerProfil(profil)
@@ -74,6 +67,19 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
   useEffect(() => {
     if (!fermee) chargerCreneaux()
   }, [fermee, chargerCreneaux])
+
+  useEffect(() => {
+    let actif = true
+    chargerAllergiesLibresDuPlat(profil.autre_allergie, menu.id).then((resultat) => {
+      if (!actif) return
+      // Base pas encore à jour : on se rabat sur le nom du plat
+      if (resultat.erreur) setAllergiesLibres(listerAutresAllergies(profil.autre_allergie).filter((allergie) => problemeLibre(allergie, menu)))
+      else setAllergiesLibres(resultat.allergies)
+    })
+    return () => {
+      actif = false
+    }
+  }, [profil.autre_allergie, menu])
 
   // L'anneau « Analyse de ton profil… » tourne un court instant avant le verdict
   useEffect(() => {
@@ -176,7 +182,7 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
         </div>
       )}
 
-      {!verificationEnCours && risques.length === 0 && !raisonRegime && !soupcon && (
+      {!verificationEnCours && risques.length === 0 && !raisonRegime && (
         <div className="verif verif-ok" role="status">
           <Icone nom="bouclier" className="verif-icone" />
           <div>
@@ -190,24 +196,17 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
         <div className="verif verif-danger" role="alert">
           <Icone nom="alerte" className="verif-icone" />
           <div>
-            <p className="verif-titre">Hors de ton régime {libelleRegime(regime).toLowerCase()}</p>
+            <p className="verif-titre">
+              {regimeEstPersonnel(regime) ? `À vérifier : ${libelleRegime(regime).toLowerCase()}` : `Hors de ton régime ${libelleRegime(regime).toLowerCase()}`}
+            </p>
             <p className="verif-texte">
-              {raisonRegime}.{' '}
+              {regimeEstPersonnel(regime) ? 'Le nom du plat le laisse penser, demande à la cantine' : raisonRegime}.{' '}
               {avecAlternative ? `Le plat de remplacement te va : ${menu.plat_alternatif}.` : 'Pas de remplacement ce jour-là.'}
             </p>
           </div>
         </div>
       )}
 
-      {!verificationEnCours && risques.length === 0 && !raisonRegime && soupcon && (
-        <div className="alerte alerte-attention" role="alert">
-          <Icone nom="alerte" />
-          <div>
-            <strong>Peut contenir : {profil.autre_allergie}</strong>
-            <p>Demande à la cantine avant de réserver. Ton parent et la cuisine voient cette allergie.</p>
-          </div>
-        </div>
-      )}
 
       {!verificationEnCours && risques.length > 0 && (
         <div className="verif verif-danger" role="alert">
@@ -215,7 +214,7 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
           <div>
             <p className="verif-titre">Contient {nommerAllergenes(risques)}</p>
             <p className="verif-texte">
-              {avecAlternative ? 'Un plat de remplacement t’attend.' : 'C’est noté dans ton profil. Choisis plutôt un autre jour.'}
+              {avecAlternative ? 'Un plat de remplacement t’attend.' : 'C’est noté dans ton profil. Choisis plutôt un autre plat du jour.'}
             </p>
           </div>
         </div>
@@ -251,7 +250,7 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
       </button>
       {proposerRemplacement && !fermee && !soldeInsuffisant && (
         <button type="button" className="btn btn-discret" onClick={() => reserver()} disabled={envoiEnCours || verificationEnCours}>
-          Réserver le plat du jour quand même
+          Réserver ce plat quand même
         </button>
       )}
       {!fermee && !soldeInsuffisant && (

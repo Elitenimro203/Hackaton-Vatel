@@ -7,6 +7,7 @@ export const MOT_DE_PASSE_DEMO = 'Demo2026!'
 export const COMPTES_DEMO = [
   { role: 'eleve', libelle: 'Élève', email: 'eleve.demo@cantijuste.ci' },
   { role: 'parent', libelle: 'Parent', email: 'parent.demo@cantijuste.ci' },
+  { role: 'cantine', libelle: 'Comptoir', email: 'cantine.demo@cantijuste.ci' },
   { role: 'admin', libelle: 'Admin', email: 'admin.demo@cantijuste.ci' },
 ]
 
@@ -23,7 +24,13 @@ const TRADUCTIONS_ERREURS = [
   ['is invalid', 'Cette adresse e-mail n’est pas valide.'],
   ['rate limit', 'Trop d’essais. Réessaie dans une minute.'],
   ['failed to fetch', 'Pas de connexion internet. Vérifie ton réseau.'],
+  ['for security purposes', 'Patiente une minute avant de redemander un lien.'],
+  ['should be different', 'Choisis un mot de passe différent de l’ancien.'],
+  ['session missing', 'Ce lien a expiré. Demande un nouveau lien.'],
 ]
+
+// Lu une seule fois au chargement, avant que Supabase ne nettoie l'adresse : la page vient-elle du lien reçu par e-mail ?
+const ADRESSE_AU_CHARGEMENT = typeof window === 'undefined' ? '' : window.location.hash
 
 export function traduireErreur(erreur) {
   const message = (erreur?.message || '').toLowerCase()
@@ -61,6 +68,38 @@ export async function creerCompte({ nom, email, motDePasse, profil }) {
 export async function seDeconnecter() {
   const { error } = await supabase.auth.signOut()
   return error ? traduireErreur(error) : null
+}
+
+// Mot de passe oublié : Supabase envoie un lien qui ramène sur l'appli. Il ne dit jamais si le compte existe.
+export async function envoyerLienMotDePasse(email) {
+  const adresse = email.trim().toLowerCase()
+  if (!adresse.includes('@')) return 'Écris ton adresse e-mail.'
+  const { error } = await supabase.auth.resetPasswordForEmail(adresse, { redirectTo: window.location.origin })
+  return error ? traduireErreur(error) : null
+}
+
+export async function changerMotDePasse(motDePasse) {
+  if (motDePasse.length < LONGUEUR_MINI_MOT_DE_PASSE) {
+    return 'Le mot de passe doit faire au moins 8 caractères.'
+  }
+  const { error } = await supabase.auth.updateUser({ password: motDePasse })
+  return error ? traduireErreur(error) : null
+}
+
+export function ouvertDepuisLienRecuperation() {
+  return ADRESSE_AU_CHARGEMENT.includes('type=recovery')
+}
+
+export function lienRecuperationExpire() {
+  return ADRESSE_AU_CHARGEMENT.includes('error_code=otp_expired')
+}
+
+// Appelle rappel() quand Supabase signale l'ouverture d'un lien « mot de passe oublié ». Renvoie la fonction pour arrêter.
+export function ecouterRecuperation(rappel) {
+  const { data } = supabase.auth.onAuthStateChange((evenement) => {
+    if (evenement === 'PASSWORD_RECOVERY') rappel()
+  })
+  return () => data.subscription.unsubscribe()
 }
 
 // Appelle rappel(session) tout de suite, puis à chaque connexion ou déconnexion. Renvoie la fonction pour arrêter.

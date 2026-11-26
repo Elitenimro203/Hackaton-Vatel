@@ -1,4 +1,5 @@
-// Liste « Les convives arrivent bientôt » : élève, plat, code de retrait, statut et bouton « Servi » par ligne.
+// Liste « Les convives arrivent bientôt » : ceux à servir d'abord, les 6 premiers visibles, élève, plat, code, statut et bouton « Servi ».
+import { useState } from 'react'
 import { formaterCodeRetrait } from '../lib/formatage'
 import Vide from './Vide'
 import Icone from './Icone'
@@ -9,17 +10,26 @@ const STATUTS = {
   servie: { libelle: 'Servi', classe: 'badge badge-succes' },
 }
 
-export default function ListeConvives({ commandes, peutServir, codeEnCours, onServir, onVoirMenus }) {
+const NOMBRE_VISIBLE = 6
+
+// titre et aide remplacent les textes par défaut ; sans onVoirMenus, l'état vide n'a pas de bouton (rôle cantine)
+export default function ListeConvives({ commandes, peutServir, codeEnCours, onServir, onVoirMenus, titre, aide }) {
+  const [toutVoir, setToutVoir] = useState(false)
   const restant = commandes.filter((commande) => commande.statut === 'reservee').length
+  // Les assiettes encore à servir passent devant celles déjà parties
+  const triees = [...commandes].sort((a, b) => Number(a.statut === 'servie') - Number(b.statut === 'servie'))
+  const visibles = toutVoir ? triees : triees.slice(0, NOMBRE_VISIBLE)
+  const cachees = triees.length - visibles.length
 
   return (
     <section className="carte liste-convives">
       <div>
-        <h2 className="titre-bloc">Les convives arrivent bientôt</h2>
+        <h2 className="titre-bloc">{titre || 'Les convives arrivent bientôt'}</h2>
         <p className="aide">
-          {peutServir
-            ? `${restant} assiette${restant > 1 ? 's' : ''} encore à servir. Touche « Servi » quand l’assiette part.`
-            : 'Le bouton « Servi » apparaît le jour du service.'}
+          {aide ||
+            (peutServir
+              ? `${restant} assiette${restant > 1 ? 's' : ''} encore à servir. Touche « Servi » quand l’assiette part.`
+              : 'Le bouton « Servi » apparaît le jour du service.')}
         </p>
       </div>
 
@@ -28,7 +38,7 @@ export default function ListeConvives({ commandes, peutServir, codeEnCours, onSe
           icone="a-table"
           titre="Aucune réservation pour ce service"
           texte="Les élèves réservent jusqu’à la veille 18 h. Vérifie que le menu est en ligne."
-          libelleBouton="Voir les menus"
+          libelleBouton={onVoirMenus ? 'Voir les menus' : undefined}
           onAction={onVoirMenus}
         />
       ) : (
@@ -41,7 +51,7 @@ export default function ListeConvives({ commandes, peutServir, codeEnCours, onSe
             <span />
           </div>
           <ul className="convives">
-            {commandes.map((commande) => {
+            {visibles.map((commande) => {
               const statut = STATUTS[commande.statut] || STATUTS.reservee
               const estServie = commande.statut === 'servie'
               const envoiEnCours = codeEnCours === commande.code_retrait
@@ -67,6 +77,11 @@ export default function ListeConvives({ commandes, peutServir, codeEnCours, onSe
               )
             })}
           </ul>
+          {cachees > 0 && (
+            <button type="button" className="btn btn-discret" onClick={() => setToutVoir(true)}>
+              Voir les {cachees} autres convives
+            </button>
+          )}
         </div>
       )}
     </section>

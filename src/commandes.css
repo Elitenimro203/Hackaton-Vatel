@@ -134,15 +134,15 @@
 /* ---------- Répartition par plat ---------- */
 .repartition {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .carte-plat-jour {
   display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
+  grid-template-columns: 56px minmax(0, 1fr);
   align-items: center;
-  gap: 14px;
-  padding: 14px;
+  gap: 12px;
+  padding: 10px 12px;
 }
 
 .carte-plat-jour .photo {
@@ -157,18 +157,18 @@
 .carte-plat-texte {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
 }
 
 .carte-plat-texte .nom-plat {
-  font-size: 20px;
+  font-size: 17px;
   line-height: 1.15;
   overflow-wrap: anywhere;
 }
 
 .portions {
-  font-size: 22px;
+  font-size: 17px;
   font-weight: 800;
   color: var(--safran);
 }

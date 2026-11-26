@@ -90,3 +90,15 @@ export async function annulerReservation(idReservation) {
 export function reservationFermee(jourIso) {
   return new Date() >= new Date(`${ajouterJours(jourIso, -1)}T18:00:00Z`)
 }
+
+// Après la veille 18 h et avant 10 h le jour du repas : on peut encore prévenir qu'on ne viendra pas (moitié rendue)
+export function absencePossible(jourIso) {
+  return reservationFermee(jourIso) && new Date() < new Date(`${jourIso}T10:00:00Z`)
+}
+
+// Renvoie { erreur, rendu } : erreur vaut null si la cantine est prévenue ; rendu = montant remis sur le solde
+export async function signalerAbsence(idReservation) {
+  const { data, error } = await supabase.rpc('signaler_absence', { p_reservation_id: idReservation })
+  if (error) return { erreur: traduireErreur(error), rendu: 0 }
+  return { erreur: data.ok ? null : data.message, rendu: data.rendu || 0 }
+}

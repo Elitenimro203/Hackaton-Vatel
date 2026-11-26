@@ -1,65 +1,111 @@
-// Onglet Mes enfants du parent : lier un enfant par e-mail, une carte par enfant (sa carte cantine virtuelle, recharge, alertes allergie, profil alimentaire), et le délier.
+// Onglet Mes enfants du parent : ajouter un enfant avec le code qu'il a créé dans son Profil, une carte par enfant (sa carte cantine virtuelle, recharge, alertes allergie, profil alimentaire), et le délier.
 import { useCallback, useEffect, useState } from 'react'
-import { chargerEnfants, delierEnfant, lierEnfant, prenomDe } from '../lib/enfants'
+import { LONGUEUR_CODE_PARENT, chargerEnfants, delierEnfant, formaterCodeParent, lierEnfantAvecCode, nettoyerCodeParent, prenomDe } from '../lib/enfants'
 import { chargerAlertes, marquerAlerteLue } from '../lib/alertes'
 import { formaterDate, formaterDateHeure, formaterMontant } from '../lib/formatage'
 import { decrireAllergenes } from '../lib/allergenes'
 import { SEUIL_SOLDE_BAS, soldeEstBas } from '../lib/recharges'
 import { useTempsReel } from '../lib/useTempsReel'
 import CarteCantine from '../composants/CarteCantine'
-import ProfilAlimentaire from '../composants/ProfilAlimentaire'
-import Vide from '../composants/Vide'
+import CarteProfilAlimentaire from '../composants/CarteProfilAlimentaire'
 import Icone from '../composants/Icone'
 import '../allergies.css'
 import '../recharge.css'
 import '../parent.css'
 
-function FormulaireLien({ afficherToast, onLie, onFermer }) {
-  const [email, setEmail] = useState('')
+// Ajout d'un enfant : le code à 6 caractères créé par l'enfant dans son Profil (valable 24 h, un seul usage)
+function FormulaireCodeEnfant({ afficherToast, onLie }) {
+  const [code, setCode] = useState('')
+  const [erreurCode, setErreurCode] = useState(null)
   const [envoiEnCours, setEnvoiEnCours] = useState(false)
+  const complet = code.length === LONGUEUR_CODE_PARENT
 
   async function envoyer(evenement) {
     evenement.preventDefault()
+    if (!complet) return
     setEnvoiEnCours(true)
-    const erreur = await lierEnfant(email)
+    const erreur = await lierEnfantAvecCode(code)
     setEnvoiEnCours(false)
 
     if (erreur) {
-      afficherToast(erreur, 'erreur')
+      setErreurCode(erreur)
       return
     }
-    afficherToast('Votre enfant est lié à votre compte.')
-    setEmail('')
+    afficherToast('C’est fait : vous suivez maintenant votre enfant.')
+    setCode('')
     onLie()
   }
 
   return (
-    <form className="carte pile" onSubmit={envoyer}>
-      <h2 className="carte-titre">Lier un enfant</h2>
-      <div className="champ">
-        <label htmlFor="email-enfant">E-mail du compte élève de votre enfant</label>
+    <form className="pile formulaire-code" onSubmit={envoyer} noValidate>
+      <ol className="etapes-code">
+        <li>
+          <span className="etape-numero">1</span>
+          <span>Sur le téléphone de votre enfant, ouvrez <strong>Profil</strong>.</span>
+        </li>
+        <li>
+          <span className="etape-numero">2</span>
+          <span>Touchez <strong>Créer mon code</strong> dans « Ta famille sur CantiJuste ».</span>
+        </li>
+        <li>
+          <span className="etape-numero">3</span>
+          <span>Saisissez ici les 6 caractères affichés.</span>
+        </li>
+      </ol>
+
+      <div className={erreurCode ? 'champ champ-erreur' : 'champ'}>
+        <label htmlFor="code-enfant">Code de votre enfant</label>
         <input
-          id="email-enfant"
-          type="email"
-          inputMode="email"
-          autoComplete="off"
-          placeholder="awa@cantijuste.ci"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          id="code-enfant"
+          className="champ-code"
+          type="text"
+          inputMode="text"
+          autoCapitalize="characters"
+          autoComplete="one-time-code"
+          spellCheck="false"
+          placeholder="ABC · 234"
+          value={formaterCodeParent(code)}
+          onChange={(e) => {
+            setCode(nettoyerCodeParent(e.target.value))
+            setErreurCode(null)
+          }}
           disabled={envoiEnCours}
-          required
+          aria-describedby="aide-code-enfant"
         />
-        <span className="champ-message">L’e-mail avec lequel votre enfant se connecte à CantiJuste.</span>
+        <span className="champ-message" id="aide-code-enfant">
+          {erreurCode || 'Valable 24 h. Sans ce code, personne ne peut suivre votre enfant.'}
+        </span>
       </div>
-      <button type="submit" className="btn" disabled={envoiEnCours || !email.trim()}>
-        {envoiEnCours ? 'Liaison…' : 'Lier mon enfant'}
+
+      <button type="submit" className="btn" disabled={!complet || envoiEnCours}>
+        {envoiEnCours ? 'Vérification…' : 'Ajouter mon enfant'}
       </button>
-      {onFermer && (
-        <button type="button" className="btn btn-discret btn-petit" onClick={onFermer} disabled={envoiEnCours}>
-          Fermer
-        </button>
-      )}
     </form>
+  )
+}
+
+function FenetreAjoutEnfant({ afficherToast, onLie, onFermer }) {
+  useEffect(() => {
+    function surTouche(evenement) {
+      if (evenement.key === 'Escape') onFermer()
+    }
+    window.addEventListener('keydown', surTouche)
+    return () => window.removeEventListener('keydown', surTouche)
+  }, [onFermer])
+
+  return (
+    <div className="voile" onClick={(e) => e.target === e.currentTarget && onFermer()}>
+      <div className="fenetre-bas pile" role="dialog" aria-modal="true" aria-labelledby="titre-ajout-enfant">
+        <div className="espace-entre">
+          <span className="surtitre">Espace parent</span>
+          <button type="button" className="btn-icone btn-fermer" onClick={onFermer} aria-label="Fermer">
+            <Icone nom="fermer" />
+          </button>
+        </div>
+        <h2 id="titre-ajout-enfant">Ajouter un enfant</h2>
+        <FormulaireCodeEnfant afficherToast={afficherToast} onLie={onLie} />
+      </div>
+    </div>
   )
 }
 
@@ -127,7 +173,7 @@ function CarteEnfant({ enfant, alertes, afficherToast, onRecharger, onDelier, on
         ))
       )}
 
-      <ProfilAlimentaire eleve={enfant} afficherToast={afficherToast} onEnregistre={onModifie} pourParent />
+      <CarteProfilAlimentaire eleve={enfant} afficherToast={afficherToast} onEnregistre={onModifie} pourParent />
 
       <button type="button" className="btn btn-danger btn-petit btn-delier" onClick={() => onDelier(enfant)}>
         Délier ce compte
@@ -161,6 +207,8 @@ export default function MesEnfants({ afficherToast, onRecharger, onLiensModifies
   // Une alerte ou un changement de solde apparaît sans recharger la page
   useTempsReel('alertes', charger)
   useTempsReel('profiles', charger)
+
+  const fermerFormulaire = useCallback(() => setFormulaireOuvert(false), [])
 
   function apresLien() {
     setFormulaireOuvert(false)
@@ -209,14 +257,14 @@ export default function MesEnfants({ afficherToast, onRecharger, onLiensModifies
       )}
 
       {!chargement && !erreur && enfants.length === 0 && (
-        <>
-          <Vide
-            icone="enfants"
-            titre="Aucun enfant lié pour l’instant"
-            texte="Saisissez l’e-mail du compte élève de votre enfant pour suivre son solde, ses repas et ses allergies."
-          />
-          <FormulaireLien afficherToast={afficherToast} onLie={apresLien} />
-        </>
+        <div className="carte pile accueil-parent">
+          <span className="invitation-parent-icone" aria-hidden="true">
+            <Icone nom="enfants" />
+          </span>
+          <h2 className="carte-titre">Suivez les repas de votre enfant</h2>
+          <p className="aide">Son solde, ce qu’il mange et une alerte en cas d’allergie. Il vous suffit du code qu’il crée sur son téléphone.</p>
+          <FormulaireCodeEnfant afficherToast={afficherToast} onLie={apresLien} />
+        </div>
       )}
 
       {!chargement && enfants.map((enfant) => (
@@ -231,16 +279,20 @@ export default function MesEnfants({ afficherToast, onRecharger, onLiensModifies
         />
       ))}
 
-      {!chargement && !erreur && enfants.length > 0 && (formulaireOuvert ? (
-        <FormulaireLien afficherToast={afficherToast} onLie={apresLien} onFermer={() => setFormulaireOuvert(false)} />
-      ) : (
-        <button type="button" className="btn btn-discret" onClick={() => setFormulaireOuvert(true)}>
-          <span className="avec-icone">
+      {!chargement && !erreur && enfants.length > 0 && (
+        <button type="button" className="tuile-ajout" onClick={() => setFormulaireOuvert(true)}>
+          <span className="tuile-ajout-icone" aria-hidden="true">
             <Icone nom="plus" />
-            Lier un autre enfant
           </span>
+          <span className="tuile-ajout-texte">
+            <strong>Ajouter un enfant</strong>
+            <span className="mention">Avec le code créé sur son téléphone</span>
+          </span>
+          <Icone nom="suivant" className="tuile-ajout-fleche" />
         </button>
-      ))}
+      )}
+
+      {formulaireOuvert && <FenetreAjoutEnfant afficherToast={afficherToast} onLie={apresLien} onFermer={fermerFormulaire} />}
 
       {aDelier && (
         <div className="voile">
@@ -248,7 +300,7 @@ export default function MesEnfants({ afficherToast, onRecharger, onLiensModifies
             <h2 id="titre-delier">Délier {prenomDe(aDelier)}&nbsp;?</h2>
             <p className="aide">
               Vous ne verrez plus son solde, ses repas ni ses alertes. Son compte et son solde restent intacts : vous pourrez le
-              lier à nouveau avec son e-mail.
+              lier à nouveau avec un nouveau code créé sur son téléphone.
             </p>
             <button type="button" className="btn btn-secondaire" onClick={() => setADelier(null)} disabled={delierEnCours}>
               Garder le lien

@@ -1,34 +1,26 @@
-// Onglet Menu de l'élève : la semaine jour par jour, ses allergies et son régime mis en évidence, et l'ouverture de la fiche pour réserver.
+// Onglet Menu de l'élève : la semaine jour par jour, les plats au choix de chaque jour (ceux qui lui vont en premier) et l'ouverture de la fiche pour réserver.
 import { useCallback, useEffect, useState } from 'react'
-import { chargerMenusEntre, prixPourProfil } from '../lib/menus'
+import { chargerMenusEntre, decrireFormule, platsDuJour } from '../lib/menus'
 import { chargerMesReservations, reservationFermee } from '../lib/reservations'
-import { allergenesARisque, alternativeCompatible, decrireAllergenes } from '../lib/allergenes'
-import { libelleRegime, raisonRegimeDuMenu } from '../lib/regimes'
+import { problemeDuPlat } from '../lib/allergenes'
 import {
   dateDuJour,
   formaterDate,
-  formaterDateCourte,
   formaterJourCourt,
-  formaterMontant,
   formaterNumeroJour,
   joursOuvresDeLaSemaine,
 } from '../lib/formatage'
 import { useTempsReel } from '../lib/useTempsReel'
-import BadgesAllergenes from '../composants/BadgesAllergenes'
+import ChoixPlat from '../composants/ChoixPlat'
 import Icone from '../composants/Icone'
 import '../menus.css'
 import NavigationSemaine from '../composants/NavigationSemaine'
-import PhotoPlat from '../composants/PhotoPlat'
 import Vide from '../composants/Vide'
 
-// Le plat du jour ne va pas à ce profil : un allergène ou hors de son régime
-function pasPourLeProfil(menu, profil) {
-  return allergenesARisque(menu.allergenes, profil.allergies || []).length > 0 || Boolean(raisonRegimeDuMenu(menu, profil))
-}
-
-function classeDuJour(menu, estActif, profil) {
+// Pastille sous le jour : vert si au moins un plat lui va, rouge si aucun
+function classeDuJour(plats, estActif, profil) {
   const classes = ['jour']
-  if (menu) classes.push(pasPourLeProfil(menu, profil) ? 'jour-risque' : 'jour-ok')
+  if (plats.length > 0) classes.push(plats.some((menu) => !problemeDuPlat(menu, profil)) ? 'jour-ok' : 'jour-risque')
   if (estActif) classes.push('actif')
   return classes.join(' ')
 }
@@ -39,6 +31,18 @@ function jourDeDepart(aujourdhui) {
   return jours.includes(aujourdhui) ? aujourdhui : jours[0]
 }
 
+// Le plat réservé d'abord, puis ceux qui vont au profil, puis les autres
+function trierPourLeProfil(plats, profil, idReserve) {
+  const rang = (menu) => (menu.id === idReserve ? 0 : problemeDuPlat(menu, profil) ? 2 : 1)
+  return [...plats].sort((a, b) => rang(a) - rang(b))
+}
+
+function etatDuPlat(menu, idReserve, fermee) {
+  if (menu.id === idReserve) return 'reserve'
+  if (idReserve) return 'autre'
+  return fermee ? 'ferme' : 'libre'
+}
+
 export default function MenuSemaine({ profil, onOuvrirPlat, onVoirReservations }) {
   const aujourdhui = dateDuJour()
   const [jourChoisi, setJourChoisi] = useState(() => jourDeDepart(aujourdhui))
@@ -46,7 +50,6 @@ export default function MenuSemaine({ profil, onOuvrirPlat, onVoirReservations }
   const [reservations, setReservations] = useState([])
   const [chargement, setChargement] = useState(true)
   const [erreur, setErreur] = useState(null)
-  const allergies = profil.allergies || []
   const joursSemaine = joursOuvresDeLaSemaine(jourChoisi)
   const lundi = joursSemaine[0]
   const vendredi = joursSemaine[4]
@@ -67,39 +70,25 @@ export default function MenuSemaine({ profil, onOuvrirPlat, onVoirReservations }
   useTempsReel('menus', charger)
   useTempsReel('reservations', charger, `eleve_id=eq.${profil.id}`)
 
-  const menuDuJour = menus.find((menu) => menu.jour === jourChoisi)
-  const risques = menuDuJour ? allergenesARisque(menuDuJour.allergenes, allergies) : []
-  const raisonRegime = menuDuJour ? raisonRegimeDuMenu(menuDuJour, profil) : null
-  const pasPourToi = risques.length > 0 || Boolean(raisonRegime)
-  const estReserve = Boolean(menuDuJour && reservations.some((resa) => resa.menu_id === menuDuJour.id))
-  const prix = menuDuJour ? prixPourProfil(menuDuJour, profil) : 0
+  const plats = platsDuJour(menus, jourChoisi)
+  const idReserve = reservations.find((resa) => plats.some((menu) => menu.id === resa.menu_id))?.menu_id ?? null
+  const fermee = reservationFermee(jourChoisi)
+  const formule = decrireFormule(plats[0])
 
   function changerSemaine(nouveauLundi) {
     setChargement(true)
     setJourChoisi(nouveauLundi)
   }
 
-  function boutonPrincipal() {
-    if (estReserve) {
-      return (
-        <button type="button" className="btn" onClick={onVoirReservations}>
-          Voir ma réservation
-        </button>
-      )
-    }
-    if (reservationFermee(menuDuJour.jour)) {
-      return (
-        <button type="button" className="btn btn-secondaire" disabled>
-          Réservations fermées pour ce jour
-        </button>
-      )
-    }
-    return (
-      <button type="button" className="btn" onClick={() => onOuvrirPlat(menuDuJour)}>
-        Réserver ce régal
-        <span className="btn-prix">{formaterMontant(prix)}</span>
-      </button>
-    )
+  function ouvrir(menu) {
+    if (menu.id === idReserve) onVoirReservations()
+    else onOuvrirPlat(menu)
+  }
+
+  function phraseDuJour() {
+    if (idReserve) return 'Ton repas est réservé. Annule-le dans Mes repas pour changer de plat.'
+    if (fermee) return 'Réservations fermées pour ce jour (la veille à 18 h).'
+    return `${plats.length} plats au choix. Réserve la veille à 18 h au plus tard.`
   }
 
   return (
@@ -108,29 +97,25 @@ export default function MenuSemaine({ profil, onOuvrirPlat, onVoirReservations }
       <NavigationSemaine lundi={lundi} onChanger={changerSemaine} classeTitre="texte-safran" />
 
       <div className="jours" role="group" aria-label="Jours de la semaine">
-        {joursSemaine.map((jour) => {
-          const menu = menus.find((unMenu) => unMenu.jour === jour)
-          return (
-            <button
-              key={jour}
-              type="button"
-              className={classeDuJour(menu, jour === jourChoisi, profil)}
-              aria-pressed={jour === jourChoisi}
-              aria-label={formaterDate(jour)}
-              onClick={() => setJourChoisi(jour)}
-            >
-              <span className="jour-nom">{formaterJourCourt(jour)}</span>
-              <span className="jour-numero">{formaterNumeroJour(jour)}</span>
-            </button>
-          )
-        })}
+        {joursSemaine.map((jour) => (
+          <button
+            key={jour}
+            type="button"
+            className={classeDuJour(platsDuJour(menus, jour), jour === jourChoisi, profil)}
+            aria-pressed={jour === jourChoisi}
+            aria-label={formaterDate(jour)}
+            onClick={() => setJourChoisi(jour)}
+          >
+            <span className="jour-nom">{formaterJourCourt(jour)}</span>
+            <span className="jour-numero">{formaterNumeroJour(jour)}</span>
+          </button>
+        ))}
       </div>
-      <p className="aide">Réserve la veille à 18 h au plus tard.</p>
 
       {chargement && (
         <div className="chargement" aria-label="Chargement du menu…">
-          <div className="squelette squelette-photo" />
           <div className="squelette squelette-ligne" />
+          <div className="squelette" />
           <div className="squelette" />
         </div>
       )}
@@ -145,7 +130,7 @@ export default function MenuSemaine({ profil, onOuvrirPlat, onVoirReservations }
         </div>
       )}
 
-      {!chargement && !erreur && !menuDuJour && (
+      {!chargement && !erreur && plats.length === 0 && (
         <Vide
           icone="calendrier"
           titre="Pas encore de menu ce jour-là"
@@ -155,40 +140,27 @@ export default function MenuSemaine({ profil, onOuvrirPlat, onVoirReservations }
         />
       )}
 
-      {!chargement && menuDuJour && (
-        <article className={pasPourToi && !estReserve ? 'carte-menu carte-deconseillee' : 'carte-menu'}>
-          <PhotoPlat adresse={menuDuJour.photo_url} nomPlat={menuDuJour.plat} vivante>
-            <span className="pastille pastille-verre coin-haut texte-safran">{formaterDateCourte(menuDuJour.jour)}</span>
-            {estReserve && <span className="badge badge-succes coin-droite"><Icone nom="coche" />Réservé</span>}
-            {!estReserve && pasPourToi && <span className="pastille pastille-danger coin-droite"><Icone nom="alerte" />Pas pour toi</span>}
-            {!estReserve && pasPourToi && (
-              <span className="pastille pastille-danger coin-bas">{risques.length > 0 ? decrireAllergenes(risques) : raisonRegime}</span>
-            )}
-          </PhotoPlat>
-          <div className="carte-menu-corps pile">
-            <h2 className="nom-plat nom-plat-grand">{menuDuJour.plat}</h2>
-            <div>
-              {menuDuJour.entree && <p className="aide">Entrée · {menuDuJour.entree}</p>}
-              {menuDuJour.dessert && <p className="aide">Dessert · {menuDuJour.dessert}</p>}
-            </div>
-            <div className="espace-entre">
-              <BadgesAllergenes allergenes={menuDuJour.allergenes} allergiesProfil={allergies} />
-              <span className="prix prix-grand texte-safran">{formaterMontant(prix)}</span>
-            </div>
-            {risques.length > 0 && (
-              <p className="mention-danger"><Icone nom="alerte" /> Contient {decrireAllergenes(risques)}, noté dans ton profil.</p>
-            )}
-            {risques.length === 0 && raisonRegime && (
-              <p className="mention-danger"><Icone nom="alerte" /> {raisonRegime} : hors de ton régime {libelleRegime(profil.regime).toLowerCase()}.</p>
-            )}
-            {pasPourToi && alternativeCompatible(menuDuJour, allergies, profil.regime || 'aucun') && (
-              <p className="aide"><Icone nom="remplacement" className="icone-safran" /> Plat de remplacement pour toi : {menuDuJour.plat_alternatif}</p>
-            )}
-            {boutonPrincipal()}
+      {!chargement && !erreur && plats.length > 0 && (
+        <>
+          <div className="formule-jour">
+            <span className="surtitre">{formaterDate(jourChoisi)}</span>
+            {formule && <p className="formule-jour-texte">Entrée, dessert et boisson : {formule}</p>}
+            <p className="aide">{phraseDuJour()}</p>
           </div>
-        </article>
-      )}
 
+          <div className="liste-choix cascade">
+            {trierPourLeProfil(plats, profil, idReserve).map((menu) => (
+              <ChoixPlat key={menu.id} menu={menu} profil={profil} etat={etatDuPlat(menu, idReserve, fermee)} onOuvrir={ouvrir} />
+            ))}
+          </div>
+
+          {idReserve && (
+            <button type="button" className="btn" onClick={onVoirReservations}>
+              Voir mon ticket
+            </button>
+          )}
+        </>
+      )}
     </section>
   )
 }
