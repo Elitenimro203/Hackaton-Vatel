@@ -2,11 +2,12 @@
 import { formaterMontant } from '../lib/formatage'
 import { alternativeCompatible, listerSansAllergenes, nommerAllergenes } from '../lib/allergenes'
 import PhotoPlat from './PhotoPlat'
+import Icone from './Icone'
 import '../allergies.css'
 
 export default function FenetreAllergie({ menu, profil, risques, prix, envoiEnCours, onReserverAlternative, onReserverQuandMeme, onFermer }) {
   const prenom = profil.nom.trim().split(' ')[0] || 'Toi'
-  const avecAlternative = alternativeCompatible(menu, profil.allergies || [])
+  const avecAlternative = alternativeCompatible(menu, profil.allergies || [], profil.regime || 'aucun')
 
   return (
     <div className="voile">
@@ -14,7 +15,7 @@ export default function FenetreAllergie({ menu, profil, risques, prix, envoiEnCo
         <div className="espace-entre">
           <span className="surtitre texte-alerte">Ta sécurité d’abord</span>
           <button type="button" className="btn-icone btn-fermer" onClick={onFermer} aria-label="Fermer" disabled={envoiEnCours}>
-            ✕
+            <Icone nom="fermer" />
           </button>
         </div>
 
@@ -41,7 +42,7 @@ export default function FenetreAllergie({ menu, profil, risques, prix, envoiEnCo
         ) : (
           <>
             <div className="alerte alerte-info">
-              <span aria-hidden="true">🍽️</span>
+              <Icone nom="a-table" />
               <div>
                 <strong>Pas de plat de remplacement ce jour-là</strong>
                 <p>Le plus sûr : choisir un autre jour dans le menu de la semaine.</p>

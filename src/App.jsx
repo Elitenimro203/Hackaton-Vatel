@@ -1,9 +1,10 @@
 // Racine de l'appli : écoute la session, charge le profil et affiche l'écran du rôle connecté.
 import { useCallback, useEffect, useState } from 'react'
 import { chargerProfil, ecouterSession, seDeconnecter } from './lib/authentification'
-import { useTempsReel } from './useTempsReel'
-import { useToast } from './composants/Toast'
+import { useTempsReel } from './lib/useTempsReel'
+import { useToast } from './composants/useToast'
 import EnTete from './composants/EnTete'
+import BandeauHorsLigne from './composants/BandeauHorsLigne'
 import Accueil from './ecrans/Accueil'
 import Inscription from './ecrans/Inscription'
 import Eleve from './ecrans/Eleve'
@@ -91,9 +92,10 @@ export default function App() {
 
   // L'admin a une mise en page large sur PC (barre latérale + grille)
   return (
-    <main className={profil.role === 'admin' ? 'page-large' : 'page'}>
+    <main className={profil.role === 'admin' ? 'page-admin' : 'page'}>
+      <BandeauHorsLigne />
       <EnTete nom={profil.nom} />
-      <EcranRole profil={profil} afficherToast={afficherToast} />
+      <EcranRole profil={profil} afficherToast={afficherToast} onProfilModifie={rechargerProfil} />
       {toast}
     </main>
   )

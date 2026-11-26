@@ -19,7 +19,7 @@ function detecterSeparateur(texte) {
 
 // Texte CSV → tableau de lignes (tableaux de cellules). Gère "a ""b""" et les retours à la ligne dans les guillemets.
 export function lireCsv(texteBrut) {
-  const texte = texteBrut.replace(/^﻿/, '')
+  const texte = texteBrut.replace(/^\uFEFF/, '')
   const separateur = detecterSeparateur(texte)
   const lignes = []
   let ligne = []

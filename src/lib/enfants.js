@@ -1,15 +1,16 @@
 // Appels Supabase de l'espace parent : ses enfants liés (la RLS ne montre qu'eux), lier un enfant par e-mail et le délier.
 import { supabase } from './supabaseClient'
 import { traduireErreur } from './authentification'
+import { avecNomPropre, prenomAffiche } from './formatage'
 
 // Profils élèves visibles par le parent connecté : uniquement ses enfants liés
 export async function chargerEnfants() {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, nom, solde, allergies, type_usager')
+    .select('id, nom, solde, allergies, regime, autre_allergie, type_usager')
     .eq('role', 'eleve')
     .order('nom', { ascending: true })
-  return { enfants: data || [], erreur: error ? traduireErreur(error) : null }
+  return { enfants: (data || []).map(avecNomPropre), erreur: error ? traduireErreur(error) : null }
 }
 
 // Renvoie null si l'enfant est lié, sinon le message d'erreur en français (e-mail inconnu, pas un élève, déjà lié)
@@ -26,7 +27,7 @@ export async function delierEnfant(idEnfant) {
   return data && data.length > 0 ? null : 'Cet enfant n’est pas lié à votre compte.'
 }
 
-// Prénom affiché dans les cartes et les bandeaux (« Awa Koné » → « Awa »)
+// Prénom affiché dans les cartes et les bandeaux (« awa koné » → « Awa »)
 export function prenomDe(enfant) {
-  return (enfant.nom || '').trim().split(' ')[0] || 'Votre enfant'
+  return prenomAffiche(enfant.nom, 'Votre enfant')
 }

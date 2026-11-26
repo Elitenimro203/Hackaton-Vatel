@@ -241,7 +241,7 @@
   grid-column: 2;
 }
 
-/* Bouton « Servi » d'une ligne : piment, puis « ✓ Servi » vert foncé une fois servi */
+/* Bouton « Servi » d'une ligne : secondaire (un seul bouton piment par écran : « Servir ce ticket »), puis « ✓ Servi » vert */
 .btn-ligne {
   justify-content: center;
   width: auto;
@@ -302,8 +302,9 @@
     font-size: 64px;
   }
 
-  .resultat-service .resultat-emoji {
-    font-size: 64px;
+  .resultat-service .resultat-icone {
+    width: 64px;
+    height: 64px;
   }
 
   .resultat-detail {
@@ -499,5 +500,28 @@
 
   .convive .badge {
     padding: 4px 8px;
+  }
+}
+
+/* Écran moyen (900 à 1279 px) : le nombre de repas reste lisible, l'heure de mise à jour passe dessous */
+@media (min-width: 900px) and (max-width: 1279px) {
+  .carte-repas {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px 28px;
+    padding: 28px;
+  }
+
+  .repas-nombre {
+    font-size: 96px;
+  }
+
+  .repas-titre {
+    font-size: 34px;
+  }
+
+  .repas-maj {
+    grid-column: 1 / -1;
+    align-items: flex-start;
+    text-align: left;
   }
 }

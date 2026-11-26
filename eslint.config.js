@@ -1,3 +1,4 @@
+// Règles de lint du projet : React recommandé, fonctions serveur Vercel (api/) en Node.
 import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
@@ -17,5 +18,14 @@ export default defineConfig([
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
+    rules: {
+      // Les écrans chargent leurs données Supabase dans un useEffect (motif voulu, sans React Compiler)
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/preserve-manual-memoization': 'off',
+    },
+  },
+  {
+    files: ['api/**/*.js'],
+    languageOptions: { globals: globals.node },
   },
 ])

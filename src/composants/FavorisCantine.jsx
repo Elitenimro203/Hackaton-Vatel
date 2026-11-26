@@ -1,6 +1,7 @@
 // Bloc « Les favoris de la cantine » : les plats les mieux notés par les élèves, avec photo, note moyenne et nombre d'avis.
 import { formaterNombre } from '../lib/formatage'
 import Vide from './Vide'
+import Icone from './Icone'
 
 function formaterNote(note) {
   return Number(note).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
@@ -13,7 +14,7 @@ export default function FavorisCantine({ favoris, onVoirMenus }) {
 
       {favoris.length === 0 ? (
         <Vide
-          emoji="⭐"
+          icone="etoile"
           titre="Pas encore d’avis"
           texte="Les notes des élèves apparaîtront ici après les premiers repas."
           libelleBouton="Voir les menus"
@@ -29,7 +30,7 @@ export default function FavorisCantine({ favoris, onVoirMenus }) {
               <div className="favori-texte">
                 <h3 className="nom-plat">{favori.plat}</h3>
                 <span className="favori-note">
-                  <span aria-hidden="true">★</span> {formaterNote(favori.note)}
+                  <Icone nom="etoile" className="icone-etoile" /> {formaterNote(favori.note)}
                   <span className="masque-visuel"> sur 5</span>
                 </span>
                 <span className="mention">{formaterNombre(favori.nombre_avis)} avis</span>

@@ -1,10 +1,11 @@
 // Rangée défilante des créneaux de passage (11 h 50 à 12 h 50) : heure, attente prévue, badge Calme / Chargé, créneau complet grisé.
 import { formaterAttente, formaterCreneau } from '../lib/formatage'
+import Icone from './Icone'
 import '../file-attente.css'
 
 const BADGES = {
-  calme: { texte: '🍃 Calme', classe: 'creneau-badge creneau-badge-calme' },
-  charge: { texte: '🔥 Chargé', classe: 'creneau-badge creneau-badge-charge' },
+  calme: { icone: 'feuille', texte: 'Calme', classe: 'creneau-badge creneau-badge-calme' },
+  charge: { icone: 'flamme', texte: 'Chargé', classe: 'creneau-badge creneau-badge-charge' },
 }
 
 export default function ChoixCreneau({ creneaux, creneauChoisi, onChoisir }) {
@@ -14,7 +15,7 @@ export default function ChoixCreneau({ creneaux, creneauChoisi, onChoisir }) {
     <section className="choix-creneau" aria-labelledby="titre-creneau">
       <div className="espace-entre">
         <h2 id="titre-creneau" className="carte-titre">Ton heure de passage</h2>
-        <span className="mention">Glisse →</span>
+        <span className="mention avec-icone">Glisse<Icone nom="fleche-droite" /></span>
       </div>
 
       <div className="creneaux" role="radiogroup" aria-labelledby="titre-creneau">
@@ -31,7 +32,7 @@ export default function ChoixCreneau({ creneaux, creneauChoisi, onChoisir }) {
               disabled={creneau.complet}
               onClick={() => onChoisir(creneau.creneau)}
             >
-              <span className={badgeCreneau ? badgeCreneau.classe : 'creneau-badge'}>{badgeCreneau?.texte}</span>
+              <span className={badgeCreneau ? badgeCreneau.classe : 'creneau-badge'}>{badgeCreneau && <Icone nom={badgeCreneau.icone} />}{badgeCreneau?.texte}</span>
               <span className="creneau-case">
                 <strong className="creneau-heure">{formaterCreneau(creneau.creneau)}</strong>
                 <span className="creneau-attente">{creneau.complet ? 'Complet' : formaterAttente(creneau.attente)}</span>
@@ -44,7 +45,7 @@ export default function ChoixCreneau({ creneaux, creneauChoisi, onChoisir }) {
       {choisi?.badge === 'calme' && <p className="phrase-creneau">Créneau calme : ton plat t’attend, chaud, sans file.</p>}
       {choisi && choisi.badge !== 'calme' && (
         <p className="mention">
-          Attente prévue {formaterAttente(choisi.attente)} à {formaterCreneau(choisi.creneau)}. Un créneau 🍃 Calme t’évite la file.
+          Attente prévue {formaterAttente(choisi.attente)} à {formaterCreneau(choisi.creneau)}. Un créneau calme t’évite la file.
         </p>
       )}
     </section>

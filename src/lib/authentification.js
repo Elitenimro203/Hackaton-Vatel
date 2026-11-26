@@ -1,16 +1,17 @@
 // Connexion, inscription, déconnexion et lecture du profil : tous les appels Supabase liés au compte.
 import { supabase } from './supabaseClient'
- 
+import { avecNomPropre } from './formatage'
+
 export const MOT_DE_PASSE_DEMO = 'Demo2026!'
- 
+
 export const COMPTES_DEMO = [
   { role: 'eleve', libelle: 'Élève', email: 'eleve.demo@cantijuste.ci' },
   { role: 'parent', libelle: 'Parent', email: 'parent.demo@cantijuste.ci' },
   { role: 'admin', libelle: 'Admin', email: 'admin.demo@cantijuste.ci' },
 ]
- 
+
 const LONGUEUR_MINI_MOT_DE_PASSE = 8
- 
+
 // Messages Supabase (en anglais) traduits en phrases françaises
 const TRADUCTIONS_ERREURS = [
   ['invalid login credentials', 'E-mail ou mot de passe incorrect.'],
@@ -23,13 +24,13 @@ const TRADUCTIONS_ERREURS = [
   ['rate limit', 'Trop d’essais. Réessaie dans une minute.'],
   ['failed to fetch', 'Pas de connexion internet. Vérifie ton réseau.'],
 ]
- 
+
 export function traduireErreur(erreur) {
   const message = (erreur?.message || '').toLowerCase()
   const traduction = TRADUCTIONS_ERREURS.find(([morceau]) => message.includes(morceau))
   return traduction ? traduction[1] : 'Une erreur est survenue. Réessaie.'
 }
- 
+
 export async function seConnecter(email, motDePasse) {
   const { error } = await supabase.auth.signInWithPassword({
     email: email.trim().toLowerCase(),
@@ -37,17 +38,17 @@ export async function seConnecter(email, motDePasse) {
   })
   return error ? traduireErreur(error) : null
 }
- 
+
 // profil : 'eleve' | 'employe' | 'parent' (jamais admin, donné à la main en SQL)
 export async function creerCompte({ nom, email, motDePasse, profil }) {
   if (nom.trim().length < 2) return { erreur: 'Écris ton nom complet.' }
   if (motDePasse.length < LONGUEUR_MINI_MOT_DE_PASSE) {
     return { erreur: 'Le mot de passe doit faire au moins 8 caractères.' }
   }
- 
+
   const role = profil === 'parent' ? 'parent' : 'eleve'
   const typeUsager = profil === 'employe' ? 'employe' : 'eleve'
- 
+
   const { data, error } = await supabase.auth.signUp({
     email: email.trim().toLowerCase(),
     password: motDePasse,
@@ -56,25 +57,24 @@ export async function creerCompte({ nom, email, motDePasse, profil }) {
   if (error) return { erreur: traduireErreur(error) }
   return { erreur: null, connecte: Boolean(data.session) }
 }
- 
+
 export async function seDeconnecter() {
   const { error } = await supabase.auth.signOut()
   return error ? traduireErreur(error) : null
 }
- 
+
 // Appelle rappel(session) tout de suite, puis à chaque connexion ou déconnexion. Renvoie la fonction pour arrêter.
 export function ecouterSession(rappel) {
   supabase.auth.getSession().then(({ data }) => rappel(data.session))
   const { data } = supabase.auth.onAuthStateChange((_evenement, session) => rappel(session))
   return () => data.subscription.unsubscribe()
 }
- 
+
 export async function chargerProfil(idUtilisateur) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, email, nom, role, type_usager, solde, allergies')
+    .select('id, email, nom, role, type_usager, solde, allergies, regime, autre_allergie')
     .eq('id', idUtilisateur)
     .maybeSingle()
-  return { profil: data, erreur: error ? traduireErreur(error) : null }
+  return { profil: avecNomPropre(data), erreur: error ? traduireErreur(error) : null }
 }
- 

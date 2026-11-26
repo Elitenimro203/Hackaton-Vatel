@@ -1,8 +1,9 @@
-// Onglet Menu de l'élève : la semaine jour par jour, ses allergies mises en évidence, et l'ouverture de la fiche pour réserver.
+// Onglet Menu de l'élève : la semaine jour par jour, ses allergies et son régime mis en évidence, et l'ouverture de la fiche pour réserver.
 import { useCallback, useEffect, useState } from 'react'
 import { chargerMenusEntre, prixPourProfil } from '../lib/menus'
 import { chargerMesReservations, reservationFermee } from '../lib/reservations'
 import { allergenesARisque, alternativeCompatible, decrireAllergenes } from '../lib/allergenes'
+import { libelleRegime, raisonRegimeDuMenu } from '../lib/regimes'
 import {
   dateDuJour,
   formaterDate,
@@ -12,16 +13,22 @@ import {
   formaterNumeroJour,
   joursOuvresDeLaSemaine,
 } from '../lib/formatage'
-import { useTempsReel } from '../useTempsReel'
+import { useTempsReel } from '../lib/useTempsReel'
 import BadgesAllergenes from '../composants/BadgesAllergenes'
+import Icone from '../composants/Icone'
 import '../menus.css'
 import NavigationSemaine from '../composants/NavigationSemaine'
 import PhotoPlat from '../composants/PhotoPlat'
 import Vide from '../composants/Vide'
 
-function classeDuJour(menu, estActif, allergies) {
+// Le plat du jour ne va pas à ce profil : un allergène ou hors de son régime
+function pasPourLeProfil(menu, profil) {
+  return allergenesARisque(menu.allergenes, profil.allergies || []).length > 0 || Boolean(raisonRegimeDuMenu(menu, profil))
+}
+
+function classeDuJour(menu, estActif, profil) {
   const classes = ['jour']
-  if (menu) classes.push(allergenesARisque(menu.allergenes, allergies).length > 0 ? 'jour-risque' : 'jour-ok')
+  if (menu) classes.push(pasPourLeProfil(menu, profil) ? 'jour-risque' : 'jour-ok')
   if (estActif) classes.push('actif')
   return classes.join(' ')
 }
@@ -62,6 +69,8 @@ export default function MenuSemaine({ profil, onOuvrirPlat, onVoirReservations }
 
   const menuDuJour = menus.find((menu) => menu.jour === jourChoisi)
   const risques = menuDuJour ? allergenesARisque(menuDuJour.allergenes, allergies) : []
+  const raisonRegime = menuDuJour ? raisonRegimeDuMenu(menuDuJour, profil) : null
+  const pasPourToi = risques.length > 0 || Boolean(raisonRegime)
   const estReserve = Boolean(menuDuJour && reservations.some((resa) => resa.menu_id === menuDuJour.id))
   const prix = menuDuJour ? prixPourProfil(menuDuJour, profil) : 0
 
@@ -105,7 +114,7 @@ export default function MenuSemaine({ profil, onOuvrirPlat, onVoirReservations }
             <button
               key={jour}
               type="button"
-              className={classeDuJour(menu, jour === jourChoisi, allergies)}
+              className={classeDuJour(menu, jour === jourChoisi, profil)}
               aria-pressed={jour === jourChoisi}
               aria-label={formaterDate(jour)}
               onClick={() => setJourChoisi(jour)}
@@ -128,7 +137,7 @@ export default function MenuSemaine({ profil, onOuvrirPlat, onVoirReservations }
 
       {!chargement && erreur && (
         <div className="alerte alerte-erreur" role="alert">
-          <span aria-hidden="true">⚠️</span>
+          <Icone nom="alerte" />
           <div>
             <strong>Impossible de charger le menu</strong>
             <p>{erreur}</p>
@@ -138,22 +147,22 @@ export default function MenuSemaine({ profil, onOuvrirPlat, onVoirReservations }
 
       {!chargement && !erreur && !menuDuJour && (
         <Vide
-          emoji="📅"
+          icone="calendrier"
           titre="Pas encore de menu ce jour-là"
           texte="La cantine prépare la suite. Regarde un autre jour."
-          libelleBouton={jourChoisi === lundi ? undefined : '← Voir lundi'}
+          libelleBouton={jourChoisi === lundi ? undefined : 'Voir lundi'}
           onAction={() => setJourChoisi(lundi)}
         />
       )}
 
       {!chargement && menuDuJour && (
-        <article className={risques.length > 0 && !estReserve ? 'carte-menu carte-deconseillee' : 'carte-menu'}>
+        <article className={pasPourToi && !estReserve ? 'carte-menu carte-deconseillee' : 'carte-menu'}>
           <PhotoPlat adresse={menuDuJour.photo_url} nomPlat={menuDuJour.plat} vivante>
             <span className="pastille pastille-verre coin-haut texte-safran">{formaterDateCourte(menuDuJour.jour)}</span>
-            {estReserve && <span className="badge badge-succes coin-droite">✓ Réservé</span>}
-            {!estReserve && risques.length > 0 && <span className="pastille pastille-danger coin-droite">⚠ Pas pour toi</span>}
-            {!estReserve && risques.length > 0 && (
-              <span className="pastille pastille-danger coin-bas">{decrireAllergenes(risques)}</span>
+            {estReserve && <span className="badge badge-succes coin-droite"><Icone nom="coche" />Réservé</span>}
+            {!estReserve && pasPourToi && <span className="pastille pastille-danger coin-droite"><Icone nom="alerte" />Pas pour toi</span>}
+            {!estReserve && pasPourToi && (
+              <span className="pastille pastille-danger coin-bas">{risques.length > 0 ? decrireAllergenes(risques) : raisonRegime}</span>
             )}
           </PhotoPlat>
           <div className="carte-menu-corps pile">
@@ -167,10 +176,13 @@ export default function MenuSemaine({ profil, onOuvrirPlat, onVoirReservations }
               <span className="prix prix-grand texte-safran">{formaterMontant(prix)}</span>
             </div>
             {risques.length > 0 && (
-              <p className="mention-danger">⚠ Contient {decrireAllergenes(risques)}, noté dans ton profil.</p>
+              <p className="mention-danger"><Icone nom="alerte" /> Contient {decrireAllergenes(risques)}, noté dans ton profil.</p>
             )}
-            {risques.length > 0 && alternativeCompatible(menuDuJour, allergies) && (
-              <p className="aide">🔄 Plat de remplacement pour toi : {menuDuJour.plat_alternatif}</p>
+            {risques.length === 0 && raisonRegime && (
+              <p className="mention-danger"><Icone nom="alerte" /> {raisonRegime} : hors de ton régime {libelleRegime(profil.regime).toLowerCase()}.</p>
+            )}
+            {pasPourToi && alternativeCompatible(menuDuJour, allergies, profil.regime || 'aucun') && (
+              <p className="aide"><Icone nom="remplacement" className="icone-safran" /> Plat de remplacement pour toi : {menuDuJour.plat_alternatif}</p>
             )}
             {boutonPrincipal()}
           </div>

@@ -4,6 +4,7 @@ import { reviserCodage } from '../lib/insights'
 import { SENTIMENTS, ignorerCodage, libelleSentiment } from '../lib/statsInsights'
 import { formaterDateCourte } from '../lib/formatage'
 import Vide from './Vide'
+import Icone from './Icone'
 
 function CarteRevue({ codage, themes, afficherToast, onTranche }) {
   const [correction, setCorrection] = useState(false)
@@ -77,7 +78,10 @@ function CarteRevue({ codage, themes, afficherToast, onTranche }) {
       ) : (
         <div className="revue-actions">
           <button type="button" className="btn" onClick={valider} disabled={enCours}>
-            ✓ Valider
+            <span className="avec-icone">
+                <Icone nom="coche" />
+                Valider
+              </span>
           </button>
           <button type="button" className="btn btn-secondaire" onClick={() => setCorrection(true)} disabled={enCours}>
             Corriger
@@ -106,7 +110,7 @@ export default function FileRevue({ codages, total, themes, accord, afficherToas
       </p>
 
       {codages.length === 0 ? (
-        <Vide emoji="✅" titre="Rien à revoir." texte="Tous les codages sont sûrs ou déjà tranchés." />
+        <Vide icone="coche-ronde" titre="Rien à revoir." texte="Tous les codages sont sûrs ou déjà tranchés." />
       ) : (
         <>
           <ul className="revue-liste">

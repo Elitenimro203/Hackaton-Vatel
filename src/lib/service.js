@@ -1,11 +1,12 @@
 // Appels Supabase du service au comptoir : commandes d'un jour (admin) et passage du code de retrait par marquer_servie().
 import { supabase } from './supabaseClient'
+import { avecNomPropre } from './formatage'
 import { traduireErreur } from './authentification'
 
 // Réservations actives d'un jour de service : nom, plat, photo, code, statut, allergies
 export async function chargerCommandesDuJour(jour) {
   const { data, error } = await supabase.rpc('commandes_du_jour', { p_jour: jour })
-  return { commandes: data || [], erreur: error ? traduireErreur(error) : null }
+  return { commandes: (data || []).map(avecNomPropre), erreur: error ? traduireErreur(error) : null }
 }
 
 // Sert le repas de ce code (accepte « 0812 » ou « CJ · 0812 »).

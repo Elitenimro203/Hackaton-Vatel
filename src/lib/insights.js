@@ -89,12 +89,7 @@ async function appelerApi(corps, jeton) {
     return { erreur: 'Pas de connexion avec le serveur d’analyse.', statut: 0, secours: true }
   }
 
-  let donnees = null
-  try {
-    donnees = await reponse.json()
-  } catch {
-    donnees = null
-  }
+  const donnees = await reponse.json().catch(() => null)
   if (reponse.ok && donnees) return { donnees }
 
   const message = donnees?.erreur || `Serveur d’analyse indisponible (${reponse.status}).`

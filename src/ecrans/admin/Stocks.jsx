@@ -2,10 +2,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import { chargerBesoins, chargerDernieresLivraisons } from '../../lib/stocks'
 import { ajouterJours, dateDuJour, formaterDate, formaterDateHeure, formaterQuantite } from '../../lib/formatage'
-import { useTempsReel } from '../../useTempsReel'
+import { useTempsReel } from '../../lib/useTempsReel'
 import CarteIngredient from '../../composants/CarteIngredient'
 import FenetreLivraison from '../../composants/FenetreLivraison'
 import Vide from '../../composants/Vide'
+import Icone from '../../composants/Icone'
 import '../../stocks.css'
 
 // « d'aujourd'hui », « de demain » ou « du lundi 23 novembre » : pour finir la phrase « …les réservations ___ »
@@ -40,7 +41,7 @@ export default function Stocks({ afficherToast }) {
   useTempsReel('reservations', charger)
 
   const jour = besoins[0]?.jour || dateDuJour()
-  const repas = besoins[0]?.repas ?? 0
+  const repas = Math.max(0, ...besoins.map((ligne) => ligne.repas))
   const libelleJour = libelleDuJour(jour)
   const acommander = besoins.filter((ligne) => ligne.statut !== 'ok')
 
@@ -51,9 +52,6 @@ export default function Stocks({ afficherToast }) {
 
   return (
     <section className="pile pilotage">
-      <div className="admin-entete">
-        <span className="surtitre">Cantine Vatel · Vallon</span>
-      </div>
       <div>
         <h1 className="admin-titre">Rien ne manque demain.</h1>
         <p className="aide">
@@ -71,7 +69,7 @@ export default function Stocks({ afficherToast }) {
 
       {!chargement && erreur && (
         <div className="alerte alerte-erreur" role="alert">
-          <span aria-hidden="true">⚠️</span>
+          <Icone nom="alerte" />
           <div>
             <strong>Impossible de charger les stocks</strong>
             <p>{erreur} Vérifiez que supabase/patch_stocks.sql a bien été lancé.</p>
@@ -81,7 +79,7 @@ export default function Stocks({ afficherToast }) {
 
       {!chargement && !erreur && besoins.length === 0 && (
         <Vide
-          emoji="📦"
+          icone="stocks"
           titre="Aucun ingrédient pour l’instant"
           texte="Lancez supabase/donnees_stocks.sql pour ajouter les 10 ingrédients de démonstration."
         />
@@ -93,7 +91,8 @@ export default function Stocks({ afficherToast }) {
             <section className="carte-vedette carte-courses" aria-labelledby="titre-courses">
               <span className="surtitre texte-alerte">À commander</span>
               <h2 id="titre-courses" className="titre-courses">
-                ⚠ {acommander.length} ingrédient{acommander.length > 1 ? 's' : ''} à commander
+                <Icone nom="alerte" />
+                {acommander.length} ingrédient{acommander.length > 1 ? 's' : ''} à commander
               </h2>
               <ul className="liste-courses">
                 {acommander.map((ligne) => (
@@ -107,7 +106,7 @@ export default function Stocks({ afficherToast }) {
                           : `— stock bas : ${formaterQuantite(ligne.quantite, ligne.unite)} restants`}
                       </span>
                     </span>
-                    <button type="button" className="btn btn-petit" onClick={() => setIngredientLivraison(ligne)}>
+                    <button type="button" className="btn btn-petit btn-secondaire" onClick={() => setIngredientLivraison(ligne)}>
                       Commander
                     </button>
                   </li>
@@ -117,7 +116,7 @@ export default function Stocks({ afficherToast }) {
           ) : (
             <section className="carte-vedette carte-courses carte-courses-ok">
               <span className="surtitre texte-feuille">Tout est prêt pour demain</span>
-              <h2 className="titre-courses">✅ Aucun ingrédient à commander</h2>
+              <h2 className="titre-courses"><Icone nom="coche-ronde" className="icone-feuille" /> Aucun ingrédient à commander</h2>
               <p className="aide">Les stocks couvrent toutes les réservations {libelleJour}.</p>
             </section>
           )}

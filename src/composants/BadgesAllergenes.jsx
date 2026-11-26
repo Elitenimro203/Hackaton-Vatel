@@ -1,5 +1,6 @@
 // Rangée de pastilles d'allergènes d'un plat ; celles qui touchent les allergies du profil passent en rouge.
 import { trouverAllergene } from '../lib/allergenes'
+import Icone from './Icone'
 
 export default function BadgesAllergenes({ allergenes = [], allergiesProfil = [] }) {
   if (allergenes.length === 0) {
@@ -17,7 +18,7 @@ export default function BadgesAllergenes({ allergenes = [], allergiesProfil = []
         const estARisque = allergiesProfil.includes(valeur)
         return (
           <span key={valeur} className={estARisque ? 'allergene allergene-danger' : 'allergene'}>
-            <span aria-hidden="true">{allergene.emoji}</span> {allergene.libelle}
+            <Icone nom={allergene.icone} /> {allergene.libelle}
           </span>
         )
       })}

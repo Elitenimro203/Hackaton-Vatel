@@ -1,4 +1,5 @@
 // Section « Recette » du formulaire des menus : les ingrédients du plat et la quantité par repas (sert à calculer les besoins et à déduire le stock).
+import Icone from './Icone'
 import '../allergies.css'
 import '../stocks.css'
 
@@ -62,7 +63,7 @@ export default function SectionRecette({ lignes, ingredients, onChange }) {
             aria-label="Retirer cet ingrédient"
             onClick={() => onChange(lignes.filter((_, autre) => autre !== position))}
           >
-            ✕
+            <Icone nom="fermer" />
           </button>
         </div>
       ))}

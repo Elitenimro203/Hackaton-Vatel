@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { chargerAvisDuTheme, libelleSentiment } from '../lib/statsInsights'
 import { formaterDateCourte } from '../lib/formatage'
+import Icone from './Icone'
 import '../insights.css'
 import '../allergies.css'
 
@@ -31,7 +32,7 @@ export default function FenetreAvisTheme({ theme, debut, fin, onFermer }) {
         <div className="espace-entre">
           <span className="surtitre">{theme.avis} avis</span>
           <button type="button" className="btn-icone btn-fermer" onClick={onFermer} aria-label="Fermer">
-            ✕
+            <Icone nom="fermer" />
           </button>
         </div>
         <h2 id="titre-avis-theme">{theme.libelle}</h2>

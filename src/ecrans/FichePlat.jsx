@@ -1,14 +1,16 @@
-// Fiche d'un plat : grande photo, vérification des allergies du profil, choix du créneau de passage, solde, et réservation par reserver().
+// Fiche d'un plat : grande photo, vérification des allergies et du régime du profil, choix du créneau de passage, solde, et réservation par reserver().
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { prixPourProfil } from '../lib/menus'
 import { reservationFermee, reserverRepas } from '../lib/reservations'
 import { allergenesARisque, alternativeCompatible, decrireAllergenes, nommerAllergenes } from '../lib/allergenes'
+import { libelleRegime, raisonRegimeDuMenu, soupconAutreAllergie } from '../lib/regimes'
 import { chargerAffluence } from '../lib/affluence'
 import { creneauConseille, preparerCreneaux } from '../lib/fileAttente'
 import { formaterCreneau, formaterDate, formaterMontant, HORAIRE_SERVICE } from '../lib/formatage'
 import BadgesAllergenes from '../composants/BadgesAllergenes'
 import FenetreAllergie from '../composants/FenetreAllergie'
 import ChoixCreneau from '../composants/ChoixCreneau'
+import Icone from '../composants/Icone'
 import '../reservation.css'
 
 const DUREE_VERIFICATION = 900
@@ -21,6 +23,15 @@ function decrireAccompagnements(menu) {
   if (morceaux.length === 0) return 'Préparé ce matin par la cantine.'
   const phrase = morceaux.join(' et ')
   return `${phrase.charAt(0).toUpperCase()}${phrase.slice(1)}.`
+}
+
+// « Arachide · Végétarien · Autre : kiwi », ou null si rien n'est déclaré
+function resumerProfil(profil) {
+  const morceaux = []
+  if ((profil.allergies || []).length > 0) morceaux.push(decrireAllergenes(profil.allergies))
+  if (profil.regime && profil.regime !== 'aucun') morceaux.push(libelleRegime(profil.regime))
+  if (profil.autre_allergie) morceaux.push(`Autre : ${profil.autre_allergie}`)
+  return morceaux.length > 0 ? morceaux.join(' · ') : null
 }
 
 // Le menu tel qu'il a été réservé : avec le nom et la photo du plat de remplacement si besoin
@@ -37,7 +48,12 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
   const [creneauChoisi, setCreneauChoisi] = useState(null)
   const allergies = profil.allergies || []
   const risques = allergenesARisque(menu.allergenes, allergies)
-  const avecAlternative = alternativeCompatible(menu, allergies)
+  const regime = profil.regime || 'aucun'
+  const raisonRegime = raisonRegimeDuMenu(menu, profil)
+  const soupcon = soupconAutreAllergie(profil.autre_allergie, menu)
+  const avecAlternative = alternativeCompatible(menu, allergies, regime)
+  const proposerRemplacement = risques.length === 0 && Boolean(raisonRegime) && avecAlternative
+  const resumeProfil = resumerProfil(profil)
   const prix = prixPourProfil(menu, profil)
   const soldeInsuffisant = profil.solde < prix
   const fermee = reservationFermee(menu.jour)
@@ -83,6 +99,7 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
 
     setRisquesFenetre(null)
     if (alerteAllergie) afficherToast('C’est réservé. Ton parent a été prévenu.')
+    else if (alternative) afficherToast(`C’est réservé : ${menu.plat_alternatif}.`)
     else if (creneauChoisi) afficherToast(`C’est réservé ! Passe à ${formaterCreneau(creneauChoisi)}.`)
     else afficherToast(`C’est réservé ! ${formaterMontant(prix)} débités de ton solde.`)
     onReserve(menuReserve(menu, alternative))
@@ -90,7 +107,7 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
 
   function demanderReservation() {
     if (risques.length > 0) setRisquesFenetre(risques)
-    else reserver()
+    else reserver({ alternative: proposerRemplacement })
   }
 
   function texteBouton() {
@@ -98,6 +115,7 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
     if (fermee) return 'Réservations fermées'
     if (soldeInsuffisant) return 'Solde insuffisant'
     if (risques.length > 0 && avecAlternative) return 'Trouver mon alternative'
+    if (proposerRemplacement) return 'Prendre le remplacement'
     return `Je réserve · ${formaterMontant(prix)}`
   }
 
@@ -107,11 +125,12 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
         {menu.photo_url && <img className="plat-vedette-photo" src={menu.photo_url} alt={menu.plat} />}
         <div className="plat-vedette-haut">
           <button type="button" className="btn-retour" onClick={onRetour} aria-label="Retour au menu">
-            ‹
+            <Icone nom="retour" />
           </button>
           <span className="surtitre fiche-surtitre">{formaterDate(menu.jour)}</span>
           <span className="pastille-solde" aria-label="Ton solde">
-            💰 {formaterMontant(profil.solde)}
+            <Icone nom="portefeuille" />
+            {formaterMontant(profil.solde)}
           </span>
         </div>
         <div className="plat-vedette-contenu">
@@ -129,7 +148,7 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
       <p className="phrase-gourmande">{decrireAccompagnements(menu)}</p>
 
       <div className="espace-entre">
-        <span className="aide">🕛 {HORAIRE_SERVICE}</span>
+        <span className="aide"><Icone nom="horloge" className="icone-safran" /> {HORAIRE_SERVICE}</span>
         <span className="prix prix-vedette">{formaterMontant(prix)}</span>
       </div>
 
@@ -139,7 +158,7 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
         <div>
           <h2 className="carte-titre">Ton profil alimentaire</h2>
           <p className="aide">
-            {allergies.length > 0 ? `Ton profil : ${decrireAllergenes(allergies)}` : 'Aucune allergie déclarée.'}
+            {resumeProfil ? `Ton profil : ${resumeProfil}` : 'Aucune allergie ni régime déclaré.'}
           </p>
         </div>
         <button type="button" className="btn btn-secondaire btn-petit" onClick={onModifierProfil}>
@@ -152,24 +171,47 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
           <span className="anneau" aria-hidden="true" />
           <div>
             <p className="verif-titre">Analyse de ton profil…</p>
-            <p className="verif-texte">On compare le plat à tes allergies.</p>
+            <p className="verif-texte">On compare le plat à tes allergies et à ton régime.</p>
           </div>
         </div>
       )}
 
-      {!verificationEnCours && risques.length === 0 && (
+      {!verificationEnCours && risques.length === 0 && !raisonRegime && !soupcon && (
         <div className="verif verif-ok" role="status">
-          <span className="verif-icone" aria-hidden="true">🛡️</span>
+          <Icone nom="bouclier" className="verif-icone" />
           <div>
             <p className="verif-titre">Compatible avec ton profil</p>
-            <p className="verif-texte">Allergies vérifiées depuis ton profil.</p>
+            <p className="verif-texte">Allergies et régime vérifiés depuis ton profil.</p>
+          </div>
+        </div>
+      )}
+
+      {!verificationEnCours && risques.length === 0 && raisonRegime && (
+        <div className="verif verif-danger" role="alert">
+          <Icone nom="alerte" className="verif-icone" />
+          <div>
+            <p className="verif-titre">Hors de ton régime {libelleRegime(regime).toLowerCase()}</p>
+            <p className="verif-texte">
+              {raisonRegime}.{' '}
+              {avecAlternative ? `Le plat de remplacement te va : ${menu.plat_alternatif}.` : 'Pas de remplacement ce jour-là.'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {!verificationEnCours && risques.length === 0 && !raisonRegime && soupcon && (
+        <div className="alerte alerte-attention" role="alert">
+          <Icone nom="alerte" />
+          <div>
+            <strong>Peut contenir : {profil.autre_allergie}</strong>
+            <p>Demande à la cantine avant de réserver. Ton parent et la cuisine voient cette allergie.</p>
           </div>
         </div>
       )}
 
       {!verificationEnCours && risques.length > 0 && (
         <div className="verif verif-danger" role="alert">
-          <span className="verif-icone" aria-hidden="true">⚠️</span>
+          <Icone nom="alerte" className="verif-icone" />
           <div>
             <p className="verif-titre">Contient {nommerAllergenes(risques)}</p>
             <p className="verif-texte">
@@ -183,7 +225,7 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
 
       {soldeInsuffisant && !fermee && (
         <div className="alerte alerte-attention" role="alert">
-          <span aria-hidden="true">💳</span>
+          <Icone nom="carte-bancaire" />
           <div>
             <strong>Il te manque {formaterMontant(prix - profil.solde)}</strong>
             <p>Demande à ton parent de recharger ton compte, puis reviens réserver.</p>
@@ -207,6 +249,11 @@ export default function FichePlat({ menu, profil, afficherToast, onRetour, onRes
       >
         {texteBouton()}
       </button>
+      {proposerRemplacement && !fermee && !soldeInsuffisant && (
+        <button type="button" className="btn btn-discret" onClick={() => reserver()} disabled={envoiEnCours || verificationEnCours}>
+          Réserver le plat du jour quand même
+        </button>
+      )}
       {!fermee && !soldeInsuffisant && (
         <p className="mention centre">
           Il te restera {formaterMontant(profil.solde - prix)} · annulable jusqu’à la veille 18 h

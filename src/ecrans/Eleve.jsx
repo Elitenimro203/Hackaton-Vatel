@@ -3,7 +3,9 @@ import { useState } from 'react'
 import BarreOnglets from '../composants/BarreOnglets'
 import BandeauSoldeBas from '../composants/BandeauSoldeBas'
 import CarteProfil from '../composants/CarteProfil'
+import CarteCantine from '../composants/CarteCantine'
 import ProfilAlimentaire from '../composants/ProfilAlimentaire'
+import ATable from './ATable'
 import MenuSemaine from './MenuSemaine'
 import FichePlat from './FichePlat'
 import ReservationConfirmee from './ReservationConfirmee'
@@ -14,10 +16,10 @@ import { soldeEstBas } from '../lib/recharges'
 import { formaterMontant } from '../lib/formatage'
 
 const ONGLETS = [
-  { id: 'table', icone: '🍽️', libelle: 'À table' },
-  { id: 'menu', icone: '📅', libelle: 'Menu' },
-  { id: 'repas', icone: '🧾', libelle: 'Mes repas' },
-  { id: 'profil', icone: '👤', libelle: 'Profil' },
+  { id: 'table', icone: 'a-table', libelle: 'À table' },
+  { id: 'menu', icone: 'calendrier', libelle: 'Menu' },
+  { id: 'repas', icone: 'recu', libelle: 'Mes repas' },
+  { id: 'profil', icone: 'profil', libelle: 'Profil' },
 ]
 
 export default function Eleve({ profil, afficherToast, onProfilModifie }) {
@@ -26,7 +28,6 @@ export default function Eleve({ profil, afficherToast, onProfilModifie }) {
   const [platReserve, setPlatReserve] = useState(null)
   const [rechargeOuverte, setRechargeOuverte] = useState(false)
   const [rechargeReussie, setRechargeReussie] = useState(null)
-  const prenom = profil.nom.trim().split(' ')[0] || 'toi'
 
   function choisirOnglet(idOnglet) {
     setPlatOuvert(null)
@@ -121,10 +122,12 @@ export default function Eleve({ profil, afficherToast, onProfilModifie }) {
       )}
 
       {ongletActif === 'table' && (
-        <section className="pile">
-          <span className="surtitre">Le feu du jour</span>
-          <h1>Eh, {prenom}. On mange quoi ?</h1>
-        </section>
+        <ATable
+          profil={profil}
+          onOuvrirPlat={ouvrirPlat}
+          onVoirMenu={() => choisirOnglet('menu')}
+          onVoirReservations={() => choisirOnglet('repas')}
+        />
       )}
 
       {ongletActif === 'menu' && (
@@ -142,9 +145,14 @@ export default function Eleve({ profil, afficherToast, onProfilModifie }) {
 
       {ongletActif === 'profil' && (
         <section className="pile">
+          <span className="surtitre">Ta carte cantine</span>
+          <h1>Ta carte, toujours sur toi.</h1>
+          <p className="aide">Montre-la au comptoir : la cuisine voit ton code du jour et tes allergies d’un seul coup d’œil.</p>
+          <CarteCantine profil={profil} />
+
           <span className="surtitre">Ton profil alimentaire</span>
-          <h1>Et tes allergies ?</h1>
-          <p className="aide">On vérifie chaque plat pour toi. Tu peux modifier tes choix à tout moment.</p>
+          <h2>Allergies et régime</h2>
+          <p className="aide">C’est toi qui remplis. On vérifie chaque plat pour toi, et tu peux changer à tout moment.</p>
           <ProfilAlimentaire eleve={profil} afficherToast={afficherToast} onEnregistre={onProfilModifie} />
           <CarteProfil profil={profil} afficherToast={afficherToast} />
         </section>

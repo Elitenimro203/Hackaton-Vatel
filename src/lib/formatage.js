@@ -5,6 +5,22 @@ const FUSEAU_CANTINE = 'Africa/Abidjan'
 // Heures du service de midi, affichées sur la fiche et le ticket
 export const HORAIRE_SERVICE = '12 h – 14 h'
 
+// Premier mot d'un nom, avec une majuscule (« bakayoko sania » → « Bakayoko »)
+export function prenomAffiche(nom, parDefaut = '') {
+  const premierMot = (nom || '').trim().split(' ')[0]
+  return premierMot ? premierMot.charAt(0).toUpperCase() + premierMot.slice(1) : parDefaut
+}
+
+// Nom propre avec majuscules (« bakayoko sania » → « Bakayoko Sania », « kouadio-assi » → « Kouadio-Assi »)
+export function nomPropre(nom) {
+  return (nom || '').trim().toLowerCase().replace(/(^|[\s'’-])(\p{L})/gu, (_tout, avant, lettre) => avant + lettre.toUpperCase())
+}
+
+// Même ligne, avec son champ nom écrit proprement
+export function avecNomPropre(ligne) {
+  return ligne ? { ...ligne, nom: nomPropre(ligne.nom) } : ligne
+}
+
 export function formaterMontant(montant, unite = 'F') {
   const nombre = Math.round(Number(montant) || 0)
   const chiffres = Math.abs(nombre).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ESPACE_INSECABLE)

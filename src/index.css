@@ -256,13 +256,6 @@ button:disabled {
   margin-top: 28px;
 }
 
-.page-large {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 var(--marge) calc(var(--hauteur-onglets) + 48px);
-}
-
 .grille {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -270,10 +263,6 @@ button:disabled {
 }
 
 @media (min-width: 900px) {
-  .page-large {
-    padding-bottom: 48px;
-  }
-
   .grille {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -420,10 +409,10 @@ button:disabled {
 }
 
 .onglet-icone {
-  font-size: 24px;
-  line-height: 1;
-  filter: grayscale(0.6);
-  transition: transform 0.25s var(--rebond), filter 0.2s;
+  width: 24px;
+  height: 24px;
+  stroke-width: 1.9;
+  transition: transform 0.25s var(--rebond), stroke-width 0.2s;
 }
 
 .onglet.actif,
@@ -434,7 +423,7 @@ button:disabled {
 
 .onglet.actif .onglet-icone,
 .onglet[aria-current='page'] .onglet-icone {
-  filter: none;
+  stroke-width: 2.4;
   transform: translateY(-2px) scale(1.08);
 }
 
@@ -644,17 +633,6 @@ button:disabled {
   color: var(--feuille);
 }
 
-@media (min-width: 900px) {
-  .page-large .btn:not(.btn-plein) {
-    width: auto;
-    min-width: 220px;
-  }
-
-  .page-large .btn-petit:not(.btn-plein) {
-    min-width: 0;
-  }
-}
-
 /* =========================================================
    7. CHAMPS ET CHOIX EN TUILES
    ========================================================= */
@@ -789,9 +767,10 @@ button:disabled {
   pointer-events: none;
 }
 
-.choix-emoji {
-  font-size: 30px;
-  line-height: 1;
+.choix-icone {
+  width: 30px;
+  height: 30px;
+  color: var(--safran);
 }
 
 .choix:hover {
@@ -1277,8 +1256,8 @@ button:disabled {
 
 .verif-icone {
   flex-shrink: 0;
-  font-size: 28px;
-  line-height: 1;
+  width: 28px;
+  height: 28px;
 }
 
 .verif-titre {
@@ -1903,10 +1882,21 @@ button:disabled {
   text-align: center;
 }
 
-.vide-emoji {
-  font-size: 56px;
-  line-height: 1;
+.vide-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: var(--safran-fond);
+  color: var(--safran);
   animation: flotter 3s ease-in-out infinite;
+}
+
+.vide-icone .icone {
+  width: 36px;
+  height: 36px;
 }
 
 .vide-titre {
@@ -1968,9 +1958,9 @@ button:disabled {
   animation: entrer 0.4s var(--rebond) both;
 }
 
-.resultat-emoji {
-  font-size: 56px;
-  line-height: 1;
+.resultat-icone {
+  width: 56px;
+  height: 56px;
 }
 
 .resultat-titre {
@@ -2077,10 +2067,21 @@ button:disabled {
   background: var(--carte);
 }
 
-.atout-emoji {
+.atout-icone {
+  display: flex;
   flex-shrink: 0;
-  font-size: 30px;
-  line-height: 1;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: var(--safran-fond);
+  color: var(--safran);
+}
+
+.atout-icone .icone {
+  width: 26px;
+  height: 26px;
 }
 
 .atout-titre {
@@ -2161,8 +2162,20 @@ tbody tr:hover {
 }
 
 /* =========================================================
-   28. ADMIN SUR PC (barre latérale + grille de cartes)
+   28. ADMIN (téléphone : une colonne ; PC : barre latérale + contenu)
+   Toute la mise en page admin est ici, nulle part ailleurs.
    ========================================================= */
+.page-admin {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 var(--marge) calc(var(--hauteur-onglets) + 48px);
+}
+
+.page-admin > * + * {
+  margin-top: 16px;
+}
+
 .admin {
   display: block;
 }
@@ -2171,11 +2184,18 @@ tbody tr:hover {
   display: none;
 }
 
+/* min-width: 0 : aucune carte ne pousse la zone de contenu hors de l'écran */
 .admin-contenu {
   min-width: 0;
   padding-top: 8px;
 }
 
+.admin-contenu > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* En-tête commun à tous les onglets : établissement à gauche, date à droite */
 .admin-entete {
   display: flex;
   align-items: center;
@@ -2185,15 +2205,61 @@ tbody tr:hover {
   margin-bottom: 12px;
 }
 
+.admin-entete .mention::first-letter {
+  text-transform: uppercase;
+}
+
+/* Sur téléphone, le logo du haut affiche déjà « Cantine Vatel · Vallon » */
+.admin-entete .surtitre {
+  display: none;
+}
+
 .admin-titre {
   font-size: clamp(32px, 9.5vw, 36px);
 }
 
+.admin-titre + .aide {
+  margin-top: 8px;
+}
+
+/* 6 onglets sur 360 px : libellés plus petits, jamais l'un sur l'autre */
+.admin .onglets {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.admin .onglet {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.admin .onglet-libelle {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 10px;
+  letter-spacing: -0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @media (min-width: 900px) {
+  .page-admin {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .page-admin > .entete {
+    display: none;
+  }
+
+  .page-admin > .admin {
+    margin-top: 0;
+  }
+
   .admin {
     display: grid;
-    grid-template-columns: 280px minmax(0, 1fr);
-    gap: 40px;
+    grid-template-columns: 248px minmax(0, 1fr);
     align-items: start;
   }
 
@@ -2208,16 +2274,36 @@ tbody tr:hover {
     background: var(--carte);
   }
 
+  /* Marge à gauche ET à droite : le contenu ne colle ni à la barre latérale ni à la barre de défilement */
   .admin-contenu {
-    padding: 40px 0;
+    width: 100%;
+    max-width: 1320px;
+    padding: 36px clamp(24px, 3.5vw, 56px) 56px;
+  }
+
+  .admin-entete .surtitre {
+    display: inline;
   }
 
   .admin-titre {
-    font-size: 56px;
+    font-size: clamp(40px, 4.2vw, 56px);
   }
 
   .admin .onglets {
     display: none;
+  }
+
+  /* Sur PC, les boutons gardent une largeur naturelle (sauf .btn-plein, les petits et ceux des lignes) */
+  .page-admin .btn:not(.btn-plein):not(.btn-ligne):not(.btn-petit) {
+    width: auto;
+    min-width: 220px;
+  }
+
+  /* Les 5 cartes-jours des Menus tiennent dès 900 px : bouton à la largeur de la carte */
+  .page-admin .carte-jour .btn {
+    width: 100%;
+    padding-left: 8px;
+    padding-right: 8px;
   }
 }
 
@@ -2372,7 +2458,7 @@ tbody tr:hover {
    ---------------------------------------------------------
    Textes et mise en page
    .page            colonne de 480 px centrée (marges 16 px, place pour les onglets)
-   .page-large      conteneur de 1200 px (ancien admin ; voir .page-admin)
+   .page-admin      page de l'admin : colonne sur téléphone, pleine largeur sur PC
    .grille          grille de cartes : 1 colonne, 2 à partir de 900 px
    .grille-3        avec .grille : 3 colonnes à partir de 900 px
    .large-2         case de grille sur 2 colonnes (PC)
@@ -2398,7 +2484,7 @@ tbody tr:hover {
    .btn-retour      bouton rond « ‹ » en verre
    .onglets         barre d'onglets collée en bas
    .onglet          un onglet (ajouter .actif ou aria-current="page")
-   .onglet-icone    emoji de l'onglet
+   .onglet-icone    icône de l'onglet (safran si actif)
    Boutons
    .btn             bouton principal piment, flèche → à droite, reflet et rebond
    .btn-prix        pilule de prix dans un .btn (retire la flèche)
@@ -2407,7 +2493,7 @@ tbody tr:hover {
    .btn-discret     bouton texte seul
    .btn-danger      bouton texte rouge (actions dangereuses)
    .btn-petit       petit bouton pilule
-   .btn-icone       bouton carré à emoji (cœur…)
+   .btn-icone       bouton carré à icône (fermer, flèches)
    .btn-servi       bouton « Servi » vert de l'admin
    .btn-plein       garde un .btn en pleine largeur sur PC
    Champs
@@ -2419,7 +2505,7 @@ tbody tr:hover {
    .choix-grille    grille de 2 tuiles
    .choix           tuile cochable (<label> avec <input> caché), cochée = contour rouge
    .choix-safran    tuile cochée en contour safran (rôle, opérateur)
-   .choix-emoji     emoji de la tuile
+   .choix-icone     icône safran de la tuile
    Cartes et listes
    .carte           carte sombre arrondie 22 px
    .carte-titre     titre de carte
@@ -2498,18 +2584,18 @@ tbody tr:hover {
    .carte-alerte    grande carte rouge (« Allergies à surveiller »)
    .toast           message flottant en bas (+ .toast-succes / .toast-erreur)
    .vide            état vide centré
-   .vide-emoji / .vide-titre / .vide-texte   contenu de l'état vide
+   .vide-icone / .vide-titre / .vide-texte   bulle d'icône safran, titre et phrase de l'état vide
    .chargement      pile de blocs de chargement
    .squelette       bloc animé (+ .squelette-photo, .squelette-ligne)
    .resultat-service grand résultat du code de retrait
    .resultat-servi / .resultat-deja-servi / .resultat-inconnu   vert, safran, rouge
-   .resultat-emoji / .resultat-titre   contenu du résultat
+   .resultat-icone / .resultat-titre   contenu du résultat
    Accueil avant connexion
    .hero            grande photo d'accueil
    .hero-photo      <img> de fond du hero
    .hero-accroche / .hero-sous-titre   accroche Fraunces et sous-titre
    .atouts          3 atouts (1 colonne, 3 à partir de 600 px)
-   .atout / .atout-emoji / .atout-titre / .atout-texte   un atout
+   .atout / .atout-icone / .atout-titre / .atout-texte   un atout
    Tableaux et admin
    .tableau-defile  enveloppe d'un <table> qui défile sur le côté
    .code-retrait    code de retrait en safran dans un tableau
@@ -2662,4 +2748,430 @@ tbody tr:hover {
   flex-direction: column;
   gap: 14px;
   min-width: 0;
+}
+
+/* =========================================================
+   31. ONGLET « À TABLE » ET FINITIONS ÉLÈVE / PARENT
+   .a-table-salut   « Eh, Awa. On mange quoi ? » au-dessus du plat vedette
+   ========================================================= */
+.a-table-salut {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--creme-2);
+}
+
+.a-table .plat-vedette {
+  margin-top: 8px;
+}
+
+.a-table .titre-section {
+  margin-bottom: 0;
+}
+
+.carrousel > .carte-menu {
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Les noms tapés en minuscules s'affichent avec des majuscules */
+.carte-titre-enfant {
+  text-transform: capitalize;
+}
+
+/* =========================================================
+   32. ICÔNES (lucide-react, via composants/Icone.jsx)
+   Le trait prend la couleur du texte (currentColor) ; la taille suit le texte.
+   .icone           icône en ligne, 1,15 fois la taille du texte
+   .avec-icone      icône + texte côte à côte (dans un .btn, un titre, une mention)
+   .icone-safran / .icone-feuille / .icone-etoile   couleurs de la charte
+   .toast-icone     icône du toast vert ou rouge
+   .lien-lateral-icone   icône d'une entrée de la barre latérale admin
+   ========================================================= */
+.icone {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 1.15em;
+  height: 1.15em;
+  stroke-width: 2.2;
+  vertical-align: -0.2em;
+}
+
+.avec-icone {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.icone-safran { color: var(--safran); }
+.icone-feuille { color: var(--feuille); }
+.icone-etoile { color: var(--safran); fill: var(--safran); }
+
+/* Les boutons ronds ou carrés à icône seule */
+.btn-icone .icone,
+.btn-retour .icone {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2.4;
+}
+
+/* Les alertes : icône alignée sur la première ligne, couleur de l'alerte */
+.alerte > .icone {
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+}
+
+.alerte-erreur > .icone { color: var(--alerte); }
+.alerte-info > .icone,
+.alerte-attention > .icone { color: var(--safran); }
+.alerte-succes > .icone { color: var(--feuille); }
+
+/* Toast : icône puis message, sur une ligne qui peut passer à la ligne */
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.toast-icone {
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+}
+
+/* Prénom en haut à droite : icône safran puis prénom */
+.entete-prenom {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lien-lateral-icone {
+  width: 22px;
+  height: 22px;
+}
+
+.lien-lateral.actif .lien-lateral-icone {
+  color: var(--safran);
+}
+
+/* Pastilles et badges : icône un peu plus petite que le texte majuscule */
+.pastille .icone,
+.badge .icone,
+.allergene .icone {
+  width: 15px;
+  height: 15px;
+  vertical-align: 0;
+}
+
+.allergene .icone {
+  color: var(--safran);
+}
+
+.allergene-danger .icone {
+  color: inherit;
+}
+
+.btn-recharger {
+  gap: 8px;
+}
+
+/* =========================================================
+   33. PROFIL ALIMENTAIRE, RECHARGE LIBRE, MENUS RETIRÉS ET DUPLIQUÉS
+   .carte-jour-retiree   carte d'un jour dont le menu est retiré (photo et texte estompés)
+   .actions-menu         Dupliquer + Retirer (ou Remettre) côte à côte sous le panneau d'édition
+   .btn-copier-semaine   petit bouton « Copier vers la semaine suivante », aligné à gauche
+   ========================================================= */
+.carte-jour-retiree .photo,
+.carte-jour-retiree .nom-plat,
+.carte-jour-retiree .mention,
+.carte-jour-retiree .allergenes {
+  opacity: 0.45;
+}
+
+.actions-menu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.btn-copier-semaine {
+  align-self: flex-start;
+}
+
+/* =========================================================
+   34. CARTE CANTINE VIRTUELLE ET MODE HORS LIGNE
+   .carte-cantine-bloc     la carte + son volet d'informations
+   .carte-cantine          la carte au format carte bancaire (braise, halo piment, liseré safran)
+   .carte-cantine-bas      solde bas : liseré et montant en safran
+   .carte-cantine-motif    guillochis fin et reflet qui passe toutes les 7 s
+   .carte-cantine-puce     puce dorée décorative
+   .carte-cantine-volet    code du jour et allergies, sous la carte
+   .bandeau-hors-ligne     bandeau discret quand le téléphone n'a plus de réseau
+   .icone-alerte           icône rouge (allergies)
+   ========================================================= */
+.icone-alerte { color: var(--alerte); }
+
+.carte-cantine-bloc {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  max-width: 440px;
+}
+
+.carte-cantine {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  aspect-ratio: 1.586;
+  min-height: 196px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: var(--rayon);
+  background:
+    radial-gradient(120% 90% at 100% 0%, var(--piment-halo) 0%, var(--braise-transparent) 55%),
+    radial-gradient(90% 80% at 0% 100%, var(--safran-fond) 0%, var(--braise-transparent) 60%),
+    linear-gradient(150deg, var(--carte-2) 0%, var(--carte) 45%, var(--braise) 100%);
+  box-shadow:
+    inset 0 0 0 1px var(--safran-fond),
+    inset 0 1px 0 var(--trait),
+    0 18px 40px var(--ombre);
+  animation: carte-apparait 0.6s var(--rebond) both;
+}
+
+.carte-cantine-bas {
+  box-shadow:
+    inset 0 0 0 2px var(--safran),
+    0 18px 40px var(--ombre);
+}
+
+.carte-cantine-motif {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    repeating-radial-gradient(circle at 115% 120%, var(--braise-transparent) 0 9px, var(--trait) 9px 10px),
+    repeating-radial-gradient(circle at -20% -30%, var(--braise-transparent) 0 13px, var(--trait) 13px 14px);
+  opacity: 0.55;
+}
+
+.carte-cantine-motif::after {
+  content: '';
+  position: absolute;
+  inset: -40% -60%;
+  background: linear-gradient(105deg, var(--braise-transparent) 42%, var(--reflet) 50%, var(--braise-transparent) 58%);
+  opacity: 0.35;
+  transform: translateX(-60%);
+  animation: carte-reflet 7s ease-in-out 1s infinite;
+}
+
+.carte-cantine-haut {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.carte-cantine-logo {
+  font-size: 22px;
+}
+
+.carte-cantine-logo .surtitre {
+  margin-top: 4px;
+  font-size: 10px;
+}
+
+.carte-cantine-puce {
+  flex-shrink: 0;
+  width: 42px;
+  height: 32px;
+  border-radius: 7px;
+  background:
+    linear-gradient(90deg, var(--braise-transparent) 46%, var(--ticket-trait) 46% 54%, var(--braise-transparent) 54%),
+    linear-gradient(0deg, var(--braise-transparent) 30%, var(--ticket-trait) 30% 36%, var(--braise-transparent) 36% 64%, var(--ticket-trait) 64% 70%, var(--braise-transparent) 70%),
+    linear-gradient(135deg, var(--safran) 0%, var(--ticket) 45%, var(--safran) 100%);
+  box-shadow: inset 0 0 0 1px var(--ticket-trait);
+}
+
+.carte-cantine-solde {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.carte-cantine-libelle {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--creme-3);
+}
+
+.carte-cantine-montant {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: 40px;
+  line-height: 1.05;
+  color: var(--creme);
+  white-space: nowrap;
+}
+
+.carte-cantine-bas .carte-cantine-montant {
+  color: var(--safran);
+}
+
+.carte-cantine-bas-de-carte {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.carte-cantine-identite {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.carte-cantine-nom {
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--creme);
+}
+
+.carte-cantine-statut {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.carte-cantine-pastille {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--safran);
+  color: var(--braise);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.carte-cantine-numero {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--creme-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.carte-cantine-volet {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: -14px 10px 0;
+  padding: 28px 16px 16px;
+  border-radius: 0 0 var(--rayon) var(--rayon);
+  background: var(--carte);
+  color: var(--creme-2);
+  font-size: 15px;
+}
+
+.carte-cantine-ligne {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.carte-cantine-ligne > .icone {
+  margin-top: 3px;
+}
+
+.carte-cantine-ligne strong {
+  color: var(--creme);
+}
+
+.carte-cantine-code {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.carte-cantine-ligne strong.carte-cantine-code {
+  color: var(--safran);
+}
+
+.carte-cantine-allergies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.carte-cantine-validite {
+  margin: 0;
+}
+
+@keyframes carte-apparait {
+  from { opacity: 0; transform: translateY(14px) rotateX(18deg); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes carte-reflet {
+  0%, 70% { transform: translateX(-60%); }
+  100% { transform: translateX(60%); }
+}
+
+@media (max-width: 380px) {
+  .carte-cantine { padding: 16px; }
+  .carte-cantine-montant { font-size: 34px; }
+  .carte-cantine-nom { font-size: 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carte-cantine,
+  .carte-cantine-motif::after {
+    animation: none;
+  }
+}
+
+.bandeau-hors-ligne {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 calc(-1 * var(--marge)) 12px;
+  padding: 10px var(--marge);
+  background: var(--carte-2);
+  color: var(--creme-2);
+  font-size: 14px;
+}
+
+.bandeau-hors-ligne strong {
+  color: var(--safran);
+}
+
+.mention-safran {
+  margin: -4px 0 0;
+  color: var(--safran);
+  font-weight: 700;
 }

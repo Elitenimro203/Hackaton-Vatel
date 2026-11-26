@@ -2,11 +2,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { chargerEnfants } from '../lib/enfants'
 import { chargerMesMouvements } from '../lib/mouvements'
-import { useTempsReel } from '../useTempsReel'
+import { useTempsReel } from '../lib/useTempsReel'
 import ListeMouvements from '../composants/ListeMouvements'
 import Vide from '../composants/Vide'
 import RechargeMobileMoney from './RechargeMobileMoney'
 import RechargeConfirmee from './RechargeConfirmee'
+import Icone from '../composants/Icone'
 import '../recharge.css'
 
 export default function RechargeParent({ idEnfantChoisi, afficherToast, onVoirEnfants }) {
@@ -72,7 +73,7 @@ export default function RechargeParent({ idEnfantChoisi, afficherToast, onVoirEn
       <section className="pile">
         <h1>Recharger</h1>
         <div className="alerte alerte-erreur" role="alert">
-          <span aria-hidden="true">⚠️</span>
+          <Icone nom="alerte" />
           <div>
             <strong>Impossible de charger vos enfants</strong>
             <p>{erreur}</p>
@@ -87,10 +88,10 @@ export default function RechargeParent({ idEnfantChoisi, afficherToast, onVoirEn
       <section className="pile">
         <h1>Recharger</h1>
         <Vide
-          emoji="💳"
+          icone="carte-bancaire"
           titre="Aucun enfant à recharger"
           texte="Liez d’abord le compte CantiJuste de votre enfant pour recharger son solde."
-          libelleBouton="👨‍👩‍👧 Lier mon enfant"
+          libelleBouton="Lier mon enfant"
           onAction={onVoirEnfants}
         />
       </section>
@@ -134,7 +135,7 @@ export default function RechargeParent({ idEnfantChoisi, afficherToast, onVoirEn
         <h2>Ses derniers mouvements</h2>
       </div>
       {mouvements.length === 0 ? (
-        <Vide emoji="🧾" titre="Aucun mouvement pour l’instant" texte="Les recharges et les repas apparaîtront ici." />
+        <Vide icone="recu" titre="Aucun mouvement pour l’instant" texte="Les recharges et les repas apparaîtront ici." />
       ) : (
         <ListeMouvements mouvements={mouvements} />
       )}
