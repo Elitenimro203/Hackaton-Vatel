@@ -123,31 +123,18 @@ export default function AdminCommandes({ afficherToast, onVoirMenus }) {
               <p className="aide">Des réservations justes. Des assiettes bien remplies.</p>
             </div>
             <div className="repas-maj">
-              <span className="mention texte-safran">Dernière mise à jour · {formaterHeure(miseAJour)}</span>
               <strong>
-                {total} réservation{total > 1 ? 's' : ''} confirmée{total > 1 ? 's' : ''}
+                <span className="texte-feuille">{servis} servi{servis > 1 ? 's' : ''}</span> ·{' '}
+                <span className="texte-safran">{restant} à servir</span>
               </strong>
+              <span className="mention">Mis à jour à {formaterHeure(miseAJour)}</span>
             </div>
           </section>
-
-          <div className="grille-chiffres grille-chiffres-3">
-            <div className="chiffre">
-              <span className="chiffre-nombre">{total}</span>
-              <span className="chiffre-libelle">Réservés</span>
-            </div>
-            <div className="chiffre chiffre-feuille">
-              <span className="chiffre-nombre">{servis}</span>
-              <span className="chiffre-libelle">Servis</span>
-            </div>
-            <div className="chiffre chiffre-safran">
-              <span className="chiffre-nombre">{restant}</span>
-              <span className="chiffre-libelle">Restant à servir</span>
-            </div>
-          </div>
 
           {plats.length > 0 && <RepartitionPlats plats={plats} total={total} />}
 
           <div className="commandes-bas">
+            <CarteAllergiesDuJour lignes={allergies} jour={jour} estAujourdhui={estAujourdhui} />
             <ListeConvives
               commandes={commandes}
               peutServir={estAujourdhui}
@@ -155,7 +142,6 @@ export default function AdminCommandes({ afficherToast, onVoirMenus }) {
               onServir={(code) => servir(code, true)}
               onVoirMenus={onVoirMenus}
             />
-            <CarteAllergiesDuJour lignes={allergies} jour={jour} estAujourdhui={estAujourdhui} />
           </div>
         </>
       )}

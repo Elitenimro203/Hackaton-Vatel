@@ -1,6 +1,7 @@
 // Icône d'interface : un nom en français → une icône lucide-react ; taille et couleur viennent des classes de index.css.
 import {
   ArrowRight,
+  Share2,
   Beef,
   Bell,
   CalendarDays,
@@ -9,6 +10,7 @@ import {
   ChartColumn,
   Check,
   ChefHat,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   CircleCheck,
@@ -64,6 +66,7 @@ const ICONES = {
   'calendrier': CalendarDays,
   'calendrier-barre': CalendarX2,
   'carte-bancaire': CreditCard,
+  'chevron-bas': ChevronDown,
   'chronometre': Timer,
   'cloche': Bell,
   'copier': Copy,
@@ -88,6 +91,7 @@ const ICONES = {
   'oeuf': Egg,
   'pilotage': ChartColumn,
   'plus': Plus,
+  'partager': Share2,
   'poisson': Fish,
   'porc': Ham,
   'portefeuille': Wallet,

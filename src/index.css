@@ -2907,7 +2907,7 @@ tbody tr:hover {
    .carte-cantine-bas      solde bas : liseré et montant en safran
    .carte-cantine-motif    guillochis fin et reflet qui passe toutes les 7 s
    .carte-cantine-puce     puce dorée décorative
-   .carte-cantine-volet    code du jour et allergies, sous la carte
+   .carte-cantine-volet    code du jour et allergies : carte à part, juste sous la carte cantine
    .bandeau-hors-ligne     bandeau discret quand le téléphone n'a plus de réseau
    .icone-alerte           icône rouge (allergies)
    ========================================================= */
@@ -3085,9 +3085,9 @@ tbody tr:hover {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin: -14px 10px 0;
-  padding: 28px 16px 16px;
-  border-radius: 0 0 var(--rayon) var(--rayon);
+  margin: 10px 0 0;
+  padding: 16px;
+  border-radius: var(--rayon);
   background: var(--carte);
   color: var(--creme-2);
   font-size: 15px;
@@ -3175,3 +3175,975 @@ tbody tr:hover {
   color: var(--safran);
   font-weight: 700;
 }
+
+/* =========================================================
+   35. PLATS AU CHOIX ET BLOCS REPLIÉS (écrans allégés)
+   .liste-choix          pile des plats au choix d'un jour
+   .choix-plat           un plat en ligne : vignette 64 px, nom, mention, prix (bouton)
+   .choix-plat-reserve   le plat réservé : contour feuille
+   .choix-plat-eteint    un autre plat le jour où l'élève a déjà réservé
+   .choix-plat-vignette  vignette carrée (photo ou icône)
+   .formule-jour         en-tête du jour : date, formule (entrée, dessert, boisson), phrase d'aide
+   .repli                bloc <details> replié : .repli-titre (summary), .repli-contenu ; .repli-carte en carte
+   .plats-du-jour        admin : liste des plats du jour choisi (+ .plat-du-jour.actif)
+   .carte-jour-bouton    admin : toute la carte du jour est un bouton
+   ========================================================= */
+.liste-choix {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.choix-plat {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 88px;
+  padding: 12px;
+  border: 2px solid transparent;
+  border-radius: var(--rayon);
+  background: var(--carte);
+  color: var(--creme);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.25s var(--rebond), background 0.2s, border-color 0.2s;
+}
+
+.choix-plat:hover:not(:disabled) {
+  background: var(--carte-2);
+}
+
+.choix-plat:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.choix-plat-reserve {
+  border-color: var(--feuille);
+}
+
+.choix-plat-eteint {
+  filter: grayscale(0.7) brightness(0.55);
+  cursor: default;
+}
+
+.choix-plat-vignette {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--carte-2);
+  color: var(--creme-3);
+}
+
+.choix-plat-vignette img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.choix-plat-vignette .icone {
+  width: 26px;
+  height: 26px;
+}
+
+.choix-plat-texte {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.choix-plat-nom {
+  font-size: 19px;
+  overflow-wrap: break-word;
+}
+
+.choix-plat .mention,
+.choix-plat .mention-danger {
+  margin: 0;
+  font-size: 14px;
+}
+
+.formule-jour {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.formule-jour-texte {
+  margin: 0;
+  color: var(--creme);
+  font-weight: 600;
+}
+
+.repli {
+  border-radius: var(--rayon);
+  background: var(--carte-2);
+}
+
+.repli-carte {
+  background: var(--carte);
+}
+
+.carte .repli-carte {
+  background: var(--carte-2);
+}
+
+.carte .repli-action {
+  background: var(--carte);
+}
+
+.repli-titre {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px 16px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.repli-titre::-webkit-details-marker {
+  display: none;
+}
+
+.repli-titre > span:first-of-type {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.repli-titre .mention {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.repli-icone {
+  flex: none;
+  color: var(--creme-3);
+  transition: transform 0.2s;
+}
+
+.repli[open] .repli-icone {
+  transform: rotate(180deg);
+}
+
+.repli-action {
+  flex: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--carte-2);
+  color: var(--creme);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.repli[open] .repli-action {
+  display: none;
+}
+
+.repli-contenu {
+  padding: 4px 16px 16px;
+}
+
+.plats-du-jour {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.plat-du-jour {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border: 2px solid transparent;
+  border-radius: 18px;
+  background: var(--carte-2);
+}
+
+.plat-du-jour.actif {
+  border-color: var(--safran);
+}
+
+.plat-du-jour .choix-plat-vignette {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--carte);
+}
+
+.plat-du-jour .choix-plat-nom {
+  font-size: 17px;
+}
+
+.plat-du-jour .mention {
+  margin: 0;
+}
+
+.plat-du-jour .btn {
+  padding: 0 14px;
+  background: var(--carte);
+}
+
+.carte-jour-bouton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--creme);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.carte-jour .carte-jour-bouton .photo {
+  aspect-ratio: 4 / 3;
+}
+
+.carte-jour-bouton .mention {
+  margin: 0;
+}
+
+/* =========================================================
+   36. COMPTE (panneau ouvert depuis la pastille du prénom, en haut à droite)
+   .entete-compte       pastille du prénom devenue bouton : initiales + prénom
+   .entete-avatar       petit rond des initiales dans la pastille
+   .fenetre-compte      panneau du compte (avec .fenetre-bas)
+   .compte-entete       initiales en grand, nom, « Élève · e-mail », centrés
+   .compte              carte sans marge intérieure qui porte les rangées d'action
+   .compte-avatar       rond des initiales, safran (.compte-avatar-grand : 72 px)
+   .compte-deconnexion  rangée « Se déconnecter », toute la largeur
+   ========================================================= */
+.compte {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.compte-avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--safran-fond);
+  color: var(--safran);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.compte-detail {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compte-deconnexion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 16px;
+  border: 0;
+  background: none;
+  color: var(--creme-2);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.compte-deconnexion:hover:not(:disabled) {
+  background: var(--carte-2);
+  color: var(--creme);
+}
+
+.compte-deconnexion:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.entete-compte {
+  gap: 8px;
+  padding: 5px 14px 5px 5px;
+  border: 1px solid var(--trait);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.entete-compte:hover,
+.entete-compte[aria-expanded='true'] {
+  background: var(--carte-2);
+  border-color: var(--safran);
+}
+
+.entete-avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--safran-fond);
+  color: var(--safran);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.entete-prenom-texte {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fenetre-compte {
+  gap: 20px;
+}
+
+.compte-entete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: 8px;
+  text-align: center;
+}
+
+.compte-avatar-grand {
+  width: 72px;
+  height: 72px;
+  margin-bottom: 6px;
+  font-size: 24px;
+}
+
+.fenetre-bas .compte-nom-grand {
+  font-size: 26px;
+}
+
+.compte-entete .compte-detail {
+  max-width: 100%;
+}
+
+/* =========================================================
+   37. FORMULAIRE DU PROFIL ALIMENTAIRE (panneau du bas)
+   .resume-profil       ligne « Allergies et régime · Modifier » en bouton
+   .fenetre-profil      panneau du formulaire (avec .fenetre-bas)
+   .groupe-profil       fieldset sans cadre (Tes allergies, Ton régime)
+   .etiquettes          liste des allergies déclarées
+   .etiquette           une allergie, avec .etiquette-retirer (croix ronde)
+   .champ-ajout         champ texte + bouton Ajouter sur une ligne
+   .suggestions         raccourcis « + Arachide » pour les allergènes suivis
+   ========================================================= */
+.resume-profil {
+  width: 100%;
+  border: 0;
+  color: var(--creme);
+  font: inherit;
+  text-align: left;
+}
+
+.resume-profil:hover .repli-action {
+  background: var(--safran);
+  color: var(--braise);
+}
+
+.fenetre-profil {
+  gap: 18px;
+}
+
+.formulaire-profil {
+  gap: 22px;
+}
+
+.groupe-profil {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.groupe-profil legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.etiquettes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.etiquette {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 4px 4px 4px 12px;
+  border: 1px solid var(--alerte-bord);
+  border-radius: 999px;
+  background: var(--alerte-fond);
+  color: var(--creme);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.etiquette > .icone {
+  color: var(--alerte);
+}
+
+.etiquette-retirer {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--carte-2);
+  color: var(--creme-2);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.etiquette-retirer:hover {
+  background: var(--alerte);
+  color: var(--creme);
+}
+
+.champ-ajout {
+  display: flex;
+  gap: 8px;
+}
+
+.champ-ajout input {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-ajouter {
+  width: auto;
+  flex: none;
+  padding: 0 18px;
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.suggestions .mention {
+  margin: 0;
+}
+
+.suggestion {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px dashed var(--reflet);
+  border-radius: 999px;
+  background: none;
+  color: var(--creme-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.suggestion:hover {
+  border-color: var(--safran);
+  color: var(--safran);
+}
+
+.actions-profil {
+  gap: 8px;
+}
+
+/* Formulaire du profil (suite) : tuile « Autre régime » sur toute la largeur, barre Enregistrer collée en bas du panneau */
+.choix-large {
+  grid-column: 1 / -1;
+}
+
+.barre-enregistrer {
+  position: sticky;
+  bottom: calc(-24px - env(safe-area-inset-bottom));
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 -20px calc(-24px - env(safe-area-inset-bottom));
+  padding: 14px 20px calc(16px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--trait);
+  background: var(--braise);
+}
+
+.barre-enregistrer .mention {
+  margin: 0;
+}
+
+/* =========================================================
+   38. PASSEPORT ALIMENTAIRE (même famille que la carte cantine)
+   .passeport               carte braise à halo, guillochis (.carte-cantine-motif) et liseré
+   .passeport-alerte        halo et liseré rouges : au moins une allergie
+   .passeport-ok            halo vert : rien à surveiller
+   .passeport-compact       aperçu en tête du formulaire (sans le bas de carte)
+   .passeport-bouton        la carte entière ouvre le formulaire
+   .passeport-sceau         médaillon rond, doré
+   .passeport-titre         « Sans arachide et kiwi. » en Fraunces italique
+   .passeport-pastille      allergie (-allergie), régime (-regime), rien (-ok)
+   ========================================================= */
+.passeport {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 440px;
+  padding: 18px 20px 20px;
+  border: 0;
+  border-radius: var(--rayon);
+  color: var(--creme);
+  font: inherit;
+  text-align: left;
+  background:
+    radial-gradient(120% 90% at 100% 0%, var(--feuille-fond) 0%, var(--braise-transparent) 55%),
+    radial-gradient(90% 80% at 0% 100%, var(--safran-fond) 0%, var(--braise-transparent) 60%),
+    linear-gradient(150deg, var(--carte-2) 0%, var(--carte) 45%, var(--braise) 100%);
+  box-shadow:
+    inset 0 0 0 1px var(--feuille-fond),
+    inset 0 1px 0 var(--trait),
+    0 18px 40px var(--ombre);
+  animation: carte-apparait 0.6s var(--rebond) both;
+}
+
+.passeport-alerte {
+  background:
+    radial-gradient(120% 90% at 100% 0%, var(--piment-halo) 0%, var(--braise-transparent) 55%),
+    radial-gradient(90% 80% at 0% 100%, var(--alerte-fond) 0%, var(--braise-transparent) 60%),
+    linear-gradient(150deg, var(--carte-2) 0%, var(--carte) 45%, var(--braise) 100%);
+  box-shadow:
+    inset 0 0 0 1px var(--alerte-bord),
+    inset 0 1px 0 var(--trait),
+    0 18px 40px var(--ombre);
+}
+
+.passeport-compact {
+  gap: 10px;
+  padding: 16px 18px;
+  box-shadow: inset 0 0 0 1px var(--trait);
+  animation: none;
+}
+
+.passeport-compact.passeport-alerte {
+  box-shadow: inset 0 0 0 1px var(--alerte-bord);
+}
+
+.passeport-bouton {
+  cursor: pointer;
+  transition: transform 0.25s var(--rebond);
+}
+
+.passeport-bouton:active {
+  transform: scale(0.98);
+}
+
+.passeport-bouton:focus-visible {
+  outline: 2px solid var(--safran);
+  outline-offset: 3px;
+}
+
+.passeport-haut,
+.passeport-bas {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.passeport-bas {
+  align-items: flex-end;
+}
+
+.passeport-surtitre {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--safran);
+}
+
+.passeport-sceau {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--safran) 0%, var(--ticket) 45%, var(--safran) 100%);
+  color: var(--braise);
+  font-size: 18px;
+  box-shadow: inset 0 0 0 1px var(--ticket-trait), 0 4px 14px var(--ombre);
+}
+
+.passeport-compact .passeport-sceau {
+  width: 32px;
+  height: 32px;
+  font-size: 15px;
+}
+
+.passeport-titre {
+  font-family: var(--police-plat);
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100;
+  font-size: clamp(26px, 8vw, 32px);
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+}
+
+.passeport-compact .passeport-titre {
+  font-size: 22px;
+}
+
+.passeport-pastilles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.passeport-pastille {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.passeport-pastille-allergie {
+  background: var(--alerte);
+  color: var(--creme);
+  box-shadow: 0 4px 12px var(--piment-fond);
+}
+
+.passeport-pastille-regime {
+  background: var(--safran);
+  color: var(--braise);
+}
+
+.passeport-pastille-ok {
+  background: var(--feuille-fond);
+  color: var(--feuille);
+}
+
+.passeport-identite {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.passeport-nom {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.passeport-modifier {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--creme);
+  color: var(--braise);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* Tuiles du formulaire : l'allergie cochée prend le halo rouge du passeport, le régime choisi le halo safran */
+.formulaire-profil .choix-allergie:has(input:checked) {
+  background:
+    radial-gradient(120% 120% at 100% 0%, var(--piment-halo) 0%, var(--braise-transparent) 60%),
+    var(--carte);
+}
+
+.formulaire-profil .choix-safran:has(input:checked) {
+  background:
+    radial-gradient(120% 120% at 100% 0%, var(--safran-fond) 0%, var(--braise-transparent) 70%),
+    var(--carte-2);
+}
+
+/* =========================================================
+   39. LIEN PARENT ↔ ENFANT PAR CODE
+   .lien-parent            bloc « Ta famille sur CantiJuste » du profil élève
+   .parent-lie             un parent lié : initiales, nom, coche verte
+   .invitation-parent      carte « Invite ton parent » (icône, texte, bouton)
+   .invitation-parent-icone médaillon safran (aussi en tête de l'accueil parent)
+   .ticket-invitation      le code sur un ticket crème (avec .ticket)
+   .tuile-ajout            « Ajouter un enfant » : tuile en pointillés, plus safran, chevron
+   .etapes-code            les 3 étapes numérotées côté parent
+   .champ-code             saisie du code en grandes lettres espacées
+   ========================================================= */
+.parents-lies {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.parent-lie {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--rayon);
+  background: var(--carte);
+}
+
+.parent-lie-texte {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.parent-lie-texte .mention {
+  margin: 0;
+}
+
+.invitation-parent {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border-radius: var(--rayon);
+  background:
+    radial-gradient(110% 90% at 100% 0%, var(--safran-fond) 0%, var(--braise-transparent) 60%),
+    linear-gradient(150deg, var(--carte-2) 0%, var(--carte) 60%);
+  box-shadow: inset 0 0 0 1px var(--trait);
+}
+
+.invitation-parent-texte {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.invitation-parent-icone {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--safran) 0%, var(--ticket) 45%, var(--safran) 100%);
+  color: var(--braise);
+  font-size: 22px;
+  box-shadow: inset 0 0 0 1px var(--ticket-trait), 0 6px 18px var(--ombre);
+}
+
+.ticket-invitation {
+  margin: 0;
+  padding: 28px 20px 22px;
+}
+
+.ticket-invitation .ticket-code {
+  margin: 10px 0 6px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.12em;
+}
+
+.mention-ticket {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ticket-texte);
+  opacity: 0.7;
+}
+
+.ticket-consigne {
+  margin: 0 0 16px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.ticket-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-ticket {
+  background: var(--ticket-texte);
+  color: var(--ticket);
+  box-shadow: none;
+}
+
+.btn-ticket::after {
+  content: none;
+}
+
+.btn-lien-ticket {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  background: none;
+  color: var(--ticket-texte);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.tuile-ajout {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 76px;
+  padding: 14px 16px;
+  border: 1.5px dashed var(--reflet);
+  border-radius: var(--rayon);
+  background: none;
+  color: var(--creme);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.25s var(--rebond);
+}
+
+.tuile-ajout:hover {
+  border-color: var(--safran);
+  background: var(--safran-fond);
+}
+
+.tuile-ajout:active {
+  transform: scale(0.98);
+}
+
+.tuile-ajout-icone {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--safran);
+  color: var(--braise);
+  font-size: 20px;
+}
+
+.tuile-ajout-texte {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tuile-ajout-texte .mention {
+  margin: 0;
+}
+
+.tuile-ajout-fleche {
+  color: var(--creme-3);
+}
+
+.accueil-parent {
+  gap: 14px;
+}
+
+.etapes-code {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--creme-2);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.etapes-code li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.etape-numero {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--safran-fond);
+  color: var(--safran);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.champ .champ-code {
+  min-height: 68px;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-align: center;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.champ .champ-code::placeholder {
+  letter-spacing: 0.2em;
+  color: var(--creme-3);
+}
+

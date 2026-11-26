@@ -37,11 +37,11 @@ where r.id = rangs.id;
 -- 2. LA SEMAINE PROCHAINE : réservations des convives de l'historique, déjà réparties sur les créneaux
 -- =====================================================================
 with jours as (
-  select m.id as menu_id, m.jour, m.prix, m.prix_employe,
+  select distinct m.jour,
     (array[190, 180, 205, 196, 184])[extract(isodow from m.jour)::integer] - 8
       + abs(hashtext('semaine-' || m.jour)) % 9 as nombre_du_jour
   from public.menus m
-  where m.jour between date_trunc('week', (now() at time zone 'Africa/Abidjan')::date)::date + 7
+  where not m.retire and m.jour between date_trunc('week', (now() at time zone 'Africa/Abidjan')::date)::date + 7
                    and date_trunc('week', (now() at time zone 'Africa/Abidjan')::date)::date + 11
 ),
 tirage as (
@@ -49,7 +49,7 @@ tirage as (
     j.*,
     p.id as eleve_id,
     p.type_usager,
-    row_number() over (partition by j.menu_id order by md5(j.jour || '-' || p.email)) as rang,
+    row_number() over (partition by j.jour order by md5(j.jour || '-' || p.email)) as rang,
     abs(hashtext('heure-' || j.jour || p.email)) % 240 as minutes
   from jours j
   cross join public.profiles p
@@ -58,10 +58,10 @@ tirage as (
 insert into public.reservations (eleve_id, menu_id, statut, code_retrait, montant, alternative, creneau, cree_le)
 select
   t.eleve_id,
-  t.menu_id,
+  choix.id,
   'reservee',
   (3000 + t.rang)::text,
-  case when t.type_usager = 'employe' then t.prix_employe else t.prix end,
+  case when t.type_usager = 'employe' then choix.prix_employe else choix.prix end,
   t.rang % 6 = 0,
   case
     when ((t.rang - 0.5) / t.nombre_du_jour) < 20.5 / 300 then time '11:50'
@@ -74,6 +74,14 @@ select
   end,
   (now() at time zone 'Africa/Abidjan')::date - 1 + time '09:00' + make_interval(mins => t.minutes)
 from tirage t
+-- Chaque convive prend un des plats du jour (même tirage à chaque relance)
+cross join lateral (
+  select m.id, m.prix, m.prix_employe from public.menus m
+  where m.jour = t.jour and not m.retire
+  order by m.id
+  offset abs(hashtext('choix-' || t.jour || t.eleve_id)) % (select count(*) from public.menus m2 where m2.jour = t.jour and not m2.retire)
+  limit 1
+) choix
 where t.rang <= t.nombre_du_jour
 on conflict do nothing;
 

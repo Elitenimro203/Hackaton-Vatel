@@ -71,7 +71,7 @@ export default function App() {
   if (erreurProfil) {
     return (
       <main className="page">
-        <EnTete nom="" />
+        <EnTete />
         <div className="alerte alerte-erreur" role="alert">
           <strong>Impossible de charger ton profil</strong>
           <p>{erreurProfil}</p>
@@ -94,7 +94,7 @@ export default function App() {
   return (
     <main className={profil.role === 'admin' ? 'page-admin' : 'page'}>
       <BandeauHorsLigne />
-      <EnTete nom={profil.nom} />
+      <EnTete profil={profil} afficherToast={afficherToast} />
       <EcranRole profil={profil} afficherToast={afficherToast} onProfilModifie={rechargerProfil} />
       {toast}
     </main>

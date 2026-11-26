@@ -30,14 +30,15 @@ Projet réalisé seul pendant le hackathon « Application de gestion de cantine 
 ## Fonctionnalités
 
 ### Élève ou employé (4 onglets)
-- **À table** : le plat du jour en grand, la semaine en carrousel, pastille rouge si un plat ne convient pas.
-- **Menu** : la semaine du lundi au vendredi, réservation en 3 touchers, choix du créneau, ticket crème avec le code de retrait « CJ · 0812 ».
+- **À table** : le prochain repas à réserver, un plat qui lui convient en grand et les autres plats au choix du jour.
+- **4 plats au choix chaque jour** (plus entrée, dessert et boisson) : ceux qui vont à son profil passent en premier, un seul repas par jour.
+- **Menu** : la semaine du lundi au vendredi, les plats au choix de chaque jour, réservation en 3 touchers, choix du créneau, ticket crème avec le code de retrait « CJ · 0812 ».
 - **Mes repas** : solde en direct, tickets à venir (annulables jusqu'à la veille 18 h), repas servis à noter en étoiles, historique des mouvements, recharge Mobile Money.
-- **Profil** : **carte cantine virtuelle** (titulaire, tarif, solde, code du jour et allergies d'un seul regard au comptoir), profil alimentaire, déconnexion.
+- **Profil** : **carte cantine virtuelle** (titulaire, tarif, solde, code du jour et allergies d'un seul regard au comptoir), profil alimentaire en une ligne qui ouvre un **formulaire** : allergies écrites librement (étiquettes, les 5 allergènes suivis reconnus même tapés « cacahuètes »), régime proposé ou écrit à la main (« Pas de bœuf »), signalé sur les plats dont le nom le laisse penser. La déconnexion se trouve derrière le prénom, en haut à droite, sur tous les écrans.
 - Bandeau **« Solde bas »** sous 2 000 F.
 
 ### Parent (3 onglets)
-- **Mes enfants** : la carte cantine de chaque enfant, alertes allergie en temps réel, profil alimentaire modifiable, lier ou délier un compte par e-mail.
+- **Mes enfants** : la carte cantine de chaque enfant, alertes allergie en temps réel, profil alimentaire modifiable, ajouter un enfant avec le **code à 6 caractères qu'il crée dans son Profil** (24 h, un seul usage : sans le téléphone de l'enfant, personne ne peut le suivre), ou le délier.
 - **Recharger** : Mobile Money (Wave, Orange Money, MTN MoMo), montants rapides ou libres de 500 à 50 000 F.
 - **Ce qu'il mange** : les repas réservés, servis et notés par l'enfant.
 
@@ -101,7 +102,7 @@ supabase/
 ## Lancer le projet
 
 1. **Supabase** : créer un projet, puis dans *SQL Editor* coller `supabase/schema.sql` et l'exécuter. Dans *Authentication > Providers > Email*, désactiver « Confirm email ».
-2. **Comptes de démo** : créer les 3 comptes depuis l'écran d'inscription de l'appli, puis exécuter dans l'ordre `donnees_demo.sql`, `historique_demo.sql`, `donnees_file_attente.sql`, `donnees_stocks.sql`, `donnees_avis.sql`. Le matin d'une démo, relancer `donnees_rafraichir_demo.sql` (jours passés servis, ticket CJ · 0812 du jour).
+2. **Comptes de démo** : créer les 3 comptes depuis l'écran d'inscription de l'appli, puis exécuter dans l'ordre `donnees_demo.sql`, `historique_demo.sql`, `donnees_menus_semaine.sql` (4 plats au choix par jour), `donnees_file_attente.sql`, `donnees_stocks.sql`, `donnees_avis.sql`. Le matin d'une démo, relancer `donnees_rafraichir_demo.sql` (jours passés servis, ticket CJ · 0812 du jour).
 3. **Local** :
    ```bash
    cp .env.example .env      # puis coller l'URL et la clé publique Supabase
